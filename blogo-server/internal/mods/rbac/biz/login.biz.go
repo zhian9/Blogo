@@ -97,6 +97,15 @@ func (l *Login) ParseUserID(c *gin.Context) (string, error) {
 		return "", err
 	} else if ok {
 		userCache := util.ParseUserCache(userCacheVal)
+		// 旧缓存可能缺少 RoleCodes，修补后回写
+		if len(userCache.RoleIDs) > 0 && len(userCache.RoleCodes) == 0 {
+			_, roleCodes, err := l.UserBIZ.GetRoleIDsAndCodes(ctx, userID)
+			if err == nil && len(roleCodes) > 0 {
+				userCache.RoleCodes = roleCodes
+				_ = l.Cache.Set(ctx, config.CacheNSForUser, userID, userCache.String(),
+					time.Duration(config.C.Dictionary.UserCacheExp)*time.Hour)
+			}
+		}
 		if userCache.HasAnyRoleCode([]string{"super_admin"}) {
 			c.Request = c.Request.WithContext(util.NewIsRootUser(ctx))
 		}
