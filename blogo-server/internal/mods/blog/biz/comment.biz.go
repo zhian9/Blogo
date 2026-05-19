@@ -9,6 +9,7 @@ package biz
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/zhian9/blogo-server/internal/mods/blog/dal"
@@ -29,14 +30,18 @@ type Comment struct {
 
 // canModerateComments 检查当前用户是否有评论管理权限。
 func canModerateComments(ctx context.Context) bool {
-	if util.FromIsRootUser(ctx) {
+	isRoot := util.FromIsRootUser(ctx)
+	userCache := util.FromUserCache(ctx)
+	fmt.Printf("[DEBUG canModerate] isRoot=%v roleIDs=%v roleCodes=%v\n", isRoot, userCache.RoleIDs, userCache.RoleCodes)
+	if isRoot {
 		return true
 	}
-	userCache := util.FromUserCache(ctx)
 	if len(userCache.RoleIDs) == 0 {
 		return false
 	}
-	return userCache.HasAnyRoleCode(commentModeratorRoles)
+	hasRole := userCache.HasAnyRoleCode(commentModeratorRoles)
+	fmt.Printf("[DEBUG canModerate] hasRole=%v moderatorRoles=%v\n", hasRole, commentModeratorRoles)
+	return hasRole
 }
 
 // Query 查询评论列表（支持嵌套、分页）。
