@@ -113,7 +113,7 @@ func start(cmd *cobra.Command, args []string) error {
 // init registers flags for the start command.
 func init() {
 	// 定义标志（flags）
-	startCmd.Flags().StringP("workdir", "d", "configs", "Working directory")
+	startCmd.Flags().StringP("workdir", "d", "../configs/server", "Working directory")
 	startCmd.Flags().StringP("config", "c", "dev", "Runtime configuration files or directory (relative to workdir, multiple separated by commas)")
 	startCmd.Flags().StringP("static", "s", "", "Static files directory")
 	startCmd.Flags().Bool("daemon", false, "Run as a daemon")

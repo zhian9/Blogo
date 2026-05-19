@@ -156,7 +156,6 @@ func loadEnvFileReliable() error {
 	// 尝试多个可能的 .env 文件路径
 	possiblePaths := []string{
 		".env",                         // 当前目录
-		"configs/.env",                 // configs 目录
 		filepath.Join(".", ".env"),     // 当前目录
 		filepath.Join("..", ".env"),    // 上级目录
 		filepath.Join("../..", ".env"), // 上两级目录
