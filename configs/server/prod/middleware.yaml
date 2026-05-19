@@ -48,6 +48,13 @@ middleware:
       - "/api/v1/article"
       - "/api/v1/comments"
       - "/api/v1/subscribe"
+      - "/api/v1/favorites"     # 收藏（自助）
+      - "/api/v1/users/"        # 关注/粉丝（自助）
+      - "/api/v1/notifications" # 通知（自助）
+      - "/api/v1/images/"       # 图片（自助）
+      - "/api/v1/settings/all"  # 公共设置
+      - "/api/v1/tags/all"      # 公共标签
+      - "/api/v1/categories/all" # 公共分类
     signing_method: "HS512"
     signing_key: "${JWT_SIGNING_KEY}"
     old_signing_key: ""
@@ -94,6 +101,13 @@ middleware:
       - "/api/v1/article"
       - "/api/v1/comments"
       - "/api/v1/subscribe"
+      - "/api/v1/favorites"     # 收藏（自助）
+      - "/api/v1/users/"        # 关注/粉丝（自助）
+      - "/api/v1/notifications" # 通知（自助）
+      - "/api/v1/images/"       # 图片（自助）
+      - "/api/v1/settings/all"  # 公共设置
+      - "/api/v1/tags/all"      # 公共标签
+      - "/api/v1/categories/all" # 公共分类
     load_thread: 2
     auto_load_interval: 3
     model_file: "rbac_model.conf"
