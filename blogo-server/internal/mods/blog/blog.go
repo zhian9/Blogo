@@ -184,43 +184,10 @@ func (b *Blog) RegisterV1PublicRouters(ctx context.Context, v1 *gin.RouterGroup)
 	}
 	return nil
 }
+// RegisterV1Routers 注册博客模块的 V1 版本 API 路由（仅管理端）。
+func (b *Blog) RegisterV1Routers(ctx context.Context, v1 *gin.RouterGroup) error {
 // RegisterV1Routers 注册博客模块的 V1 版本 API 路由。
 // 分为：管理接口（需认证）和公开接口（无需认证）。
-func (b *Blog) RegisterV1Routers(ctx context.Context, v1 *gin.RouterGroup) error {
-	// ========== 公开接口（无需认证）==========
-	public := v1.Group("")
-	{
-		// 文章
-		public.GET("/articles/slug/:slug", b.ArticleAPI.GetBySlug)
-		public.GET("/archives", b.ArticleAPI.GetArchive)
-		public.POST("/articles/:id/views", b.ArticleAPI.IncViews)
-
-		// 评论
-
-		// 页面
-		public.GET("/users/:id/profile", b.ProfileAPI.GetDashboard)
-		public.GET("/pages/slug/:slug", b.PageAPI.GetBySlug)
-
-		// 友情链接
-		public.GET("/friend-links/all", b.FriendLinkAPI.GetAll)
-		public.GET("/seo/articles/:slug", b.SEOAPI.ArticleMeta)
-
-		// 标签 & 分类（公开列表）
-		public.GET("/tags/all", b.TagAPI.GetAll)
-		public.GET("/categories/all", b.CategoryAPI.GetAll)
-
-		// 统计
-		public.GET("/statistics/latest", b.StatisticsAPI.GetLatest)
-
-		// 图片
-		public.GET("/images/category/:category", b.ImageAPI.GetByCategory)
-		public.GET("/images/:id/file", b.ImageAPI.ServeFile)
-
-		// 订阅
-		public.POST("/subscribe", b.SubscriberAPI.Subscribe)
-		public.GET("/subscribe/unsubscribe", b.SubscriberAPI.UnsubscribeByEmail)
-	}
-
 	// ========== 管理接口（需认证，由中间件保护）==========
 	// 文章管理
 	article := v1.Group("/articles")
