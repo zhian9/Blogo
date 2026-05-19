@@ -11,6 +11,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/zhian9/blogo-server/internal/config"
 	"github.com/zhian9/blogo-server/internal/mods/rbac/schema"
 	"github.com/zhian9/blogo-server/pkg/crypto/hash"
 	"github.com/zhian9/blogo-server/pkg/logging"
@@ -126,7 +127,7 @@ func createAdminUser(ctx context.Context, db *gorm.DB, allRoles map[string]strin
 	}
 
 	adminUser := schema.User{
-		ID:        util.NewXID(),
+		ID:        config.C.General.Root.ID,
 		Username:  seedAdminUsername,
 		Name:      "系统管理员",
 		Password:  hashedPwd,
