@@ -51,7 +51,7 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE:       ${MYSQL_DATABASE:-go_admin}
+      MYSQL_DATABASE:       ${MYSQL_DATABASE:-blogo}
       MYSQL_USER:           ${MYSQL_USER:-blogo}
       MYSQL_PASSWORD:       ${MYSQL_PASSWORD}
     command: >
