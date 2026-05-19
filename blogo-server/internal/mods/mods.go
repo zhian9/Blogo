@@ -80,8 +80,9 @@ func (a *Mods) RegisterRouters(ctx context.Context, e *gin.Engine) error {
 	}
 
 	// 博客公开接口（无需认证，注册在 Auth 之前）
-	v1.POST("/comments", a.Blog.CommentAPI.Create)
-	v1.GET("/articles/:id/comments", a.Blog.CommentAPI.GetByArticleID)
+	if err := a.Blog.RegisterV1PublicRouters(ctx, v1); err != nil {
+		return err
+	}
 
 	// public
 	if err := a.RBAC.RegisterV1PublicRouters(ctx, v1); err != nil {

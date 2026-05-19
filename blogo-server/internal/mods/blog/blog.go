@@ -146,6 +146,44 @@ func (b *Blog) initDefaultSettings(ctx context.Context) error {
 	return b.DB.CreateInBatches(defaultSettings, 10).Error
 }
 
+// RegisterV1PublicRouters 注册博客公开接口（无需认证，注册在 Auth 之前）。
+func (b *Blog) RegisterV1PublicRouters(ctx context.Context, v1 *gin.RouterGroup) error {
+	public := v1.Group("")
+	{
+		// 文章
+		public.GET("/articles/slug/:slug", b.ArticleAPI.GetBySlug)
+		public.GET("/archives", b.ArticleAPI.GetArchive)
+		public.POST("/articles/:id/views", b.ArticleAPI.IncViews)
+
+		// 评论
+		public.POST("/comments", b.CommentAPI.Create)
+		public.GET("/articles/:id/comments", b.CommentAPI.GetByArticleID)
+
+		// 页面
+		public.GET("/users/:id/profile", b.ProfileAPI.GetDashboard)
+		public.GET("/pages/slug/:slug", b.PageAPI.GetBySlug)
+
+		// 友情链接
+		public.GET("/friend-links/all", b.FriendLinkAPI.GetAll)
+		public.GET("/seo/articles/:slug", b.SEOAPI.ArticleMeta)
+
+		// 标签分类
+		public.GET("/tags/all", b.TagAPI.GetAll)
+		public.GET("/categories/all", b.CategoryAPI.GetAll)
+
+		// 统计
+		public.GET("/statistics/latest", b.StatisticsAPI.GetLatest)
+
+		// 图片
+		public.GET("/images/category/:category", b.ImageAPI.GetByCategory)
+		public.GET("/images/:id/file", b.ImageAPI.ServeFile)
+
+		// 订阅
+		public.POST("/subscribe", b.SubscriberAPI.Subscribe)
+		public.GET("/subscribe/unsubscribe", b.SubscriberAPI.UnsubscribeByEmail)
+	}
+	return nil
+}
 // RegisterV1Routers 注册博客模块的 V1 版本 API 路由。
 // 分为：管理接口（需认证）和公开接口（无需认证）。
 func (b *Blog) RegisterV1Routers(ctx context.Context, v1 *gin.RouterGroup) error {
