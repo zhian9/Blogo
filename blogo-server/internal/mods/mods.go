@@ -79,6 +79,10 @@ func (a *Mods) RegisterRouters(ctx context.Context, e *gin.Engine) error {
 		authGroup.GET("/check-email", pwdAPI.CheckEmail)
 	}
 
+	// 博客公开接口（无需认证，注册在 Auth 之前）
+	v1.POST("/comments", a.Blog.CommentAPI.Create)
+	v1.GET("/articles/:id/comments", a.Blog.CommentAPI.GetByArticleID)
+
 	// public
 	if err := a.RBAC.RegisterV1PublicRouters(ctx, v1); err != nil {
 		return err

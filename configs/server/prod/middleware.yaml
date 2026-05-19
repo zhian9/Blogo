@@ -46,7 +46,6 @@ middleware:
       - "/api/v1/archives"
       - "/api/v1/articles"
       - "/api/v1/article"
-      - "/api/v1/comments"
       - "/api/v1/subscribe"
       - "/api/v1/favorites"     # 收藏（自助）
       - "/api/v1/users/"        # 关注/粉丝（自助）
@@ -99,7 +98,6 @@ middleware:
       - "/api/v1/archives"
       - "/api/v1/articles"
       - "/api/v1/article"
-      - "/api/v1/comments"
       - "/api/v1/subscribe"
       - "/api/v1/favorites"     # 收藏（自助）
       - "/api/v1/users/"        # 关注/粉丝（自助）

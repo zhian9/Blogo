@@ -98,7 +98,6 @@ middleware:
       - "/api/v1/archives"
       - "/api/v1/articles"  # 公开的列表 + 详情 + 评论
       - "/api/v1/article"   # 公开的详情（向后兼容）
-      - "/api/v1/comments"  # 公开的评论创建
       - "/api/v1/subscribe" # 公开的邮件订阅/退订
 
     # JWT 签名算法（推荐 HS512 更安全）
@@ -193,7 +192,6 @@ middleware:
       - "/api/v1/archives"
       - "/api/v1/articles"
       - "/api/v1/article"
-      - "/api/v1/comments"
       - "/api/v1/subscribe"
       - "/api/v1/favorites"     # 收藏（自助）
       - "/api/v1/users/"        # 关注/粉丝（自助）
