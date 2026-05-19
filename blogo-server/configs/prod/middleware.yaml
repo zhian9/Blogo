@@ -1,0 +1,100 @@
+# Blogo — 生产环境中间件配置
+middleware:
+  cors:
+    enable: true
+    allow_origins:
+      - "${CORS_ALLOW_ORIGINS}"
+    allow_methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "PATCH"
+      - "DELETE"
+      - "HEAD"
+      - "OPTIONS"
+    allow_headers:
+      - "Content-Type"
+      - "Authorization"
+      - "X-Request-Id"
+      - "X-Trace-Id"
+    max_age: 86400
+    allow_wildcard: false
+    allow_web_sockets: true
+    allow_files: true
+
+  recovery:
+    skip: 3
+
+  trace:
+    request_header_key: "X-Request-Id"
+    response_trace_key: "X-Trace-Id"
+
+  logger:
+    max_output_request_body_len: 4096
+    max_output_response_body_len: 4096
+
+  copy_body:
+    max_content_len: 134217728
+
+  auth:
+    disable: false
+    skipped_path_prefixes:
+      - "/api/v1/captcha"
+      - "/api/v1/login"
+      - "/api/v1/register"
+      - "/api/v1/verify-email"
+      - "/api/v1/archives"
+      - "/api/v1/articles"
+      - "/api/v1/article"
+      - "/api/v1/comments"
+      - "/api/v1/subscribe"
+    signing_method: "HS512"
+    signing_key: "${JWT_SIGNING_KEY}"
+    old_signing_key: ""
+    expired: 86400
+    store:
+      type: "redis"
+      delimiter: ":"
+      memory:
+        cleanup_interval: 60
+      badger:
+        path: "data/auth"
+      redis:
+        addr: ""
+        username: ""
+        password: ""
+        db: 2
+
+  rate_limiter:
+    enable: true
+    period: 10
+    max_requests_per_ip: 300
+    max_requests_per_user: 150
+    store:
+      type: "redis"
+      memory:
+        expiration: 3600
+        cleanup_interval: 60
+      redis:
+        addr: ""
+        username: ""
+        password: ""
+        db: 10
+
+  casbin:
+    disable: false
+    skipped_path_prefixes:
+      - "/api/v1/captcha"
+      - "/api/v1/login"
+      - "/api/v1/register"
+      - "/api/v1/verify-email"
+      - "/api/v1/current/"
+      - "/api/v1/archives"
+      - "/api/v1/articles"
+      - "/api/v1/article"
+      - "/api/v1/comments"
+      - "/api/v1/subscribe"
+    load_thread: 2
+    auto_load_interval: 3
+    model_file: "rbac_model.conf"
+    gen_policy_file: "gen_rbac_policy.csv"

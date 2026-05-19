@@ -1,0 +1,24 @@
+# Blogo — 生产环境日志配置
+logger:
+  debug: false
+  level: "info"
+  caller_skip: 1
+  file:
+    enable: true
+    path: "../logs/server/blogo.log"
+    max_backups: 90
+    max_size: 128
+  hooks:
+    - enable: true
+      level: "error"
+      type: "gorm"
+      max_buffer: 1024
+      max_thread: 4
+      options:
+        debug: "false"
+        db_type: "mysql"
+        dsn: "${DB_DSN}"
+        max_open_conn: "16"
+        max_idle_conn: "4"
+        max_life_time: "86400"
+        max_idle_time: "7200"

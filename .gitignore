@@ -51,16 +51,24 @@ vendor/
 
 # ---- Logs ----
 *.log
-logs/
+logs/*.log
+logs/**/*.log
+!logs/**/.gitkeep
 
-# ---- Uploads (dev) ----
-uploads/
+# ---- Storage (uploaded files) ----
+/uploads/
+/blogo-server/uploads/
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+/storage/avatars/*
+!/storage/avatars/.gitkeep
 
 # ---- Runtime Data ----
 data/
 
 # ---- Temp & Cache ----
 tmp/
-temp/
+storage/temp/*
+!storage/temp/.gitkeep
 .vite/
 *.tmp

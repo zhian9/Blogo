@@ -1,0 +1,89 @@
+# ═══════════════════════════════════════
+# Blogo — 生产环境通用配置
+# ═══════════════════════════════════════
+
+general:
+  app_name: "Blogo"
+  version: "v1.0.0"
+  debug: false
+  pprof_addr: ""
+  disable_swagger: true
+  disable_print_config: true
+  menu_file: "menu.json"
+  deny_operate_menu: true
+  allow_register: false
+  comment_moderation: true
+  site_url: "${SITE_URL}"
+  http:
+    addr: ":8040"
+    shutdown_timeout: 30
+    read_timeout: 30
+    write_timeout: 30
+    idle_timeout: 60
+  root:
+    id: "root"
+    username: "admin"
+    password: "${ROOT_PASSWORD_HASH}"
+    name: "Admin"
+
+storage:
+  r2:
+    account_id: "${R2_ACCOUNT_ID}"
+    access_key_id: "${R2_ACCESS_KEY_ID}"
+    secret_access_key: "${R2_SECRET_ACCESS_KEY}"
+    bucket: "${R2_BUCKET}"
+    public_domain: "${R2_PUBLIC_DOMAIN}"
+    endpoint: ""
+    upload_dir: "uploads"
+  cache:
+    type: "redis"
+    delimiter: ":"
+    redis:
+      addr: "blogo-redis:6379"
+      username: ""
+      password: "${REDIS_PASSWORD}"
+      db: 1
+    memory:
+      cleanup_interval: 60
+    badger:
+      path: "data/cache"
+  db:
+    debug: false
+    type: "mysql"
+    dsn: "${DB_DSN}"
+    max_lifetime: 86400
+    max_idle_time: 3600
+    max_open_conn: 100
+    max_idle_conn: 50
+    table_prefix: ""
+    auto_migrate: true
+
+util:
+  captcha:
+    length: 4
+    width: 400
+    height: 160
+    cache_type: "redis"
+    redis:
+      addr: ""
+      username: ""
+      password: "${REDIS_PASSWORD}"
+      db: 1
+      key_prefix: "captcha:"
+  prometheus:
+    enable: true
+    port: 9101
+    basic_username: "${PROMETHEUS_USERNAME}"
+    basic_password: "${PROMETHEUS_PASSWORD}"
+    log_apis: []
+    log_methods: []
+    default_collect: true
+
+dictionary:
+  user_cache_exp: 4
+
+email:
+  sender_name: "Blogo"
+  host: "${SMTP_HOST}"
+  port: 465
+  from_email: "${SMTP_FROM}"
