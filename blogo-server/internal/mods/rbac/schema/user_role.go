@@ -70,6 +70,21 @@ func (ur UserRoles) ToRoleIDs() []string {
 	return ids
 }
 
+// ToRoleCodes 从 UserRoles 获取 RoleCode（去重）
+func (ur UserRoles) ToRoleCodes() []string {
+	m := make(map[string]struct{})
+	var codes []string
+	for _, item := range ur {
+		if item.RoleCode != "" {
+			if _, ok := m[item.RoleCode]; !ok {
+				m[item.RoleCode] = struct{}{}
+				codes = append(codes, item.RoleCode)
+			}
+		}
+	}
+	return codes
+}
+
 type UserRoleForm struct {
 }
 

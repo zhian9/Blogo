@@ -85,7 +85,7 @@ func (l *Login) ParseUserID(c *gin.Context) (string, error) {
 		return "", err
 	}
 
-	// 6. 超级管理员特殊处理
+	// 6. 超级管理员通过 ID 或 role_code 识别
 	if userID == rootID {
 		c.Request = c.Request.WithContext(util.NewIsRootUser(ctx))
 		return userID, nil
@@ -96,14 +96,15 @@ func (l *Login) ParseUserID(c *gin.Context) (string, error) {
 	if err != nil {
 		return "", err
 	} else if ok {
-		// 缓存命中 → 注入用户缓存到上下文
 		userCache := util.ParseUserCache(userCacheVal)
+		if userCache.HasAnyRoleCode([]string{"super_admin"}) {
+			c.Request = c.Request.WithContext(util.NewIsRootUser(ctx))
+		}
 		c.Request = c.Request.WithContext(util.NewUserCache(ctx, userCache))
 		return userID, nil
 	}
 
 	// 8. 缓存未命中 → 查询数据库
-	// 8.1 检查用户状态
 	user, err := l.UserDAL.Get(ctx, userID, schema.UserQueryOptions{
 		QueryOptions: util.QueryOptions{SelectFields: []string{"status"}},
 	})
@@ -112,24 +113,25 @@ func (l *Login) ParseUserID(c *gin.Context) (string, error) {
 	} else if user == nil {
 		return "", invalidToken
 	} else if user.Status != schema.UserStatusActivated {
-		return "", errors.Unauthorized("", "您的账号已被系统管理员禁用，请联系运维人员") // 用户不存在或未激活
+		return "", errors.Unauthorized("", "您的账号已被系统管理员禁用，请联系运维人员")
 	}
 
-	// 8.2 获取用户角色
-	roleIDs, err := l.UserBIZ.GetRoleIDs(ctx, userID)
+	// 获取用户角色 IDs + Codes
+	roleIDs, roleCodes, err := l.UserBIZ.GetRoleIDsAndCodes(ctx, userID)
 	if err != nil {
 		return "", err
 	}
 
-	// 8.3 写入缓存（有效期由配置决定）
-	userCache := util.UserCache{RoleIDs: roleIDs}
+	userCache := util.UserCache{RoleIDs: roleIDs, RoleCodes: roleCodes}
+	if userCache.HasAnyRoleCode([]string{"super_admin"}) {
+		c.Request = c.Request.WithContext(util.NewIsRootUser(ctx))
+	}
 	err = l.Cache.Set(ctx, config.CacheNSForUser, userID, userCache.String(),
 		time.Duration(config.C.Dictionary.UserCacheExp)*time.Hour)
 	if err != nil {
 		return "", err
 	}
 
-	// 8.4 注入用户缓存到上下文
 	c.Request = c.Request.WithContext(util.NewUserCache(ctx, userCache))
 	return userID, nil
 }
@@ -178,12 +180,12 @@ func (l *Login) genUserToken(ctx context.Context, userID string) (*schema.LoginT
 	if userID == config.C.General.Root.ID {
 		roleCode = "admin" // 超级管理员视为 admin
 	} else {
-		roleIDs, err := l.UserBIZ.GetRoleIDs(ctx, userID)
+		_, roleCodes, err := l.UserBIZ.GetRoleIDsAndCodes(ctx, userID)
 		if err != nil {
 			return nil, err
 		}
-		if len(roleIDs) > 0 {
-			roleCode = roleIDs[0] // 假设 roleID 就是 roleCode
+		if len(roleCodes) > 0 {
+			roleCode = roleCodes[0]
 		}
 	}
 
@@ -275,12 +277,12 @@ func (l *Login) Login(ctx context.Context, formItem *schema.LoginForm, clientIP,
 
 	// 3.4 写入用户缓存
 	ctx = logging.NewUserID(ctx, userID)
-	roleIDs, err := l.UserBIZ.GetRoleIDs(ctx, userID)
+	roleIDs, roleCodes, err := l.UserBIZ.GetRoleIDsAndCodes(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	userCache := util.UserCache{RoleIDs: roleIDs}
+	userCache := util.UserCache{RoleIDs: roleIDs, RoleCodes: roleCodes}
 	err = l.Cache.Set(ctx, config.CacheNSForUser, userID, userCache.String(),
 		time.Duration(config.C.Dictionary.UserCacheExp)*time.Hour)
 	if err != nil {

@@ -43,7 +43,7 @@ type PaginationParam struct {
 	Current int `form:"current"`
 
 	// PageSize 每页大小（最大 100，防止滥用）
-	PageSize int `form:"pageSize" binding:"max=100"`
+	PageSize int `form:"pageSize" binding:"max=1000"`
 }
 
 //4. 查询选项（字段选择、排序等）

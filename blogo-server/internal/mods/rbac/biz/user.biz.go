@@ -280,3 +280,17 @@ func (u *User) GetRoleIDs(ctx context.Context, id string) ([]string, error) {
 	}
 	return userRoleResult.Data.ToRoleIDs(), nil
 }
+
+// GetRoleIDsAndCodes 获取用户的角色 ID 和 Code 列表。
+func (u *User) GetRoleIDsAndCodes(ctx context.Context, id string) ([]string, []string, error) {
+	result, err := u.UserRoleDAL.Query(ctx, schema.UserRoleQueryParam{
+		UserID: id,
+	}, schema.UserRoleQueryOptions{
+		JoinRole:     true,
+		QueryOptions: util.QueryOptions{},
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	return result.Data.ToRoleIDs(), result.Data.ToRoleCodes(), nil
+}
