@@ -16,7 +16,7 @@ pre_cmd = []
 
 # 构建命令：使用 go build 编译主程序，输出为 app.exe
 # -v 参数用于显示详细构建过程（可选）
-cmd = "go build -ldflags \"-w -s -X main.VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo v1.0.0)\" -o app.exe main.go"
+cmd = "go build -ldflags \"-w -s\" -o app.exe main.go"
 
 # 构建完成后、程序退出前要运行的命令（数组形式）
 # 例如：清理临时资源、通知等
