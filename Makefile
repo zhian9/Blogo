@@ -1,97 +1,53 @@
 # ═══════════════════════════════════════════════════════
-# Blogo — Monorepo 工程化 Makefile
-# ═══════════════════════════════════════════════════════
-# 用法:
-#   make dev          启动全部开发服务（后端 + 前台 + 后台）
-#   make server       仅启动 Go 后端 (Air 热重载)
-#   make web          仅启动用户前台 (Vite HMR)
-#   make admin        仅启动管理后台 (Vite HMR)
-#   make build        构建全部
-#   make docker       构建 Docker 镜像
-#   make clean        清理所有构建产物
+# Blogo — Monorepo 工程化 Makefile (Windows / Linux)
 # ═══════════════════════════════════════════════════════
 
 .PHONY: dev server web admin build build-server build-web build-admin docker clean help
 
-# ── 路径定义 ──────────────────────────────────────────
 SERVER_DIR  := blogo-server
 WEB_DIR     := blogo-web
 ADMIN_DIR   := blogo-admin
 DOCKER_DIR  := deploy/docker
 
-# ── 根目录检测 ──────────────────────────────────────────
+# 根目录检测
 ROOT_MARKER := $(wildcard $(SERVER_DIR)/main.go)
 ifeq ($(ROOT_MARKER),)
-  $(error 请从项目根目录 Blogo/ 运行 make 命令, 当前目录: $(CURDIR))
+  $(error Please run from project root: Blogo/)
 endif
 
-# ── 环境检测 ──────────────────────────────────────────
-ifeq ($(OS),Windows_NT)
-	NPM_RUN := cmd /c npm run
+# OS 检测
+ifneq ($(OS),Windows_NT)
+  NPM := npm run
 else
-	NPM_RUN := npm run
+  NPM := cmd //c npm run
 endif
 
 # ═══════════════════════════════════════════════════════
 # 开发服务
 # ═══════════════════════════════════════════════════════
 
-# 启动全部服务
-# Windows: 三个独立终端窗口
-# Linux/macOS: 同终端后台并行
-ifeq ($(OS),Windows_NT)
-dev:
-	@echo === 启动全部开发服务 ===
-	@echo 后端: http://localhost:8040
-	@echo 前台: http://localhost:5173
-	@echo 后台: http://localhost:5174
-	@mkdir -p $(SERVER_DIR)\tmp
-	start "Blogo-Server" cmd /c "cd /d $(CURDIR)\$(SERVER_DIR) && air"
-	start "Blogo-Web"   cmd /c "cd /d $(CURDIR)\$(WEB_DIR) && npm run dev"
-	start "Blogo-Admin" cmd /c "cd /d $(CURDIR)\$(ADMIN_DIR) && npm run dev"
-else
-dev:
-	@echo "=== 启动全部开发服务 ==="
-	@echo "后端: http://localhost:8040"
-	@echo "前台: http://localhost:5173"
-	@echo "后台: http://localhost:5174"
-	@mkdir -p $(SERVER_DIR)/tmp
-	cd $(SERVER_DIR) && air & \
-	cd $(WEB_DIR) && npm run dev & \
-	cd $(ADMIN_DIR) && npm run dev & \
-	wait
-endif
-
-# 仅后端（Go + Air）
 server:
-	@mkdir -p $(SERVER_DIR)/tmp
 	cd $(SERVER_DIR) && air
 
-# 仅用户前台（React + Vite）
 web:
-	cd $(WEB_DIR) && $(NPM_RUN) dev
+	cd $(WEB_DIR) && $(NPM) dev
 
-# 仅管理后台（React + Vite）
 admin:
-	cd $(ADMIN_DIR) && $(NPM_RUN) dev
+	cd $(ADMIN_DIR) && $(NPM) dev
 
 # ═══════════════════════════════════════════════════════
 # 构建
 # ═══════════════════════════════════════════════════════
 
 build: build-server build-web build-admin
-	@echo "=== 全部构建完成 ==="
 
 build-server:
-	@echo "=== 构建 Go 后端 ==="
 	cd $(SERVER_DIR) && $(MAKE) build
 
 build-web:
-	@echo "=== 构建用户前台 ==="
 	cd $(WEB_DIR) && npm run build
 
 build-admin:
-	@echo "=== 构建管理后台 ==="
 	cd $(ADMIN_DIR) && npm run build
 
 # ═══════════════════════════════════════════════════════
@@ -99,7 +55,6 @@ build-admin:
 # ═══════════════════════════════════════════════════════
 
 docker:
-	@echo "=== 构建 Docker 镜像 ==="
 	docker build -t blogo-server:latest -f $(DOCKER_DIR)/Dockerfile $(SERVER_DIR)
 
 # ═══════════════════════════════════════════════════════
@@ -107,57 +62,54 @@ docker:
 # ═══════════════════════════════════════════════════════
 
 wire:
-	@echo "=== 生成 Wire DI 代码 ==="
 	cd $(SERVER_DIR) && $(MAKE) wire
 
 swagger:
-	@echo "=== 生成 Swagger 文档 ==="
 	cd $(SERVER_DIR) && $(MAKE) swagger
-
-api-client:
-	@echo "=== 生成 TypeScript API 客户端 ==="
-	bash scripts/generate-api-client.sh all
 
 # ═══════════════════════════════════════════════════════
 # 清理
 # ═══════════════════════════════════════════════════════
 
 clean:
-	@echo "=== 清理构建产物 ==="
 	cd $(SERVER_DIR) && $(MAKE) clean
+ifneq ($(OS),Windows_NT)
 	rm -rf $(WEB_DIR)/dist
 	rm -rf $(ADMIN_DIR)/dist
 	find logs -name '*.log' -delete 2>/dev/null || true
 	rm -rf storage/temp/*
-	@echo "=== 清理完成 ==="
+else
+	cmd //c "if exist $(WEB_DIR)\dist rmdir /s /q $(WEB_DIR)\dist"
+	cmd //c "if exist $(ADMIN_DIR)\dist rmdir /s /q $(ADMIN_DIR)\dist"
+	cmd //c "del /s /q logs\*.log 2>nul"
+	cmd //c "del /q storage\temp\*.log 2>nul"
+endif
 
 # ═══════════════════════════════════════════════════════
 # 帮助
 # ═══════════════════════════════════════════════════════
 
 help:
-	@echo "Blogo 工程化命令:"
+	@echo "Blogo Makefile Commands:"
 	@echo ""
-	@echo "  开发:"
-	@echo "    make dev          启动全部开发服务"
-	@echo "    make server       仅启动 Go 后端"
-	@echo "    make web          仅启动用户前台"
-	@echo "    make admin        仅启动管理后台"
+	@echo "  Dev:"
+	@echo "    make server        Start Go backend (Air)"
+	@echo "    make web           Start web frontend (Vite)"
+	@echo "    make admin         Start admin panel (Vite)"
 	@echo ""
-	@echo "  构建:"
-	@echo "    make build        构建全部"
-	@echo "    make build-server 构建 Go 后端"
-	@echo "    make build-web    构建用户前台"
-	@echo "    make build-admin  构建管理后台"
+	@echo "  Build:"
+	@echo "    make build         Build all"
+	@echo "    make build-server  Build Go backend"
+	@echo "    make build-web     Build web frontend"
+	@echo "    make build-admin   Build admin panel"
 	@echo ""
 	@echo "  Docker:"
-	@echo "    make docker       构建 Docker 镜像"
+	@echo "    make docker        Build Docker image"
 	@echo ""
-	@echo "  代码生成:"
-	@echo "    make wire         生成 Wire DI 代码"
-	@echo "    make swagger      生成 Swagger / OpenAPI 文档"
-	@echo "    make api-client   生成 TypeScript API 客户端"
+	@echo "  Code:"
+	@echo "    make wire          Generate Wire DI code"
+	@echo "    make swagger       Generate Swagger docs"
 	@echo ""
-	@echo "  工具:"
-	@echo "    make clean        清理所有构建产物"
-	@echo "    make help         显示此帮助"
+	@echo "  Tools:"
+	@echo "    make clean         Clean build artifacts"
+	@echo "    make help          Show this help"
