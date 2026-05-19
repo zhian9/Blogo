@@ -165,9 +165,10 @@ func (i *Image) Upload(ctx context.Context, fileHeader *multipart.FileHeader, ca
 		}
 	} else {
 		// ---- 本地磁盘上传 ----
-		workDir, _ := os.Getwd()
-		relDir := filepath.Join("uploads", category, now.Format("2006"), now.Format("01"))
-		relPath := filepath.Join(relDir, imageID+ext)
+			workDir, _ := os.Getwd()
+			urlPart := filepath.Join(category, now.Format("2006"), now.Format("01"), imageID+ext)
+			relDir := filepath.Join("storage", "uploads", category, now.Format("2006"), now.Format("01"))
+			relPath := filepath.Join(relDir, imageID+ext)
 		absDir := filepath.Join(workDir, relDir)
 		absPath := filepath.Join(workDir, relPath)
 
@@ -185,7 +186,7 @@ func (i *Image) Upload(ctx context.Context, fileHeader *multipart.FileHeader, ca
 			return nil, errors.BadRequest(config.ErrImageUploadFailed, "Failed to write file")
 		}
 
-		fileURL = fmt.Sprintf("/%s", filepath.ToSlash(relPath))
+		fileURL = "/uploads/" + filepath.ToSlash(urlPart)
 		filePath = relPath
 	}
 

@@ -115,7 +115,7 @@ func startHTTPServer(ctx context.Context, injector *wirex.Injector) (func(), err
 	}
 
 	// 12. 注册静态文件服务（如前端构建产物）
-	e.Static("/uploads", "./uploads")
+	e.Static("/uploads", "./storage/uploads")
 
 	if dir := config.C.Middleware.Static.Dir; dir != "" {
 		e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
