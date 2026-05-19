@@ -39,7 +39,7 @@ storage:
     type: "redis"
     delimiter: ":"
     redis:
-      addr: "blogo-redis:6379"
+      addr: "127.0.0.1:6379"
       username: ""
       password: "${REDIS_PASSWORD}"
       db: 1
@@ -84,6 +84,6 @@ dictionary:
 
 email:
   sender_name: "Blogo"
-  host: "${SMTP_HOST}"
+  host: "smtp.qq.com"
   port: 465
-  from_email: "${SMTP_FROM}"
+  from_email: "508065909@qq.com"
