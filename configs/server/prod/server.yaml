@@ -21,10 +21,10 @@ general:
     write_timeout: 30
     idle_timeout: 60
   root:
-    id: "root"
-    username: "admin"
+    id: "${ROOT_ID}"
+    username: "${ROOT_USERNAME}"
     password: "${ROOT_PASSWORD_HASH}"
-    name: "Admin"
+    name: "${ROOT_NAME}"
 
 storage:
   r2:

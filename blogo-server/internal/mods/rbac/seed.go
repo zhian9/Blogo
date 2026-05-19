@@ -13,7 +13,6 @@ import (
 
 	"github.com/zhian9/blogo-server/internal/config"
 	"github.com/zhian9/blogo-server/internal/mods/rbac/schema"
-	"github.com/zhian9/blogo-server/pkg/crypto/hash"
 	"github.com/zhian9/blogo-server/pkg/logging"
 	"github.com/zhian9/blogo-server/pkg/util"
 	"go.uber.org/zap"
@@ -21,8 +20,6 @@ import (
 )
 
 const (
-	seedAdminUsername = "admin"
-	seedAdminPassword = "Admin123456"
 	seedAdminRoleCode = "super_admin"
 	seedAdminRoleName = "超级管理员"
 	seedUserRoleCode  = "user"
@@ -65,7 +62,7 @@ func (r *RBAC) InitAdminAccount(ctx context.Context) error {
 
 	// 3. 全站数据清洗：通过邮箱/用户名定位超级管理员
 	var adminUser schema.User
-	err := db.Where("email = ? OR username = ?", "admin@blogo.local", seedAdminUsername).First(&adminUser).Error
+	err := db.Where("email = ? OR username = ?", "admin@blogo.local", config.C.General.Root.Username).First(&adminUser).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return err
 	}
@@ -88,13 +85,25 @@ func (r *RBAC) InitAdminAccount(ctx context.Context) error {
 	return nil
 }
 
-// cleanseAdminUser 强制将超管账号的角色设为 super_admin（数据修复）
+// cleanseAdminUser 同步超管账号与 config 一致（幂等）
 func cleanseAdminUser(ctx context.Context, db *gorm.DB, user *schema.User, allRoles map[string]string) error {
-	// 确保账号处于激活状态且昵称正确
-	if user.Name != "系统管理员" || user.Status != schema.UserStatusActivated {
-		db.Model(user).Updates(map[string]interface{}{
-			"name": "系统管理员", "status": schema.UserStatusActivated,
-		})
+	root := config.C.General.Root
+	// 同步密码/名称/状态/邮箱与 config 一致
+	updates := make(map[string]interface{})
+	if user.Password != root.Password {
+		updates["password"] = root.Password // bcrypt 哈希直接存
+	}
+	if user.Name != root.Name {
+		updates["name"] = root.Name
+	}
+	if user.Status != schema.UserStatusActivated {
+		updates["status"] = schema.UserStatusActivated
+	}
+	if user.Username != root.Username {
+		updates["username"] = root.Username
+	}
+	if len(updates) > 0 {
+		db.Model(user).Updates(updates)
 	}
 
 	// 查找 super_admin 角色
@@ -121,18 +130,13 @@ func cleanseAdminUser(ctx context.Context, db *gorm.DB, user *schema.User, allRo
 
 // createAdminUser 创建超级管理员用户
 func createAdminUser(ctx context.Context, db *gorm.DB, allRoles map[string]string) error {
-	hashedPwd, err := hash.GeneratePassword(seedAdminPassword)
-	if err != nil {
-		return err
-	}
-
 	adminUser := schema.User{
-		ID:        config.C.General.Root.ID,
-		Username:  seedAdminUsername,
-		Name:      "系统管理员",
-		Password:  hashedPwd,
-		Email:     "admin@blogo.local",
-		Status:    schema.UserStatusActivated,
+		ID:       config.C.General.Root.ID,
+		Username: config.C.General.Root.Username,
+		Name:     config.C.General.Root.Name,
+		Password: config.C.General.Root.Password, // 直接使用 bcrypt 哈希
+		Email:    "admin@blogo.local",
+		Status:   schema.UserStatusActivated,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -149,7 +153,7 @@ func createAdminUser(ctx context.Context, db *gorm.DB, allRoles map[string]strin
 	}
 
 	logging.Context(ctx).Info("super admin account created",
-		zap.String("username", seedAdminUsername),
+		zap.String("username", config.C.General.Root.Username),
 		zap.String("user_id", adminUser.ID),
 	)
 	return nil
