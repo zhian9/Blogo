@@ -15,13 +15,15 @@ import (
 )
 
 const (
-	TagKeyMain     = "main"     //主流程日志
-	TagKeyRecovery = "recovery" //panic 恢复日志
-	TagKeyRequest  = "request"  //HTTP 请求日志
-	TagKeyLogin    = "login"    //登录操作
-	TagKeyLogout   = "logout"   //退出操作
-	TagKeySystem   = "system"   //系统级
+	TagKeyMain     = "main"     // 主流程日志
+	TagKeyRecovery = "recovery" // panic 恢复日志
+	TagKeyRequest  = "request"  // HTTP 请求日志
+	TagKeyLogin    = "login"    // 登录操作
+	TagKeyLogout   = "logout"   // 退出操作
+	TagKeySystem   = "system"   // 系统级
 	TagKeyOperate  = "operate"  // 通用业务操作
+	TagKeyAudit    = "audit"    // 后台审计操作
+	TagKeySecurity = "security" // 安全事件
 )
 
 type (

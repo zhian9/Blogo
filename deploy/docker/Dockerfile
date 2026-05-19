@@ -40,12 +40,16 @@ RUN apk --no-cache add ca-certificates tzdata \
 
 ENV TZ=Asia/Shanghai
 
-RUN adduser -D -s /bin/sh appuser
+RUN adduser -D -s /bin/sh appuser && \
+    mkdir -p /logs /app
 
 WORKDIR /app
 
 COPY --from=builder /bin/${APP} /usr/local/bin/blogo-server
 COPY --from=builder /src/configs ./configs
+
+# 宿主机挂载日志: docker run -v ./logs:/logs ...
+RUN mkdir -p /logs && chown -R appuser:appuser /logs
 
 USER appuser
 

@@ -100,7 +100,7 @@ func LoggerWithConfig(cfg LoggerConfig) gin.HandlerFunc {
 		// 输出日志信息
 		ctx := c.Request.Context()
 		ctx = logging.NewTag(ctx, logging.TagKeyRequest)
-		logging.Context(ctx).Info(fmt.Sprintf("[HTTP] %s-%s-%d (%dms)", //[HTTP] 路径-方法-状态码 (耗时ms)
-			c.Request.URL.Path, c.Request.Method, c.Writer.Status(), cost), fields...)
+		logging.Access(ctx, fmt.Sprintf("[HTTP] %s-%s-%d (%dms)",
+			c.Request.URL.Path, c.Request.Method, c.Writer.Status(), cost), logging.SanitizeFields(fields)...)
 	}
 }

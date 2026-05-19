@@ -18,41 +18,53 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Config 配置结构体
+// 命名的独立 logger, 供中间件和审计函数直接使用
+var (
+	AccessLogger   *zap.Logger // HTTP 访问日志 (access.log)
+	AuditLogger    *zap.Logger // 后台审计日志 (audit.log)
+	SecurityLogger *zap.Logger // 安全事件日志 (security.log)
+)
+
+// ── 配置结构 ───────────────────────────────────────
+
 type Config struct {
 	Logger LoggerConfig
 }
 
-// LoggerConfig 对应配置文件中的Logger
 type LoggerConfig struct {
-	// 是否开启调式模式
 	Debug      bool
-	Level      string // 日志级别
-	CallerSkip int    //调用栈跳过层数
-	File       struct {
-		Enable     bool   //是否启用日志文件
-		Path       string // 日志文件路径
-		MaxSize    int    //单个文件最大大小
-		MaxBackups int    //保留的历史文件数量
-	}
-	Hooks []*HookConfig //日志钩子列表
+	Level      string
+	CallerSkip int
+	Console    bool `yaml:"console"`    // 是否输出控制台
+	File       FileConfig               // 主日志
+	AccessLog  FileConfig `yaml:"access_log"`  // HTTP 访问日志
+	ErrorLog   FileConfig `yaml:"error_log"`   // 错误日志
+	AuditLog   FileConfig `yaml:"audit_log"`   // 审计日志
+	SecurityLog FileConfig `yaml:"security_log"` // 安全日志
+	Hooks      []*HookConfig
 }
 
-// HookConfig 表示一个日志钩子的配置
+type FileConfig struct {
+	Enable     bool
+	Path       string
+	MaxSize    int    `yaml:"max_size"`
+	MaxBackups int    `yaml:"max_backups"`
+	MaxAge     int    `yaml:"max_age"`
+	Compress   bool
+}
+
 type HookConfig struct {
-	Enable    bool              //是否启用
-	Level     string            //日志级别
-	Type      string            //钩子类型。例如:gorm
-	MaxBuffer int               //缓冲区最大日志条数
-	MaxThread int               //最大并发处理协程数
-	Options   map[string]string //钩子专属配置
-	Extra     map[string]string //额外扩展字段
+	Enable    bool
+	Level     string
+	Type      string
+	MaxBuffer int
+	MaxThread int
+	Options   map[string]string
+	Extra     map[string]string
 }
 
-// HookHandlerFunc 钩子处理器的函数类型
 type HookHandlerFunc func(ctx context.Context, hookCfg *HookConfig) (*Hook, error)
 
-// LoadConfigFromYaml 从指定的 yaml 文件加载日志配置
 func LoadConfigFromYaml(filename string) (*LoggerConfig, error) {
 	cfg := &Config{}
 	buf, err := os.ReadFile(filename)
@@ -65,124 +77,158 @@ func LoadConfigFromYaml(filename string) (*LoggerConfig, error) {
 	return &cfg.Logger, nil
 }
 
-// InitWithConfig 根据配置初始化全局 zap 日志器，并支持钩子扩展
+// InitWithConfig 初始化全局 zap logger。
+// 架构:
+//   - 主 Logger (zap.L()): Console + app.log + error.log + hooks
+//   - AccessLogger:         access.log (HTTP 请求日志)
+//   - AuditLogger:          audit/admin.log (后台审计)
+//   - SecurityLogger:       audit/security.log (安全事件)
 func InitWithConfig(ctx context.Context, cfg *LoggerConfig, hookHandle ...HookHandlerFunc) (func(), error) {
-	//1.初始化 zap 基础配置
-	var zconfig zap.Config
-	if cfg.Debug {
-		//调试模式
-		cfg.Level = "debug"
-		zconfig = zap.NewDevelopmentConfig()
-	} else {
-		// 生成模式
-		zconfig = zap.NewProductionConfig()
-	}
-
-	//解析日志级别
 	level, err := zapcore.ParseLevel(cfg.Level)
 	if err != nil {
 		return nil, err
 	}
-	// 设置对应的日志级别
-	zconfig.Level.SetLevel(level)
 
-	//2.创建基础的 logger
 	var (
-		logger   *zap.Logger
-		cleanFns []func() //用于收集清理函数
+		cores    []zapcore.Core
+		cleanFns []func()
 	)
 
-	if cfg.File.Enable {
-		// 启用日志文件： 使用 lumberjack 实现日志轮转（切割）
-		filename := cfg.File.Path
-		_ = os.MkdirAll(filepath.Dir(filename), 0777) // 确保日子还存在
-
-		fileWriter := &lumberjack.Logger{
-			Filename:   filename,
-			MaxSize:    cfg.File.MaxSize,    // mb
-			MaxBackups: cfg.File.MaxBackups, // 文件数量
-			Compress:   false,               // 不压缩
-			LocalTime:  true,                // 使用本地时间
-		}
-
-		//注册清理函数，关闭文件句柄
-		cleanFns = append(cleanFns, func() {
-			_ = fileWriter.Close()
-		})
-
-		// 创建只输出到文件的 zap core
-		zc := zapcore.NewCore(
-			zapcore.NewJSONEncoder(zconfig.EncoderConfig),
-			zapcore.AddSync(fileWriter),
-			zconfig.Level,
-		)
-		logger = zap.New(zc)
-	} else {
-		// 只输出到控制台
-		iLogger, err := zconfig.Build()
-		if err != nil {
-			return nil, err
-		}
-		logger = iLogger
+	// ── 1. 控制台 ────────────────────────────────────
+	if cfg.Console || cfg.Debug {
+		consoleCfg := zap.NewDevelopmentEncoderConfig()
+		consoleCfg.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05.000")
+		consoleCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		consoleCfg.EncodeCaller = zapcore.ShortCallerEncoder
+		cores = append(cores, zapcore.NewCore(
+			zapcore.NewConsoleEncoder(consoleCfg),
+			zapcore.AddSync(os.Stdout),
+			level,
+		))
 	}
 
-	//3.设置日志选项：调用者，堆栈，跳过层数
+	// JSON 编码器 (文件统一使用)
+	jsonCfg := zapcore.EncoderConfig{
+		TimeKey:        "time",
+		LevelKey:       "level",
+		NameKey:        "logger",
+		CallerKey:      "caller",
+		MessageKey:     "msg",
+		StacktraceKey:  "stack",
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.LowercaseLevelEncoder,
+		EncodeTime:     zapcore.ISO8601TimeEncoder,
+		EncodeDuration: zapcore.MillisDurationEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
+	}
+	jsonEncoder := zapcore.NewJSONEncoder(jsonCfg)
+
+	// ── 2. 主日志文件 (app.log) ──────────────────────
+	if cfg.File.Enable {
+		core, clean := newFileCore(jsonEncoder, level, &cfg.File)
+		if core != nil {
+			cores = append(cores, core)
+		}
+		if clean != nil {
+			cleanFns = append(cleanFns, clean)
+		}
+	}
+
+	// ── 3. 错误日志 (error.log) ─────────────────────
+	if cfg.ErrorLog.Enable {
+		core, clean := newFileCore(jsonEncoder, zap.NewAtomicLevelAt(zapcore.ErrorLevel), &cfg.ErrorLog)
+		if core != nil {
+			cores = append(cores, core)
+		}
+		if clean != nil {
+			cleanFns = append(cleanFns, clean)
+		}
+	}
+
+	// ── 4. 构建主 Logger ────────────────────────────
+	var mainCore zapcore.Core
+	switch len(cores) {
+	case 0:
+		mainCore = zapcore.NewNopCore()
+	case 1:
+		mainCore = cores[0]
+	default:
+		mainCore = zapcore.NewTee(cores...)
+	}
+
 	skip := cfg.CallerSkip
 	if skip <= 0 {
-		skip = 2 //默认跳过 2 层 （本函数+调用者）
+		skip = 2
 	}
 
-	logger = logger.WithOptions(
-		zap.WithCaller(true),              //显示调用者
-		zap.AddStacktrace(zap.ErrorLevel), // error 以上日志级别自动记录堆栈
-		zap.AddCallerSkip(skip),           // 跳过指定层数
+	logger := zap.New(mainCore,
+		zap.WithCaller(true),
+		zap.AddStacktrace(zap.ErrorLevel),
+		zap.AddCallerSkip(skip),
 	)
 
-	//4. 初始化日志钩子（eg:gorm数据库日志）
+	// ── 5. 独立日志器 ───────────────────────────────
+	if cfg.AccessLog.Enable {
+		core, clean := newFileCore(jsonEncoder, level, &cfg.AccessLog)
+		if core != nil {
+			AccessLogger = zap.New(core, zap.WithCaller(true), zap.AddCallerSkip(skip))
+		}
+		if clean != nil {
+			cleanFns = append(cleanFns, clean)
+		}
+	}
+
+	if cfg.AuditLog.Enable {
+		core, clean := newFileCore(jsonEncoder, level, &cfg.AuditLog)
+		if core != nil {
+			AuditLogger = zap.New(core, zap.WithCaller(true), zap.AddCallerSkip(skip))
+		}
+		if clean != nil {
+			cleanFns = append(cleanFns, clean)
+		}
+	}
+
+	if cfg.SecurityLog.Enable {
+		core, clean := newFileCore(jsonEncoder, level, &cfg.SecurityLog)
+		if core != nil {
+			SecurityLogger = zap.New(core, zap.WithCaller(true), zap.AddCallerSkip(skip))
+		}
+		if clean != nil {
+			cleanFns = append(cleanFns, clean)
+		}
+	}
+
+	// ── 6. 日志钩子 (GORM 等) ────────────────────────
 	for _, h := range cfg.Hooks {
 		if !h.Enable || len(hookHandle) == 0 {
 			continue
 		}
-
-		//调用外部钩子处理器
 		writer, err := hookHandle[0](ctx, h)
 		if err != nil {
 			return nil, err
 		} else if writer == nil {
 			continue
 		}
+		cleanFns = append(cleanFns, func() { writer.Flush() })
 
-		//注册钩子清理函数
-		cleanFns = append(cleanFns, func() {
-			writer.Flush()
-		})
-
-		//解析钩子日志级别
-		hookLevel := zap.NewAtomicLevel()
-		if level, err := zapcore.ParseLevel(h.Level); err == nil {
-			hookLevel.SetLevel(level)
-		} else {
-			hookLevel.SetLevel(zap.InfoLevel)
+		hookLevel := zap.NewAtomicLevelAt(zap.InfoLevel)
+		if lv, err := zapcore.ParseLevel(h.Level); err == nil {
+			hookLevel.SetLevel(lv)
 		}
-
-		// 为钩子创建独立的 encoder
 		hookEncoder := zap.NewProductionEncoderConfig()
 		hookEncoder.EncodeTime = zapcore.EpochMillisTimeEncoder
-		hookEncoder.EncodeDuration = zapcore.MillisDurationEncoder
 
-		// 创建钩子专用的 zap core
 		hookCore := zapcore.NewCore(
 			zapcore.NewJSONEncoder(hookEncoder),
 			zapcore.AddSync(writer),
 			hookLevel,
 		)
-
-		logger = logger.WithOptions(zap.WrapCore(func(core zapcore.Core) zapcore.Core {
-			return zapcore.NewTee(core, hookCore)
+		logger = logger.WithOptions(zap.WrapCore(func(c zapcore.Core) zapcore.Core {
+			return zapcore.NewTee(c, hookCore)
 		}))
 	}
 
-	//5. 替换全局日治器
+	// ── 7. 替换全局 ──────────────────────────────────
 	zap.ReplaceGlobals(logger)
 
 	return func() {
@@ -190,4 +236,21 @@ func InitWithConfig(ctx context.Context, cfg *LoggerConfig, hookHandle ...HookHa
 			fn()
 		}
 	}, nil
+}
+
+// ── 内部辅助 ────────────────────────────────────────
+
+func newFileCore(enc zapcore.Encoder, level zapcore.LevelEnabler, cfg *FileConfig) (zapcore.Core, func()) {
+	_ = os.MkdirAll(filepath.Dir(cfg.Path), 0755)
+
+	w := &lumberjack.Logger{
+		Filename:   cfg.Path,
+		MaxSize:    cfg.MaxSize,
+		MaxBackups: cfg.MaxBackups,
+		MaxAge:     cfg.MaxAge,
+		Compress:   cfg.Compress,
+		LocalTime:  true,
+	}
+
+	return zapcore.NewCore(enc, zapcore.AddSync(w), level), func() { _ = w.Close() }
 }

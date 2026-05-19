@@ -2,12 +2,54 @@
 logger:
   debug: false
   level: "info"
+  console: true
   caller_skip: 1
+
+  # 主日志（全量业务日志）
   file:
     enable: true
-    path: "../logs/server/blogo.log"
-    max_backups: 90
+    path: "../logs/server/app.log"
     max_size: 128
+    max_backups: 90
+    max_age: 30
+    compress: true
+
+  # HTTP 访问日志（tag=request）
+  access_log:
+    enable: true
+    path: "../logs/server/access.log"
+    max_size: 128
+    max_backups: 30
+    max_age: 30
+    compress: true
+
+  # 错误日志（level >= error）
+  error_log:
+    enable: true
+    path: "../logs/server/error.log"
+    max_size: 64
+    max_backups: 30
+    max_age: 30
+    compress: true
+
+  # 后台审计日志（tag=audit）
+  audit_log:
+    enable: true
+    path: "../logs/audit/admin.log"
+    max_size: 128
+    max_backups: 90
+    max_age: 90
+    compress: true
+
+  # 安全事件日志（tag=security）
+  security_log:
+    enable: true
+    path: "../logs/audit/security.log"
+    max_size: 64
+    max_backups: 90
+    max_age: 180
+    compress: true
+
   hooks:
     - enable: true
       level: "error"

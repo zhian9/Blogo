@@ -1,71 +1,36 @@
-# Copyright 2025 lxy911(李星云) <lxyaa911@gmail.com>. All rights reserved.
-# Use of this source code is governed by a [MIT/Apache/BSD] style license
-# that can be found in the LICENSE file.
-# Project repository: https://github.com/zhian9/go-admin
-
-# ================================
-# 日志配置
-# ================================
+# Blogo — 开发环境日志配置
 logger:
-  # 是否启用调试模式（影响日志输出行为）
   debug: true
-
-  # 日志级别，可选值：debug / info / warn / error / dpanic / panic / fatal
   level: "debug"
-
-  # 调用栈跳过层数（用于在日志中正确显示调用位置，默认 1）
+  console: true
   caller_skip: 1
 
-  # -------------------------------
-  # 文件日志配置
-  # -------------------------------
   file:
-    # 是否启用文件日志（若为 false，则只输出到控制台）
     enable: false
 
-    # 日志文件路径
-    path: "data/log/goAdmin.log"
+  access_log:
+    enable: false
 
-    # 保留的历史日志文件最大数量（轮转）
-    max_backups: 20
+  error_log:
+    enable: false
 
-    # 单个日志文件最大大小（单位：MB）
-    max_size: 64
+  audit_log:
+    enable: false
 
-  # -------------------------------
-  # 日志钩子（Hooks）—— 支持将日志写入其他目标
-  # 注意：TOML 中使用 [[Logger.Hooks]] 表示数组，YAML 中用列表
-  # -------------------------------
+  security_log:
+    enable: false
+
   hooks:
-    - # 第一个钩子（当前配置仅定义了一个）
-      # 是否启用该钩子
-      enable: true
-
-      # 该钩子的日志级别（仅记录 >= 此级别的日志）
+    - enable: true
       level: "info"
-
-      # 钩子类型，当前为 "gorm"（表示将日志写入数据库）
       type: "gorm"
-
-      # 日志缓冲区最大条数（批量写入提升性能）
       max_buffer: 1024
-
-      # 最大并发写入协程数
       max_thread: 4
-
-      # 钩子专属选项
       options:
-        # 是否启用 GORM 钩子调试（字符串 "false"，注意不是布尔值）
         debug: "false"
-
-        # 数据库类型：mysql
         db_type: "mysql"
-
-        # 数据库连接串（DSN）
         dsn: "${DB_DSN}"
-
-        # 数据库连接池配置（注意：此处为字符串类型，需在代码中转换）
         max_open_conn: "16"
         max_idle_conn: "4"
-        max_life_time: "86400"   # 连接最大存活时间（秒）
-        max_idle_time: "7200"    # 空闲连接最大存活时间（秒）
+        max_life_time: "86400"
+        max_idle_time: "7200"
