@@ -109,7 +109,7 @@ clean:
 	cd $(SERVER_DIR) && $(MAKE) clean
 	rm -rf $(WEB_DIR)/dist
 	rm -rf $(ADMIN_DIR)/dist
-	rm -rf logs/*
+	find logs -name '*.log' -delete 2>/dev/null || true
 	rm -rf storage/temp/*
 	@echo "=== 清理完成 ==="
 
