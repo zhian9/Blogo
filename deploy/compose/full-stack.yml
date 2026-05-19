@@ -1,21 +1,23 @@
-# ═══════════════════════════════════════════════════════
-# Blogo — 全栈 Docker Compose
-# ═══════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════
+# Blogo — 生产级 Docker Compose
+# ═══════════════════════════════════════════════════════════
 # 用法:
 #   docker network create blogo-net
 #   docker-compose -f deploy/compose/full-stack.yml up -d
-# ═══════════════════════════════════════════════════════
+#   docker-compose -f deploy/compose/full-stack.yml logs -f
+# ═══════════════════════════════════════════════════════════
 
 version: "3.8"
 
 services:
-  # ── Go 后端 ────────────────────────────────────────
-  blogo:
+
+  # ── Go API 服务 ─────────────────────────────────────
+  blogo-api:
     build:
       context: ../..
       dockerfile: deploy/docker/Dockerfile
     image: blogo:latest
-    container_name: blogo
+    container_name: blogo-api
     restart: unless-stopped
     env_file:
       - ../../blogo-server/.env
@@ -30,63 +32,94 @@ services:
         condition: service_healthy
     networks:
       - blogo-net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8040/health"]
+      interval: 30s
+      timeout: 3s
+      start-period: 15s
+      retries: 3
     logging:
       driver: "json-file"
       options:
         max-size: "20m"
-        max-file: "5"
+        max-file: "10"
 
-  # ── MySQL ───────────────────────────────────────────
+  # ── MySQL 8.0 ───────────────────────────────────────
   mysql:
     image: mysql:8.0
     container_name: blogo-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
-      MYSQL_DATABASE: go_admin
-      MYSQL_USER: blogo
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-blogo123}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE:       ${MYSQL_DATABASE:-go_admin}
+      MYSQL_USER:           ${MYSQL_USER:-blogo}
+      MYSQL_PASSWORD:       ${MYSQL_PASSWORD}
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
     volumes:
       - mysql_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
+      - ./mysql/conf.d:/etc/mysql/conf.d:ro
+    # 不暴露公网端口（仅容器内通信）
+    # ports:
+    #   - "3306:3306"
     networks:
       - blogo-net
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-p${MYSQL_ROOT_PASSWORD}",
+        ]
       interval: 10s
       timeout: 5s
+      start-period: 30s
       retries: 5
     logging:
       driver: "json-file"
       options:
         max-size: "20m"
-        max-file: "5"
+        max-file: "10"
 
-  # ── Redis ───────────────────────────────────────────
+  # ── Redis 7 ─────────────────────────────────────────
   redis:
     image: redis:7-alpine
     container_name: blogo-redis
     restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD:-redis123} --appendonly yes
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
-    ports:
-      - "6379:6379"
+    # 不暴露公网端口（仅容器内通信）
+    # ports:
+    #   - "6379:6379"
     networks:
       - blogo-net
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
+      start-period: 10s
       retries: 5
     logging:
       driver: "json-file"
       options:
         max-size: "20m"
-        max-file: "5"
+        max-file: "10"
 
-  # ── Nginx ───────────────────────────────────────────
+  # ── Nginx 反向代理 ──────────────────────────────────
   nginx:
     image: nginx:alpine
     container_name: blogo-nginx
@@ -96,22 +129,34 @@ services:
       - ../nginx/conf.d:/etc/nginx/conf.d:ro
     ports:
       - "80:80"
-      - "443:443"
+      # HTTPS 接入 Cloudflare 后由 Cloudflare 处理
+      # - "443:443"
     networks:
       - blogo-net
     depends_on:
-      - blogo
+      - blogo-api
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
     logging:
       driver: "json-file"
       options:
         max-size: "20m"
-        max-file: "5"
+        max-file: "10"
 
+# ═══════════════════════════════════════════════════════
+# 持久化卷
+# ═══════════════════════════════════════════════════════
 volumes:
   blogo_uploads:
   mysql_data:
   redis_data:
 
+# ═══════════════════════════════════════════════════════
+# 网络
+# ═══════════════════════════════════════════════════════
 networks:
   blogo-net:
     external: true
