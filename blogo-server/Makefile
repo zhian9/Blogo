@@ -1,4 +1,15 @@
-# 声明伪目标（phony targets），避免与同名文件冲突
+# ═══════════════════════════════════════════════════════
+# blogo-server Makefile — 在 blogo-server/ 目录内使用
+#
+# 常用:
+#   make start    开发运行 (go run)
+#   make build    编译二进制
+#   make serve    编译 + 前台运行
+#   make clean    清理
+#
+# 项目级命令请从根目录运行: cd .. && make server
+# ═══════════════════════════════════════════════════════
+
 .PHONY: start build build-linux wire swagger openapi clean serve serve-d stop
 
 # ========== 构建参数 ==========

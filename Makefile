@@ -19,6 +19,12 @@ WEB_DIR     := blogo-web
 ADMIN_DIR   := blogo-admin
 DOCKER_DIR  := deploy/docker
 
+# ── 根目录检测 ──────────────────────────────────────────
+ROOT_MARKER := $(wildcard $(SERVER_DIR)/main.go)
+ifeq ($(ROOT_MARKER),)
+  $(error 请从项目根目录 Blogo/ 运行 make 命令, 当前目录: $(CURDIR))
+endif
+
 # ── 环境检测 ──────────────────────────────────────────
 ifeq ($(OS),Windows_NT)
 	NPM_RUN := cmd /c npm run
