@@ -20,41 +20,53 @@ ADMIN_DIR   := blogo-admin
 DOCKER_DIR  := deploy/docker
 
 # ── 环境检测 ──────────────────────────────────────────
-# Windows 下 npm 用 cmd /c 启动，避免路径问题
-NPM_RUN     := npm run
 ifeq ($(OS),Windows_NT)
 	NPM_RUN := cmd /c npm run
+else
+	NPM_RUN := npm run
 endif
 
 # ═══════════════════════════════════════════════════════
 # 开发服务
 # ═══════════════════════════════════════════════════════
 
-# 启动全部服务（并行）
+# 启动全部服务
+# Windows: 三个独立终端窗口
+# Linux/macOS: 同终端后台并行
+ifeq ($(OS),Windows_NT)
+dev:
+	@echo === 启动全部开发服务 ===
+	@echo 后端: http://localhost:8040
+	@echo 前台: http://localhost:5173
+	@echo 后台: http://localhost:5174
+	@mkdir -p $(SERVER_DIR)\tmp
+	start "Blogo-Server" cmd /c "cd /d $(CURDIR)\$(SERVER_DIR) && air"
+	start "Blogo-Web"   cmd /c "cd /d $(CURDIR)\$(WEB_DIR) && npm run dev"
+	start "Blogo-Admin" cmd /c "cd /d $(CURDIR)\$(ADMIN_DIR) && npm run dev"
+else
 dev:
 	@echo "=== 启动全部开发服务 ==="
-	@echo "后端:    http://localhost:8040"
-	@echo "前台:    http://localhost:5173"
-	@echo "后台:    http://localhost:5174"
-	@echo ""
+	@echo "后端: http://localhost:8040"
+	@echo "前台: http://localhost:5173"
+	@echo "后台: http://localhost:5174"
+	@mkdir -p $(SERVER_DIR)/tmp
 	cd $(SERVER_DIR) && air & \
 	cd $(WEB_DIR) && npm run dev & \
 	cd $(ADMIN_DIR) && npm run dev & \
 	wait
+endif
 
-# 仅后端（Go + Air 热重载）
+# 仅后端（Go + Air）
 server:
-	@echo "=== 启动 Go 后端 (Air) ==="
+	@mkdir -p $(SERVER_DIR)/tmp
 	cd $(SERVER_DIR) && air
 
 # 仅用户前台（React + Vite）
 web:
-	@echo "=== 启动用户前台 (Vite) ==="
 	cd $(WEB_DIR) && $(NPM_RUN) dev
 
 # 仅管理后台（React + Vite）
 admin:
-	@echo "=== 启动管理后台 (Vite) ==="
 	cd $(ADMIN_DIR) && $(NPM_RUN) dev
 
 # ═══════════════════════════════════════════════════════
