@@ -9,6 +9,7 @@ package prom
 
 import (
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,8 @@ import (
 )
 
 var (
+	once sync.Once
+
 	reqCount = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "http_requests_total",
@@ -42,29 +45,39 @@ var (
 	)
 )
 
-// GinMiddleware 是 Gin 的 Prometheus 中间件。
-// 自动收集 HTTP 请求指标（请求量、延迟、状态码）。
 var GinMiddleware gin.HandlerFunc
 
-// Init 根据配置初始化 Prometheus 监控系统。
 func Init() {
-	// 注册默认指标收集器（CPU、内存、Goroutine 等）
-	if config.C.Util.Prometheus.DefaultCollect {
-		prometheus.MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
-		prometheus.MustRegister(prometheus.NewGoCollector())
-	}
+	once.Do(func() {
+		// 注册默认收集器，已注册则跳过（不 panic）
+		if config.C.Util.Prometheus.DefaultCollect {
+			tryRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
+			tryRegister(prometheus.NewGoCollector())
+		}
 
-	prometheus.MustRegister(reqCount, reqDuration, reqInFlight)
+		tryRegister(reqCount)
+		tryRegister(reqDuration)
+		tryRegister(reqInFlight)
 
-	GinMiddleware = func(c *gin.Context) {
-		start := time.Now()
-		reqInFlight.Inc()
+		GinMiddleware = func(c *gin.Context) {
+			start := time.Now()
+			reqInFlight.Inc()
 
-		c.Next()
+			c.Next()
 
-		status := http.StatusText(c.Writer.Status())
-		reqInFlight.Dec()
-		reqCount.WithLabelValues(c.Request.Method, c.FullPath(), status).Inc()
-		reqDuration.WithLabelValues(c.Request.Method, c.FullPath(), status).Observe(time.Since(start).Seconds())
+			status := http.StatusText(c.Writer.Status())
+			reqInFlight.Dec()
+			reqCount.WithLabelValues(c.Request.Method, c.FullPath(), status).Inc()
+			reqDuration.WithLabelValues(c.Request.Method, c.FullPath(), status).Observe(time.Since(start).Seconds())
+		}
+	})
+}
+
+func tryRegister(c prometheus.Collector) {
+	err := prometheus.Register(c)
+	if err != nil {
+		if _, ok := err.(prometheus.AlreadyRegisteredError); !ok {
+			panic(err)
+		}
 	}
 }

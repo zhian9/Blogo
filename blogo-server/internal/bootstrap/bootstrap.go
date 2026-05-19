@@ -34,7 +34,11 @@ type RunConfig struct {
 func Run(ctx context.Context, runCfg RunConfig) error {
 	defer func() {
 		if err := zap.L().Sync(); err != nil {
-			fmt.Printf("Failed to sync zap logger: %s \n", err.Error())
+			// Windows 上 stdout/stderr 无法 sync，忽略
+			if !strings.Contains(err.Error(), "handle is invalid") &&
+				!strings.Contains(err.Error(), "bad file descriptor") {
+				fmt.Printf("Failed to sync zap logger: %s\n", err.Error())
+			}
 		}
 	}()
 
