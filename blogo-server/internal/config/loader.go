@@ -56,7 +56,7 @@ func Load(dir string, names ...string) error {
 	v.AutomaticEnv()
 
 	// 设置环境变量前缀（可选）
-	v.SetEnvPrefix("GOADMIN")
+	v.SetEnvPrefix("blogo")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	// 允许空的环境变量

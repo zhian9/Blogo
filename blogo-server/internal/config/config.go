@@ -28,7 +28,7 @@ type Config struct {
 
 // General 通用配置结构体
 type General struct {
-	AppName            string `default:"goAdmin" mapstructure:"app_name"`
+	AppName            string `default:"blogo" mapstructure:"app_name"`
 	Version            string `default:"v1.0.0" mapstructure:"version"`
 	Debug              bool   `mapstructure:"debug"`
 	PprofAddr          string `mapstructure:"pprof_addr"`

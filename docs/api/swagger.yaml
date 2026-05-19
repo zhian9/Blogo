@@ -537,8 +537,8 @@ definitions:
       password:
         description: |-
           Password: 登录密码（必填）
-          Example: goadmin123456
-        example: goadmin123456
+          Example: blogo123456
+        example: blogo123456
         type: string
       username:
         description: |-

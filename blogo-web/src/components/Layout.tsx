@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import { Layout as AntLayout, BackTop } from 'antd'
+import { Layout as AntLayout, FloatButton } from 'antd'
 import Header from './Header'
 import Footer from './Footer'
 
@@ -13,7 +13,7 @@ export default function Layout() {
         <Outlet />
       </Content>
       <Footer />
-      <BackTop />
+      <FloatButton.BackTop />
     </AntLayout>
   )
 }

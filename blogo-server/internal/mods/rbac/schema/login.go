@@ -32,8 +32,8 @@ type LoginForm struct {
 	Username string `json:"username" binding:"required" example:"admin"`
 
 	// Password: 登录密码（必填）
-	// Example: goadmin123456
-	Password string `json:"password" binding:"required" example:"goadmin123456"`
+	// Example: blogo123456
+	Password string `json:"password" binding:"required" example:"blogo123456"`
 
 	// CaptchaID: 验证码 ID（必填）
 	// 来自 Captcha 接口的 captcha_id

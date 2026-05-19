@@ -13,7 +13,7 @@
 .PHONY: start build build-linux wire swagger openapi clean serve serve-d stop
 
 # ========== 构建参数 ==========
-APP             := goAdmin
+APP             := blogo
 SERVER_BIN      := $(APP)
 
 GIT_DESCRIBE    := $(shell git describe --tags --always --dirty 2>/dev/null || echo v1.0.0)
