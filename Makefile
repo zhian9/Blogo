@@ -15,7 +15,7 @@
 
 # ── 路径定义 ──────────────────────────────────────────
 SERVER_DIR  := blogo-server
-WEB_DIR     := blog-web
+WEB_DIR     := blogo-web
 ADMIN_DIR   := blogo-admin
 DOCKER_DIR  := deploy/docker
 
