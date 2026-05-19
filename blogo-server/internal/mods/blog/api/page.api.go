@@ -19,7 +19,7 @@ type Page struct {
 }
 
 // @Tags PageAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query page list
 // @Param current query int false "pagination index" default(1)
 // @Param pageSize query int false "pagination size" default(10)
@@ -45,7 +45,7 @@ func (p *Page) Query(c *gin.Context) {
 }
 
 // @Tags PageAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get page by ID
 // @Param id path string true "Page ID"
 // @Success 200 {object} util.ResponseResult{data=schema.Page}
@@ -81,7 +81,7 @@ func (p *Page) GetBySlug(c *gin.Context) {
 }
 
 // @Tags PageAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Create page
 // @Param body body schema.PageForm true "Page form"
 // @Success 200 {object} util.ResponseResult{data=schema.Page}
@@ -110,7 +110,7 @@ func (p *Page) Create(c *gin.Context) {
 }
 
 // @Tags PageAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Update page
 // @Param id path string true "Page ID"
 // @Param body body schema.PageForm true "Page form"
@@ -141,7 +141,7 @@ func (p *Page) Update(c *gin.Context) {
 }
 
 // @Tags PageAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Delete page
 // @Param id path string true "Page ID"
 // @Success 200 {object} util.ResponseResult

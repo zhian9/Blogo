@@ -19,7 +19,7 @@ type Statistics struct {
 }
 
 // @Tags StatisticsAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query statistics list
 // @Param current query int false "pagination index" default(1)
 // @Param pageSize query int false "pagination size" default(10)
@@ -46,7 +46,7 @@ func (s *Statistics) Query(c *gin.Context) {
 }
 
 // @Tags StatisticsAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get statistics by date
 // @Param date path string true "Date (YYYY-MM-DD)"
 // @Success 200 {object} util.ResponseResult{data=schema.Statistics}

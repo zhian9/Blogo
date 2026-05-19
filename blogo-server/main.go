@@ -46,14 +46,26 @@ func Execute() {
 	}
 }
 
-// @title       Blogo Admin API
-// @version     v1.0.0
-// @description Blogo 博客后台管理系统 REST API — 提供用户/角色/菜单/文章/评论/日志等管理接口。
-// @securityDefinitions.apikey ApiKeyAuth
-// @in          header
-// @name        Authorization
-// @schemes     http https
-// @basePath    /
+// @title           Blogo API
+// @version         v1.0.0
+// @description     Modern SaaS Blog Platform — REST API for content management, user system, RBAC, analytics, and more.
+// @termsOfService  https://github.com/zhian9/Blogo
+//
+// @contact.name   李星云 (lxy911)
+// @contact.email  lxyaa911@gmail.com
+// @contact.url    https://github.com/zhian9
+//
+// @license.name   MIT
+// @license.url    https://github.com/zhian9/Blogo/blob/master/LICENSE
+//
+// @host           localhost:8040
+// @BasePath       /
+// @schemes        http https
+//
+// @securityDefinitions.apikey  BearerAuth
+// @in                          header
+// @name                        Authorization
+// @description                 Enter "Bearer <your JWT token>". Login via /api/v1/login to obtain a token.
 func main() {
 	Execute()
 }

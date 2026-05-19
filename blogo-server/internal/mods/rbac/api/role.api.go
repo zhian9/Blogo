@@ -19,7 +19,7 @@ type Role struct {
 }
 
 // @Tags RoleAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query role list
 // @Param current query int true "pagination index" default(1)
 // @Param pageSize query int true "pagination size" default(10)
@@ -46,7 +46,7 @@ func (r *Role) Query(c *gin.Context) {
 }
 
 // @Tags RoleAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get role record by ID
 // @Param id path string true "unique id"
 // @Success 200 {object} util.ResponseResult{data=schema.Role}
@@ -64,7 +64,7 @@ func (r *Role) Get(c *gin.Context) {
 }
 
 // @Tags RoleAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Create role record
 // @Param body body schema.RoleForm true "Request body"
 // @Success 200 {object} util.ResponseResult{data=schema.Role}
@@ -92,7 +92,7 @@ func (r *Role) Create(c *gin.Context) {
 }
 
 // @Tags RoleAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Update role record by ID
 // @Param id path string true "unique id"
 // @Param body body schema.RoleForm true "Request body"
@@ -121,7 +121,7 @@ func (r *Role) Update(c *gin.Context) {
 }
 
 // @Tags RoleAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Delete role record by ID
 // @Param id path string true "unique id"
 // @Success 200 {object} util.ResponseResult

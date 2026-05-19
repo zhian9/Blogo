@@ -20,7 +20,7 @@ type Menu struct {
 }
 
 // @Tags MenuAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query menu tree data
 // @Param code query string false "Code path of menu (like xxx.xxx.xxx)"
 // @Param name query string false "Name of menu"
@@ -46,7 +46,7 @@ func (m *Menu) Query(c *gin.Context) {
 }
 
 // @Tags MenuAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get menu record by ID
 // @Param id path string true "unique id"
 // @Success 200 {object} util.ResponseResult{data=schema.Menu}
@@ -64,7 +64,7 @@ func (m *Menu) Get(c *gin.Context) {
 }
 
 // @Tags MenuAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Create menu record
 // @Param body body schema.MenuForm true "Request body"
 // @Success 200 {object} util.ResponseResult{data=schema.Menu}
@@ -92,7 +92,7 @@ func (m *Menu) Create(c *gin.Context) {
 }
 
 // @Tags MenuAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Update menu record by ID
 // @Param id path string true "unique id"
 // @Param body body schema.MenuForm true "Request body"
@@ -121,7 +121,7 @@ func (m *Menu) Update(c *gin.Context) {
 }
 
 // @Tags MenuAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Delete menu record by ID
 // @Param id path string true "unique id"
 // @Success 200 {object} util.ResponseResult

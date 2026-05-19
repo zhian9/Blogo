@@ -120,7 +120,7 @@ func (l *Login) VerifyEmail(c *gin.Context) {
 }
 
 // @Tags LoginAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Logout system
 // @Success 200 {object} util.ResponseResult
 // @Failure 500 {object} util.ResponseResult
@@ -136,7 +136,7 @@ func (l *Login) Logout(c *gin.Context) {
 }
 
 // @Tags LoginAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Refresh current access token
 // @Success 200 {object} util.ResponseResult{data=schema.LoginToken}
 // @Failure 401 {object} util.ResponseResult
@@ -153,7 +153,7 @@ func (l *Login) RefreshToken(c *gin.Context) {
 }
 
 // @Tags LoginAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get current user info
 // @Success 200 {object} util.ResponseResult{data=schema.User}
 // @Failure 401 {object} util.ResponseResult
@@ -170,7 +170,7 @@ func (l *Login) GetUserInfo(c *gin.Context) {
 }
 
 // @Tags LoginAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Change current user password
 // @Param body body schema.UpdateLoginPassword true "Request body"
 // @Success 200 {object} util.ResponseResult
@@ -195,7 +195,7 @@ func (l *Login) UpdatePassword(c *gin.Context) {
 }
 
 // @Tags LoginAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query current user menus based on the current user role
 // @Success 200 {object} util.ResponseResult{data=[]schema.Menu}
 // @Failure 401 {object} util.ResponseResult
@@ -212,7 +212,7 @@ func (l *Login) QueryMenus(c *gin.Context) {
 }
 
 // @Tags LoginAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Update current user info
 // @Param body body schema.UpdateCurrentUser true "Request body"
 // @Success 200 {object} util.ResponseResult

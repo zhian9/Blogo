@@ -1,11 +1,26 @@
 {
+    "schemes": [
+        "http",
+        "https"
+    ],
     "swagger": "2.0",
     "info": {
-        "description": "A lightweight, flexible, elegant and full-featured RBAC scaffolding based on GIN + GORM 2.0 + Casbin 2.0 + Wire DI.",
-        "title": "goAdmin",
-        "contact": {},
+        "description": "Modern SaaS Blog Platform — REST API for content management, user system, RBAC, analytics, and more.",
+        "title": "Blogo API",
+        "termsOfService": "https://github.com/zhian9/Blogo",
+        "contact": {
+            "name": "李星云 (lxy911)",
+            "url": "https://github.com/zhian9",
+            "email": "lxyaa911@gmail.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://github.com/zhian9/Blogo/blob/master/LICENSE"
+        },
         "version": "v1.0.0"
     },
+    "host": "localhost:8040",
+    "basePath": "/",
     "paths": {
         "/api/v1/archives": {
             "get": {
@@ -49,7 +64,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -151,7 +166,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -263,7 +278,7 @@
             "patch": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -313,7 +328,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -371,7 +386,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -432,7 +447,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -463,6 +478,120 @@
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/articles/{id}/comments": {
+            "get": {
+                "description": "Create a new comment, supports guest and logged-in users.",
+                "tags": [
+                    "CommentAPI"
+                ],
+                "summary": "Create comment (public)",
+                "parameters": [
+                    {
+                        "description": "Comment form",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.CommentForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.Comment"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/articles/{id}/top": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "ArticleAPI"
+                ],
+                "summary": "Toggle article top status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Article ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "is_top flag",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "is_top": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/util.ResponseResult"
                         }
@@ -596,7 +725,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -664,7 +793,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -763,7 +892,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -821,7 +950,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -882,7 +1011,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -936,7 +1065,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1097,7 +1226,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1155,7 +1284,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1217,7 +1346,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1265,7 +1394,7 @@
             "patch": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1313,7 +1442,7 @@
             "patch": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1361,7 +1490,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1388,7 +1517,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1436,7 +1565,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1486,7 +1615,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1531,7 +1660,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1574,7 +1703,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1624,7 +1753,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1702,7 +1831,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1801,7 +1930,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1859,7 +1988,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1920,7 +2049,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -1968,7 +2097,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -2058,7 +2187,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "description": "This only creates DB record. File upload should be handled separately.",
@@ -2121,7 +2250,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -2218,11 +2347,84 @@
                 }
             }
         },
+        "/api/v1/images/upload": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload an image file (multipart/form-data). Creates DB record and saves to disk.",
+                "tags": [
+                    "ImageAPI"
+                ],
+                "summary": "Upload image file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Image file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "avatar",
+                            "article_cover",
+                            "ad_image",
+                            "friend_link_logo"
+                        ],
+                        "type": "string",
+                        "description": "Category",
+                        "name": "category",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.Image"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/images/{id}": {
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -2280,7 +2482,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -2341,7 +2543,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -2389,7 +2591,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -2548,7 +2750,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -2614,7 +2816,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -2676,7 +2878,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -2728,7 +2930,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -2783,7 +2985,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -2825,7 +3027,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -2918,7 +3120,7 @@
             "patch": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -2966,7 +3168,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3024,7 +3226,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3072,7 +3274,7 @@
             "patch": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3116,11 +3318,223 @@
                 }
             }
         },
+        "/api/v1/operation-logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "OperationLogAPI"
+                ],
+                "summary": "Query operation logs list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "pagination index",
+                        "name": "current",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "pagination size",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "operation module",
+                        "name": "module",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "action type",
+                        "name": "action_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "http method",
+                        "name": "requestMethod",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "operator name",
+                        "name": "operator",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "action description",
+                        "name": "description",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "operation status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "start time",
+                        "name": "startTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "end time",
+                        "name": "endTime",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/schema.OperationLog"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/operation-logs/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "OperationLogAPI"
+                ],
+                "summary": "Get operation log by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "operation log ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.ResponseResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.OperationLog"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "OperationLogAPI"
+                ],
+                "summary": "Delete operation log",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "operation log ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/pages": {
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3188,7 +3602,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3299,7 +3713,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3357,7 +3771,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3418,7 +3832,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3464,6 +3878,7 @@
         },
         "/api/v1/register": {
             "post": {
+                "description": "Register a new user account. An activation email will be sent to the provided email.",
                 "tags": [
                     "LoginAPI"
                 ],
@@ -3483,19 +3898,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.ResponseResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.LoginToken"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/util.ResponseResult"
                         }
                     },
                     "400": {
@@ -3517,7 +3920,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3593,7 +3996,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3655,7 +4058,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3707,7 +4110,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3762,7 +4165,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3804,7 +4207,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3872,7 +4275,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3934,7 +4337,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -3982,7 +4385,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4040,7 +4443,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4101,7 +4504,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4149,7 +4552,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4271,7 +4674,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4331,7 +4734,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4399,7 +4802,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4498,7 +4901,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4556,7 +4959,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4617,7 +5020,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4671,7 +5074,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4753,7 +5156,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4815,7 +5218,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4867,7 +5270,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4922,7 +5325,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -4964,7 +5367,7 @@
             "patch": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "tags": [
@@ -5001,10 +5404,48 @@
                     }
                 }
             }
+        },
+        "/api/v1/verify-email": {
+            "get": {
+                "description": "Activate user account by clicking the activation link sent via email.",
+                "tags": [
+                    "LoginAPI"
+                ],
+                "summary": "Verify email via activation token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activation token from email",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/util.ResponseResult"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "errors.Error": {
+        "github_com_zhian9_blogo-server_pkg_errors.Error": {
             "type": "object",
             "properties": {
                 "code": {
@@ -5033,11 +5474,11 @@
                     "type": "integer"
                 },
                 "month": {
-                    "description": "月份，如 10",
+                    "description": "月份",
                     "type": "integer"
                 },
                 "year": {
-                    "description": "年份，如 2025",
+                    "description": "年份",
                     "type": "integer"
                 }
             }
@@ -5045,8 +5486,20 @@
         "schema.Article": {
             "type": "object",
             "properties": {
+                "author": {
+                    "description": "作者信息（手动加载）",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/schema.User"
+                        }
+                    ]
+                },
+                "author_id": {
+                    "description": "作者用户ID",
+                    "type": "string"
+                },
                 "category": {
-                    "description": "关联分类（可选加载）",
+                    "description": "关联分类",
                     "allOf": [
                         {
                             "$ref": "#/definitions/schema.Category"
@@ -5058,11 +5511,11 @@
                     "type": "string"
                 },
                 "content": {
-                    "description": "Markdown内容",
+                    "description": "Markdown 原文",
                     "type": "string"
                 },
                 "cover_image": {
-                    "description": "封面图URL",
+                    "description": "封面图（手动加载）",
                     "allOf": [
                         {
                             "$ref": "#/definitions/schema.Image"
@@ -5077,6 +5530,10 @@
                     "description": "创建时间",
                     "type": "string"
                 },
+                "html_content": {
+                    "description": "预渲染 HTML",
+                    "type": "string"
+                },
                 "id": {
                     "description": "唯一ID",
                     "type": "string"
@@ -5086,7 +5543,7 @@
                     "type": "boolean"
                 },
                 "published_at": {
-                    "description": "发布时间（用于归档）",
+                    "description": "发布时间",
                     "type": "string"
                 },
                 "seo_desc": {
@@ -5102,7 +5559,7 @@
                     "type": "string"
                 },
                 "slug": {
-                    "description": "SEO友好URL路径（如 go-concurrency-patterns）",
+                    "description": "SEO友好URL路径",
                     "type": "string"
                 },
                 "status": {
@@ -5110,7 +5567,7 @@
                     "type": "string"
                 },
                 "summary": {
-                    "description": "摘要（可自动截取）",
+                    "description": "摘要",
                     "type": "string"
                 },
                 "tags": {
@@ -5131,27 +5588,35 @@
                 "views": {
                     "description": "浏览量",
                     "type": "integer"
+                },
+                "visibility": {
+                    "description": "可见性：public / private",
+                    "type": "string"
+                },
+                "visible_users": {
+                    "description": "可见用户列表（手动加载）",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.ArticleVisibleUser"
+                    }
                 }
             }
         },
         "schema.ArticleForm": {
             "type": "object",
             "required": [
-                "category_id",
                 "content",
-                "cover_image_id",
                 "slug",
                 "status",
-                "tag_ids",
                 "title"
             ],
             "properties": {
                 "category_id": {
-                    "description": "分类ID",
+                    "description": "分类ID/名称（发布时自动创建）",
                     "type": "string"
                 },
                 "content": {
-                    "description": "内容（Markdown）",
+                    "description": "Markdown内容",
                     "type": "string"
                 },
                 "cover_image": {
@@ -5171,7 +5636,7 @@
                     "type": "boolean"
                 },
                 "published_at": {
-                    "description": "发布时间（可为空，发布时自动设为 now）",
+                    "description": "发布时间",
                     "type": "string"
                 },
                 "seo_desc": {
@@ -5208,7 +5673,7 @@
                     "maxLength": 1000
                 },
                 "tag_ids": {
-                    "description": "标签ID列表",
+                    "description": "标签ID/名称列表（发布时自动创建）",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -5218,6 +5683,39 @@
                     "description": "标题",
                     "type": "string",
                     "maxLength": 255
+                },
+                "visibility": {
+                    "description": "可见性",
+                    "type": "string",
+                    "enum": [
+                        "public",
+                        "private",
+                        "partial_visible"
+                    ]
+                },
+                "visible_user_ids": {
+                    "description": "可见用户ID列表（仅 partial_visible 时使用）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "schema.ArticleVisibleUser": {
+            "type": "object",
+            "properties": {
+                "article_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -5260,6 +5758,10 @@
         "schema.Category": {
             "type": "object",
             "properties": {
+                "article_count": {
+                    "description": "文章数量（非DB字段，查询时填充）",
+                    "type": "integer"
+                },
                 "created_at": {
                     "description": "创建时间",
                     "type": "string"
@@ -5304,7 +5806,7 @@
             "type": "object",
             "properties": {
                 "article": {
-                    "description": "所属文章（可选加载）",
+                    "description": "所属文章",
                     "allOf": [
                         {
                             "$ref": "#/definitions/schema.Article"
@@ -5339,8 +5841,12 @@
                     "description": "是否置顶（管理员可置顶优质评论）",
                     "type": "boolean"
                 },
+                "moderation_message": {
+                    "description": "审核提示",
+                    "type": "string"
+                },
                 "parent": {
-                    "description": "父评论（用于前端展示“回复 @xxx”）",
+                    "description": "父评论",
                     "allOf": [
                         {
                             "$ref": "#/definitions/schema.Comment"
@@ -5352,7 +5858,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "description": "评论状态（approved/pending/rejected）",
+                    "description": "评论状态（pending→审核后approved/rejected）",
                     "type": "string"
                 },
                 "updated_at": {
@@ -5360,7 +5866,7 @@
                     "type": "string"
                 },
                 "user": {
-                    "description": "关联字段（非数据库字段，用于 API 返回）",
+                    "description": "关联字段（全部手动加载，避免外键约束）",
                     "allOf": [
                         {
                             "$ref": "#/definitions/schema.User"
@@ -5910,6 +6416,78 @@
                 }
             }
         },
+        "schema.OperationLog": {
+            "type": "object",
+            "properties": {
+                "action_type": {
+                    "description": "操作类型（如：新增、编辑、删除、审核）",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "时间戳",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "具体行为描述（如：删除了文章「标题」）",
+                    "type": "string"
+                },
+                "error_msg": {
+                    "description": "错误信息（失败时）",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键",
+                    "type": "string"
+                },
+                "module": {
+                    "description": "操作内容分类",
+                    "type": "string"
+                },
+                "operator": {
+                    "description": "操作用户名",
+                    "type": "string"
+                },
+                "operator_id": {
+                    "description": "操作人信息",
+                    "type": "string"
+                },
+                "operator_ip": {
+                    "description": "操作者IP（支持IPv6）",
+                    "type": "string"
+                },
+                "request_method": {
+                    "description": "HTTP方法",
+                    "type": "string"
+                },
+                "request_path": {
+                    "description": "请求信息",
+                    "type": "string"
+                },
+                "resource_id": {
+                    "description": "资源信息",
+                    "type": "string"
+                },
+                "resource_name": {
+                    "description": "操作的资源名称",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "操作结果",
+                    "type": "boolean"
+                },
+                "status_code": {
+                    "description": "HTTP状态码",
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_agent": {
+                    "description": "用户代理",
+                    "type": "string"
+                }
+            }
+        },
         "schema.Page": {
             "type": "object",
             "properties": {
@@ -6251,6 +6829,18 @@
                 "name"
             ],
             "properties": {
+                "avatar": {
+                    "description": "Avatar: 头像 URL（可选，最大 512 字符）\nExample: https://example.com/avatar.jpg",
+                    "type": "string",
+                    "maxLength": 512,
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "bio": {
+                    "description": "Bio: 个人简介/个性签名（可选，最大 512 字符）\nExample: 全栈开发者，热爱开源",
+                    "type": "string",
+                    "maxLength": 512,
+                    "example": "全栈开发者，热爱开源"
+                },
                 "email": {
                     "description": "Email: 邮箱地址（可选，最大 128 字符）\nExample: lxy911@gmail.com",
                     "type": "string",
@@ -6299,16 +6889,44 @@
         "schema.User": {
             "type": "object",
             "properties": {
+                "activated_at": {
+                    "description": "Account activation time",
+                    "type": "string"
+                },
+                "avatar": {
+                    "description": "Avatar URL",
+                    "type": "string"
+                },
+                "bio": {
+                    "description": "Bio / personal signature",
+                    "type": "string"
+                },
                 "created_at": {
                     "description": "Create time",
                     "type": "string"
                 },
                 "email": {
-                    "description": "Email of user",
+                    "description": "Email of user (unique)",
                     "type": "string"
+                },
+                "follower_count": {
+                    "description": "粉丝数",
+                    "type": "integer"
+                },
+                "following_count": {
+                    "description": "关注数",
+                    "type": "integer"
                 },
                 "id": {
                     "description": "Unique ID",
+                    "type": "string"
+                },
+                "last_login_at": {
+                    "description": "Last login time",
+                    "type": "string"
+                },
+                "last_login_ip": {
+                    "description": "Last login IP (supports IPv6)",
                     "type": "string"
                 },
                 "name": {
@@ -6331,7 +6949,7 @@
                     }
                 },
                 "status": {
-                    "description": "Status of user (activated, freezed)",
+                    "description": "Status of user (activated, inactive, freezed)",
                     "type": "string"
                 },
                 "updated_at": {
@@ -6353,6 +6971,16 @@
                 "username"
             ],
             "properties": {
+                "avatar": {
+                    "description": "Avatar URL",
+                    "type": "string",
+                    "maxLength": 512
+                },
+                "bio": {
+                    "description": "Bio / personal signature",
+                    "type": "string",
+                    "maxLength": 512
+                },
                 "email": {
                     "description": "Email of user",
                     "type": "string",
@@ -6386,10 +7014,11 @@
                     }
                 },
                 "status": {
-                    "description": "Status of user (activated, freezed)",
+                    "description": "Status of user",
                     "type": "string",
                     "enum": [
                         "activated",
+                        "inactive",
                         "freezed"
                     ]
                 },
@@ -6409,6 +7038,10 @@
                 },
                 "id": {
                     "description": "Unique ID",
+                    "type": "string"
+                },
+                "role_code": {
+                    "description": "From Role.Code",
                     "type": "string"
                 },
                 "role_id": {
@@ -6434,7 +7067,7 @@
             "properties": {
                 "data": {},
                 "error": {
-                    "$ref": "#/definitions/errors.Error"
+                    "$ref": "#/definitions/github_com_zhian9_blogo-server_pkg_errors.Error"
                 },
                 "success": {
                     "type": "boolean"
@@ -6446,7 +7079,8 @@
         }
     },
     "securityDefinitions": {
-        "ApiKeyAuth": {
+        "BearerAuth": {
+            "description": "Enter \"Bearer \u003cyour JWT token\u003e\". Login via /api/v1/login to obtain a token.",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

@@ -48,15 +48,15 @@ wire:
 	wire gen ./internal/wirex
 
 swagger:
-	swag init --parseDependency --generalInfo ./main.go --output ./internal/swagger
+	swag init --parseDependency --generalInfo ./main.go --output ../docs/api
 
 openapi:
-	rm -rf ./internal/swagger/v3
+	rm -rf ../docs/api/openapi
 	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
-		-i /local/internal/swagger/swagger.yaml \
+		-i /local/../docs/api/swagger.yaml \
 		-g openapi \
-		-o /local/internal/swagger/v3
-	@echo "OpenAPI v3 规范已生成: ./internal/swagger/v3/openapi.yaml"
+		-o /local/../docs/api/openapi
+	@echo "OpenAPI v3 规范已生成: ../docs/api/openapi/openapi.yaml"
 
 # ========== 清理与运行 ==========
 

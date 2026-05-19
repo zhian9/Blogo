@@ -19,7 +19,7 @@ type Category struct {
 }
 
 // @Tags CategoryAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query category list
 // @Param current query int false "pagination index" default(1)
 // @Param pageSize query int false "pagination size" default(10)
@@ -45,7 +45,7 @@ func (c *Category) Query(cxt *gin.Context) {
 }
 
 // @Tags CategoryAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get category by ID
 // @Param id path string true "Category ID"
 // @Success 200 {object} util.ResponseResult{data=schema.Category}
@@ -64,7 +64,7 @@ func (c *Category) Get(cxt *gin.Context) {
 }
 
 // @Tags CategoryAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Create category
 // @Param body body schema.CategoryForm true "Category form"
 // @Success 200 {object} util.ResponseResult{data=schema.Category}
@@ -93,7 +93,7 @@ func (c *Category) Create(cxt *gin.Context) {
 }
 
 // @Tags CategoryAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Update category
 // @Param id path string true "Category ID"
 // @Param body body schema.CategoryForm true "Category form"
@@ -124,7 +124,7 @@ func (c *Category) Update(cxt *gin.Context) {
 }
 
 // @Tags CategoryAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Delete category
 // @Param id path string true "Category ID"
 // @Success 200 {object} util.ResponseResult

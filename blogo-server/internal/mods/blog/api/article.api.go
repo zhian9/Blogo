@@ -19,7 +19,7 @@ type Article struct {
 }
 
 // @Tags ArticleAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query article list
 // @Param current query int false "pagination index" default(1)
 // @Param pageSize query int false "pagination size" default(10)
@@ -50,7 +50,7 @@ func (a *Article) Query(c *gin.Context) {
 }
 
 // @Tags ArticleAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get article by ID
 // @Param id path string true "Article ID"
 // @Success 200 {object} util.ResponseResult{data=schema.Article}
@@ -87,7 +87,7 @@ func (a *Article) GetBySlug(c *gin.Context) {
 }
 
 // @Tags ArticleAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Create article
 // @Param body body schema.ArticleForm true "Article form"
 // @Success 200 {object} util.ResponseResult{data=schema.Article}
@@ -116,7 +116,7 @@ func (a *Article) Create(c *gin.Context) {
 }
 
 // @Tags ArticleAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Update article by ID
 // @Param id path string true "Article ID"
 // @Param body body schema.ArticleForm true "Article form"
@@ -147,7 +147,7 @@ func (a *Article) Update(c *gin.Context) {
 }
 
 // @Tags ArticleAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Delete article by ID
 // @Param id path string true "Article ID"
 // @Success 200 {object} util.ResponseResult
@@ -166,7 +166,7 @@ func (a *Article) Delete(c *gin.Context) {
 }
 
 // @Tags ArticleAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Batch update article status
 // @Param body body schema.BatchUpdateStatusForm true "IDs and status"
 // @Success 200 {object} util.ResponseResult
@@ -210,7 +210,7 @@ func (a *Article) GetArchive(c *gin.Context) {
 }
 
 // @Tags ArticleAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Toggle article top status
 // @Param id path string true "Article ID"
 // @Param body body object{is_top=bool} true "is_top flag"

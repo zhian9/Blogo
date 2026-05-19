@@ -1,10 +1,6 @@
-# Copyright 2025 lxy911(李星云) <lxyaa911@gmail.com>. All rights reserved.
-# Use of this source code is governed by a [MIT/Apache/BSD] style license
-# that can be found in the LICENSE file.
-# Project repository: https://github.com/zhian9/go-admin
-
+basePath: /
 definitions:
-  errors.Error:
+  github_com_zhian9_blogo-server_pkg_errors.Error:
     properties:
       code:
         description: HTTP 状态码
@@ -25,33 +21,43 @@ definitions:
         description: 该月文章数量
         type: integer
       month:
-        description: 月份，如 10
+        description: 月份
         type: integer
       year:
-        description: 年份，如 2025
+        description: 年份
         type: integer
     type: object
   schema.Article:
     properties:
+      author:
+        allOf:
+        - $ref: '#/definitions/schema.User'
+        description: 作者信息（手动加载）
+      author_id:
+        description: 作者用户ID
+        type: string
       category:
         allOf:
         - $ref: '#/definitions/schema.Category'
-        description: 关联分类（可选加载）
+        description: 关联分类
       category_id:
         description: 分类ID
         type: string
       content:
-        description: Markdown内容
+        description: Markdown 原文
         type: string
       cover_image:
         allOf:
         - $ref: '#/definitions/schema.Image'
-        description: 封面图URL
+        description: 封面图（手动加载）
       cover_image_id:
         description: 封面图ID
         type: string
       created_at:
         description: 创建时间
+        type: string
+      html_content:
+        description: 预渲染 HTML
         type: string
       id:
         description: 唯一ID
@@ -60,7 +66,7 @@ definitions:
         description: 是否置顶
         type: boolean
       published_at:
-        description: 发布时间（用于归档）
+        description: 发布时间
         type: string
       seo_desc:
         description: SEO描述
@@ -72,13 +78,13 @@ definitions:
         description: SEO标题
         type: string
       slug:
-        description: SEO友好URL路径（如 go-concurrency-patterns）
+        description: SEO友好URL路径
         type: string
       status:
         description: 状态：draft / published
         type: string
       summary:
-        description: 摘要（可自动截取）
+        description: 摘要
         type: string
       tags:
         description: 标签（多对多）
@@ -94,14 +100,22 @@ definitions:
       views:
         description: 浏览量
         type: integer
+      visibility:
+        description: 可见性：public / private
+        type: string
+      visible_users:
+        description: 可见用户列表（手动加载）
+        items:
+          $ref: '#/definitions/schema.ArticleVisibleUser'
+        type: array
     type: object
   schema.ArticleForm:
     properties:
       category_id:
-        description: 分类ID
+        description: 分类ID/名称（发布时自动创建）
         type: string
       content:
-        description: 内容（Markdown）
+        description: Markdown内容
         type: string
       cover_image:
         allOf:
@@ -114,7 +128,7 @@ definitions:
         description: 是否置顶
         type: boolean
       published_at:
-        description: 发布时间（可为空，发布时自动设为 now）
+        description: 发布时间
         type: string
       seo_desc:
         description: SEO描述
@@ -143,7 +157,7 @@ definitions:
         maxLength: 1000
         type: string
       tag_ids:
-        description: 标签ID列表
+        description: 标签ID/名称列表（发布时自动创建）
         items:
           type: string
         type: array
@@ -151,14 +165,34 @@ definitions:
         description: 标题
         maxLength: 255
         type: string
+      visibility:
+        description: 可见性
+        enum:
+        - public
+        - private
+        - partial_visible
+        type: string
+      visible_user_ids:
+        description: 可见用户ID列表（仅 partial_visible 时使用）
+        items:
+          type: string
+        type: array
     required:
-    - category_id
     - content
-    - cover_image_id
     - slug
     - status
-    - tag_ids
     - title
+    type: object
+  schema.ArticleVisibleUser:
+    properties:
+      article_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      user_id:
+        type: string
     type: object
   schema.BatchIDsForm:
     properties:
@@ -188,6 +222,9 @@ definitions:
     type: object
   schema.Category:
     properties:
+      article_count:
+        description: 文章数量（非DB字段，查询时填充）
+        type: integer
       created_at:
         description: 创建时间
         type: string
@@ -222,7 +259,7 @@ definitions:
       article:
         allOf:
         - $ref: '#/definitions/schema.Article'
-        description: 所属文章（可选加载）
+        description: 所属文章
       article_id:
         description: 关联文章ID
         type: string
@@ -244,15 +281,18 @@ definitions:
       is_top:
         description: 是否置顶（管理员可置顶优质评论）
         type: boolean
+      moderation_message:
+        description: 审核提示
+        type: string
       parent:
         allOf:
         - $ref: '#/definitions/schema.Comment'
-        description: 父评论（用于前端展示“回复 @xxx”）
+        description: 父评论
       parent_id:
         description: 父评论ID（用于回复评论，实现嵌套）
         type: string
       status:
-        description: 评论状态（approved/pending/rejected）
+        description: 评论状态（pending→审核后approved/rejected）
         type: string
       updated_at:
         description: 更新时间
@@ -260,7 +300,7 @@ definitions:
       user:
         allOf:
         - $ref: '#/definitions/schema.User'
-        description: 关联字段（非数据库字段，用于 API 返回）
+        description: 关联字段（全部手动加载，避免外键约束）
       user_agent:
         description: 浏览器UA
         type: string
@@ -689,6 +729,59 @@ definitions:
         description: 接收者ID
         type: string
     type: object
+  schema.OperationLog:
+    properties:
+      action_type:
+        description: 操作类型（如：新增、编辑、删除、审核）
+        type: string
+      created_at:
+        description: 时间戳
+        type: string
+      description:
+        description: 具体行为描述（如：删除了文章「标题」）
+        type: string
+      error_msg:
+        description: 错误信息（失败时）
+        type: string
+      id:
+        description: 主键
+        type: string
+      module:
+        description: 操作内容分类
+        type: string
+      operator:
+        description: 操作用户名
+        type: string
+      operator_id:
+        description: 操作人信息
+        type: string
+      operator_ip:
+        description: 操作者IP（支持IPv6）
+        type: string
+      request_method:
+        description: HTTP方法
+        type: string
+      request_path:
+        description: 请求信息
+        type: string
+      resource_id:
+        description: 资源信息
+        type: string
+      resource_name:
+        description: 操作的资源名称
+        type: string
+      status:
+        description: 操作结果
+        type: boolean
+      status_code:
+        description: HTTP状态码
+        type: integer
+      updated_at:
+        type: string
+      user_agent:
+        description: 用户代理
+        type: string
+    type: object
   schema.Page:
     properties:
       content:
@@ -952,6 +1045,20 @@ definitions:
     type: object
   schema.UpdateCurrentUser:
     properties:
+      avatar:
+        description: |-
+          Avatar: 头像 URL（可选，最大 512 字符）
+          Example: https://example.com/avatar.jpg
+        example: https://example.com/avatar.jpg
+        maxLength: 512
+        type: string
+      bio:
+        description: |-
+          Bio: 个人简介/个性签名（可选，最大 512 字符）
+          Example: 全栈开发者，热爱开源
+        example: 全栈开发者，热爱开源
+        maxLength: 512
+        type: string
       email:
         description: |-
           Email: 邮箱地址（可选，最大 128 字符）
@@ -1004,14 +1111,35 @@ definitions:
     type: object
   schema.User:
     properties:
+      activated_at:
+        description: Account activation time
+        type: string
+      avatar:
+        description: Avatar URL
+        type: string
+      bio:
+        description: Bio / personal signature
+        type: string
       created_at:
         description: Create time
         type: string
       email:
-        description: Email of user
+        description: Email of user (unique)
         type: string
+      follower_count:
+        description: 粉丝数
+        type: integer
+      following_count:
+        description: 关注数
+        type: integer
       id:
         description: Unique ID
+        type: string
+      last_login_at:
+        description: Last login time
+        type: string
+      last_login_ip:
+        description: Last login IP (supports IPv6)
         type: string
       name:
         description: Name of user
@@ -1028,7 +1156,7 @@ definitions:
           $ref: '#/definitions/schema.UserRole'
         type: array
       status:
-        description: Status of user (activated, freezed)
+        description: Status of user (activated, inactive, freezed)
         type: string
       updated_at:
         description: Update time
@@ -1039,6 +1167,14 @@ definitions:
     type: object
   schema.UserForm:
     properties:
+      avatar:
+        description: Avatar URL
+        maxLength: 512
+        type: string
+      bio:
+        description: Bio / personal signature
+        maxLength: 512
+        type: string
       email:
         description: Email of user
         maxLength: 128
@@ -1065,9 +1201,10 @@ definitions:
           $ref: '#/definitions/schema.UserRole'
         type: array
       status:
-        description: Status of user (activated, freezed)
+        description: Status of user
         enum:
         - activated
+        - inactive
         - freezed
         type: string
       username:
@@ -1088,6 +1225,9 @@ definitions:
       id:
         description: Unique ID
         type: string
+      role_code:
+        description: From Role.Code
+        type: string
       role_id:
         description: From Role.ID
         type: string
@@ -1105,17 +1245,25 @@ definitions:
     properties:
       data: {}
       error:
-        $ref: '#/definitions/errors.Error'
+        $ref: '#/definitions/github_com_zhian9_blogo-server_pkg_errors.Error'
       success:
         type: boolean
       total:
         type: integer
     type: object
+host: localhost:8040
 info:
-  contact: {}
-  description: A lightweight, flexible, elegant and full-featured RBAC scaffolding
-    based on GIN + GORM 2.0 + Casbin 2.0 + Wire DI.
-  title: goAdmin
+  contact:
+    email: lxyaa911@gmail.com
+    name: 李星云 (lxy911)
+    url: https://github.com/zhian9
+  description: Modern SaaS Blog Platform — REST API for content management, user system,
+    RBAC, analytics, and more.
+  license:
+    name: MIT
+    url: https://github.com/zhian9/Blogo/blob/master/LICENSE
+  termsOfService: https://github.com/zhian9/Blogo
+  title: Blogo API
   version: v1.0.0
 paths:
   /api/v1/archives:
@@ -1201,7 +1349,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query article list
       tags:
       - ArticleAPI
@@ -1236,7 +1384,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Create article
       tags:
       - ArticleAPI
@@ -1266,7 +1414,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Delete article by ID
       tags:
       - ArticleAPI
@@ -1300,7 +1448,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get article by ID
       tags:
       - ArticleAPI
@@ -1339,8 +1487,78 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Update article by ID
+      tags:
+      - ArticleAPI
+  /api/v1/articles/{id}/comments:
+    get:
+      description: Create a new comment, supports guest and logged-in users.
+      parameters:
+      - description: Comment form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CommentForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Comment'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Create comment (public)
+      tags:
+      - CommentAPI
+  /api/v1/articles/{id}/top:
+    patch:
+      parameters:
+      - description: Article ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: is_top flag
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            is_top:
+              type: boolean
+          type: object
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - BearerAuth: []
+      summary: Toggle article top status
       tags:
       - ArticleAPI
   /api/v1/articles/{id}/views:
@@ -1434,7 +1652,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Batch update article status
       tags:
       - ArticleAPI
@@ -1515,7 +1733,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query category list
       tags:
       - CategoryAPI
@@ -1550,7 +1768,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Create category
       tags:
       - CategoryAPI
@@ -1584,7 +1802,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Delete category
       tags:
       - CategoryAPI
@@ -1618,7 +1836,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get category by ID
       tags:
       - CategoryAPI
@@ -1657,7 +1875,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Update category
       tags:
       - CategoryAPI
@@ -1748,7 +1966,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query comment list (admin)
       tags:
       - CommentAPI
@@ -1808,7 +2026,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Delete comment by ID
       tags:
       - CommentAPI
@@ -1842,7 +2060,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get comment by ID
       tags:
       - CommentAPI
@@ -1882,7 +2100,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Update comment by ID
       tags:
       - CommentAPI
@@ -1912,7 +2130,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Approve comment
       tags:
       - CommentAPI
@@ -1942,7 +2160,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Reject comment
       tags:
       - CommentAPI
@@ -1958,7 +2176,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Logout system
       tags:
       - LoginAPI
@@ -1985,7 +2203,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query current user menus based on the current user role
       tags:
       - LoginAPI
@@ -2016,7 +2234,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Change current user password
       tags:
       - LoginAPI
@@ -2041,7 +2259,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Refresh current access token
       tags:
       - LoginAPI
@@ -2066,7 +2284,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get current user info
       tags:
       - LoginAPI
@@ -2096,7 +2314,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Update current user info
       tags:
       - LoginAPI
@@ -2145,7 +2363,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query friend link list
       tags:
       - FriendLinkAPI
@@ -2180,7 +2398,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Create friend link
       tags:
       - FriendLinkAPI
@@ -2210,7 +2428,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Delete friend link
       tags:
       - FriendLinkAPI
@@ -2244,7 +2462,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get friend link by ID
       tags:
       - FriendLinkAPI
@@ -2283,7 +2501,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Update friend link
       tags:
       - FriendLinkAPI
@@ -2362,7 +2580,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query image list
       tags:
       - ImageAPI
@@ -2398,7 +2616,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Create image record
       tags:
       - ImageAPI
@@ -2428,7 +2646,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Delete image
       tags:
       - ImageAPI
@@ -2462,7 +2680,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get image by ID
       tags:
       - ImageAPI
@@ -2501,7 +2719,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Update image
       tags:
       - ImageAPI
@@ -2532,7 +2750,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Batch delete images
       tags:
       - ImageAPI
@@ -2565,6 +2783,52 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       summary: Get images by category (public)
+      tags:
+      - ImageAPI
+  /api/v1/images/upload:
+    post:
+      description: Upload an image file (multipart/form-data). Creates DB record and
+        saves to disk.
+      parameters:
+      - description: Image file
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Category
+        enum:
+        - avatar
+        - article_cover
+        - ad_image
+        - friend_link_logo
+        in: formData
+        name: category
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Image'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - BearerAuth: []
+      summary: Upload image file
       tags:
       - ImageAPI
   /api/v1/loggers:
@@ -2631,7 +2895,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query logger list
       tags:
       - LoggerAPI
@@ -2701,7 +2965,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query menu tree data
       tags:
       - MenuAPI
@@ -2736,7 +3000,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Create menu record
       tags:
       - MenuAPI
@@ -2762,7 +3026,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Delete menu record by ID
       tags:
       - MenuAPI
@@ -2792,7 +3056,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get menu record by ID
       tags:
       - MenuAPI
@@ -2827,7 +3091,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Update menu record by ID
       tags:
       - MenuAPI
@@ -2885,7 +3149,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query notification list
       tags:
       - NotificationAPI
@@ -2915,7 +3179,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Delete notification
       tags:
       - NotificationAPI
@@ -2949,7 +3213,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get notification by ID
       tags:
       - NotificationAPI
@@ -2979,7 +3243,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Mark notification as read
       tags:
       - NotificationAPI
@@ -3009,10 +3273,140 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Mark all notifications as read
       tags:
       - NotificationAPI
+  /api/v1/operation-logs:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        type: integer
+      - default: 20
+        description: pagination size
+        in: query
+        name: pageSize
+        type: integer
+      - description: operation module
+        in: query
+        name: module
+        type: string
+      - description: action type
+        in: query
+        name: action_type
+        type: string
+      - description: http method
+        in: query
+        name: requestMethod
+        type: string
+      - description: operator name
+        in: query
+        name: operator
+        type: string
+      - description: action description
+        in: query
+        name: description
+        type: string
+      - description: operation status
+        in: query
+        name: status
+        type: boolean
+      - description: start time
+        in: query
+        name: startTime
+        type: string
+      - description: end time
+        in: query
+        name: endTime
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.OperationLog'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - BearerAuth: []
+      summary: Query operation logs list
+      tags:
+      - OperationLogAPI
+  /api/v1/operation-logs/{id}:
+    delete:
+      parameters:
+      - description: operation log ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - BearerAuth: []
+      summary: Delete operation log
+      tags:
+      - OperationLogAPI
+    get:
+      parameters:
+      - description: operation log ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.OperationLog'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - BearerAuth: []
+      summary: Get operation log by ID
+      tags:
+      - OperationLogAPI
   /api/v1/pages:
     get:
       parameters:
@@ -3051,7 +3445,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query page list
       tags:
       - PageAPI
@@ -3086,7 +3480,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Create page
       tags:
       - PageAPI
@@ -3116,7 +3510,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Delete page
       tags:
       - PageAPI
@@ -3150,7 +3544,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get page by ID
       tags:
       - PageAPI
@@ -3189,7 +3583,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Update page
       tags:
       - PageAPI
@@ -3224,6 +3618,8 @@ paths:
       - PageAPI
   /api/v1/register:
     post:
+      description: Register a new user account. An activation email will be sent to
+        the provided email.
       parameters:
       - description: Request body
         in: body
@@ -3235,12 +3631,7 @@ paths:
         "200":
           description: OK
           schema:
-            allOf:
-            - $ref: '#/definitions/util.ResponseResult'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.LoginToken'
-              type: object
+            $ref: '#/definitions/util.ResponseResult'
         "400":
           description: Bad Request
           schema:
@@ -3296,7 +3687,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query role list
       tags:
       - RoleAPI
@@ -3331,7 +3722,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Create role record
       tags:
       - RoleAPI
@@ -3357,7 +3748,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Delete role record by ID
       tags:
       - RoleAPI
@@ -3387,7 +3778,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get role record by ID
       tags:
       - RoleAPI
@@ -3422,7 +3813,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Update role record by ID
       tags:
       - RoleAPI
@@ -3464,7 +3855,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query setting list
       tags:
       - SettingAPI
@@ -3499,7 +3890,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Create setting
       tags:
       - SettingAPI
@@ -3529,7 +3920,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Delete setting
       tags:
       - SettingAPI
@@ -3563,7 +3954,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get setting by key
       tags:
       - SettingAPI
@@ -3602,7 +3993,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Update setting
       tags:
       - SettingAPI
@@ -3629,7 +4020,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get all settings
       tags:
       - SettingAPI
@@ -3675,7 +4066,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query statistics list
       tags:
       - StatisticsAPI
@@ -3710,7 +4101,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get statistics by date
       tags:
       - StatisticsAPI
@@ -3779,7 +4170,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query tag list
       tags:
       - TagAPI
@@ -3814,7 +4205,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Create tag
       tags:
       - TagAPI
@@ -3848,7 +4239,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Delete tag
       tags:
       - TagAPI
@@ -3882,7 +4273,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get tag by ID
       tags:
       - TagAPI
@@ -3921,7 +4312,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Update tag
       tags:
       - TagAPI
@@ -3994,7 +4385,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Query user list
       tags:
       - UserAPI
@@ -4029,7 +4420,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Create user record
       tags:
       - UserAPI
@@ -4055,7 +4446,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Delete user record by ID
       tags:
       - UserAPI
@@ -4085,7 +4476,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Get user record by ID
       tags:
       - UserAPI
@@ -4120,7 +4511,7 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Update user record by ID
       tags:
       - UserAPI
@@ -4146,12 +4537,43 @@ paths:
           schema:
             $ref: '#/definitions/util.ResponseResult'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Reset user password by ID
       tags:
       - UserAPI
+  /api/v1/verify-email:
+    get:
+      description: Activate user account by clicking the activation link sent via
+        email.
+      parameters:
+      - description: Activation token from email
+        in: query
+        name: token
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Verify email via activation token
+      tags:
+      - LoginAPI
+schemes:
+- http
+- https
 securityDefinitions:
-  ApiKeyAuth:
+  BearerAuth:
+    description: Enter "Bearer <your JWT token>". Login via /api/v1/login to obtain
+      a token.
     in: header
     name: Authorization
     type: apiKey

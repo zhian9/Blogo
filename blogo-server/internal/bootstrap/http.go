@@ -89,7 +89,7 @@ func startHTTPServer(ctx context.Context, injector *wirex.Injector) (func(), err
 			ginSwagger.PersistAuthorization(true),   // 保持认证信息
 		))
 		// 提供 swagger.json 文件
-		e.Static("/docs", "./docs")
+		e.Static("/docs", "../docs/api")
 	}
 
 	// 10. Prometheus 指标端点（独立于路由组，不受 Auth 限制但受 Basic Auth 保护）

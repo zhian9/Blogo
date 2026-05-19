@@ -96,6 +96,10 @@ swagger:
 	@echo "=== 生成 Swagger 文档 ==="
 	cd $(SERVER_DIR) && $(MAKE) swagger
 
+api-client:
+	@echo "=== 生成 TypeScript API 客户端 ==="
+	bash scripts/generate-api-client.sh all
+
 # ═══════════════════════════════════════════════════════
 # 清理
 # ═══════════════════════════════════════════════════════
@@ -133,7 +137,8 @@ help:
 	@echo ""
 	@echo "  代码生成:"
 	@echo "    make wire         生成 Wire DI 代码"
-	@echo "    make swagger      生成 Swagger 文档"
+	@echo "    make swagger      生成 Swagger / OpenAPI 文档"
+	@echo "    make api-client   生成 TypeScript API 客户端"
 	@echo ""
 	@echo "  工具:"
 	@echo "    make clean        清理所有构建产物"

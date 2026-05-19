@@ -19,7 +19,7 @@ type Tag struct {
 }
 
 // @Tags TagAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query tag list
 // @Param current query int false "pagination index" default(1)
 // @Param pageSize query int false "pagination size" default(10)
@@ -45,7 +45,7 @@ func (t *Tag) Query(c *gin.Context) {
 }
 
 // @Tags TagAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get tag by ID
 // @Param id path string true "Tag ID"
 // @Success 200 {object} util.ResponseResult{data=schema.Tag}
@@ -64,7 +64,7 @@ func (t *Tag) Get(c *gin.Context) {
 }
 
 // @Tags TagAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Create tag
 // @Param body body schema.TagForm true "Tag form"
 // @Success 200 {object} util.ResponseResult{data=schema.Tag}
@@ -93,7 +93,7 @@ func (t *Tag) Create(c *gin.Context) {
 }
 
 // @Tags TagAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Update tag
 // @Param id path string true "Tag ID"
 // @Param body body schema.TagForm true "Tag form"
@@ -124,7 +124,7 @@ func (t *Tag) Update(c *gin.Context) {
 }
 
 // @Tags TagAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Delete tag
 // @Param id path string true "Tag ID"
 // @Success 200 {object} util.ResponseResult

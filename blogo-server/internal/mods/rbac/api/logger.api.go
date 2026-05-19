@@ -20,7 +20,7 @@ type Logger struct {
 }
 
 // @Tags LoggerAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query logger list
 // @Param current query int true "pagination index" default(1)
 // @Param pageSize query int true "pagination size" default(10)

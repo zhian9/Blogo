@@ -21,7 +21,7 @@ type OperationLog struct {
 }
 
 // @Tags OperationLogAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query operation logs list
 // @Param current query int false "pagination index" default(1)
 // @Param pageSize query int false "pagination size" default(20)
@@ -54,7 +54,7 @@ func (ol *OperationLog) Query(c *gin.Context) {
 }
 
 // @Tags OperationLogAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get operation log by ID
 // @Param id path string true "operation log ID"
 // @Success 200 {object} util.ResponseResult{data=schema.OperationLog}
@@ -79,7 +79,7 @@ func (ol *OperationLog) Get(c *gin.Context) {
 }
 
 // @Tags OperationLogAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Delete operation log
 // @Param id path string true "operation log ID"
 // @Success 200 {object} util.ResponseResult

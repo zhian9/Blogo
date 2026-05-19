@@ -19,7 +19,7 @@ type Image struct {
 }
 
 // @Tags ImageAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Upload image file
 // @Description Upload an image file (multipart/form-data). Creates DB record and saves to disk.
 // @Param file formData file true "Image file"
@@ -51,7 +51,7 @@ func (i *Image) Upload(c *gin.Context) {
 }
 
 // @Tags ImageAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query image list
 // @Param current query int false "pagination index" default(1)
 // @Param pageSize query int false "pagination size" default(10)
@@ -79,7 +79,7 @@ func (i *Image) Query(c *gin.Context) {
 }
 
 // @Tags ImageAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get image by ID
 // @Param id path string true "Image ID"
 // @Success 200 {object} util.ResponseResult{data=schema.Image}
@@ -110,7 +110,7 @@ func (i *Image) ServeFile(c *gin.Context) {
 }
 
 // @Tags ImageAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Create image record
 // @Description This only creates DB record. File upload should be handled separately.
 // @Param body body schema.ImageForm true "Image form"
@@ -140,7 +140,7 @@ func (i *Image) Create(c *gin.Context) {
 }
 
 // @Tags ImageAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Update image
 // @Param id path string true "Image ID"
 // @Param body body schema.ImageForm true "Image form"
@@ -171,7 +171,7 @@ func (i *Image) Update(c *gin.Context) {
 }
 
 // @Tags ImageAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Delete image
 // @Param id path string true "Image ID"
 // @Success 200 {object} util.ResponseResult
@@ -190,7 +190,7 @@ func (i *Image) Delete(c *gin.Context) {
 }
 
 // @Tags ImageAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Batch delete images
 // @Param body body schema.BatchIDsForm true "Image IDs"
 // @Success 200 {object} util.ResponseResult

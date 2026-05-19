@@ -19,7 +19,7 @@ type User struct {
 }
 
 // @Tags UserAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query user list
 // @Param current query int true "pagination index" default(1)
 // @Param pageSize query int true "pagination size" default(10)
@@ -47,7 +47,7 @@ func (u *User) Query(c *gin.Context) {
 }
 
 // @Tags UserAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get user record by ID
 // @Param id path string true "unique id"
 // @Success 200 {object} util.ResponseResult{data=schema.User}
@@ -65,7 +65,7 @@ func (u *User) Get(c *gin.Context) {
 }
 
 // @Tags UserAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Create user record
 // @Param body body schema.UserForm true "Request body"
 // @Success 200 {object} util.ResponseResult{data=schema.User}
@@ -93,7 +93,7 @@ func (u *User) Create(c *gin.Context) {
 }
 
 // @Tags UserAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Update user record by ID
 // @Param id path string true "unique id"
 // @Param body body schema.UserForm true "Request body"
@@ -122,7 +122,7 @@ func (u *User) Update(c *gin.Context) {
 }
 
 // @Tags UserAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Delete user record by ID
 // @Param id path string true "unique id"
 // @Success 200 {object} util.ResponseResult
@@ -140,7 +140,7 @@ func (u *User) Delete(c *gin.Context) {
 }
 
 // @Tags UserAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Reset user password by ID
 // @Param id path string true "unique id"
 // @Success 200 {object} util.ResponseResult

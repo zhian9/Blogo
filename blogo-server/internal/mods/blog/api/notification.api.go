@@ -20,7 +20,7 @@ type Notification struct {
 }
 
 // @Tags NotificationAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query notification list
 // @Param current query int false "pagination index" default(1)
 // @Param pageSize query int false "pagination size" default(10)
@@ -53,7 +53,7 @@ func (n *Notification) Query(c *gin.Context) {
 }
 
 // @Tags NotificationAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get notification by ID
 // @Param id path string true "Notification ID"
 // @Success 200 {object} util.ResponseResult{data=schema.Notification}
@@ -72,7 +72,7 @@ func (n *Notification) Get(c *gin.Context) {
 }
 
 // @Tags NotificationAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Mark notification as read
 // @Param id path string true "Notification ID"
 // @Success 200 {object} util.ResponseResult
@@ -91,7 +91,7 @@ func (n *Notification) MarkAsRead(c *gin.Context) {
 }
 
 // @Tags NotificationAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Mark all notifications as read
 // @Param user_id query string true "User ID"
 // @Success 200 {object} util.ResponseResult
@@ -115,7 +115,7 @@ func (n *Notification) MarkAllAsRead(c *gin.Context) {
 }
 
 // @Tags NotificationAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Delete notification
 // @Param id path string true "Notification ID"
 // @Success 200 {object} util.ResponseResult

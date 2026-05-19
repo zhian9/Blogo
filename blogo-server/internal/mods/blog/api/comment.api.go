@@ -22,7 +22,7 @@ type Comment struct {
 }
 
 // @Tags CommentAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query comment list (admin)
 // @Param current query int false "pagination index" default(1)
 // @Param pageSize query int false "pagination size" default(10)
@@ -55,7 +55,7 @@ func (c *Comment) Query(cxt *gin.Context) {
 }
 
 // @Tags CommentAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get comment by ID
 // @Param id path string true "Comment ID"
 // @Success 200 {object} util.ResponseResult{data=schema.Comment}
@@ -122,7 +122,7 @@ func (c *Comment) Create(cxt *gin.Context) {
 }
 
 // @Tags CommentAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Update comment by ID
 // @Param id path string true "Comment ID"
 // @Param body body map[string]interface{} true "Fields to update (e.g. {\"content\": \"new\", \"status\": \"approved\"})"
@@ -162,7 +162,7 @@ func (c *Comment) Update(cxt *gin.Context) {
 }
 
 // @Tags CommentAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Delete comment by ID
 // @Param id path string true "Comment ID"
 // @Success 200 {object} util.ResponseResult
@@ -181,7 +181,7 @@ func (c *Comment) Delete(cxt *gin.Context) {
 }
 
 // @Tags CommentAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Approve comment
 // @Param id path string true "Comment ID"
 // @Success 200 {object} util.ResponseResult
@@ -200,7 +200,7 @@ func (c *Comment) Approve(cxt *gin.Context) {
 }
 
 // @Tags CommentAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Reject comment
 // @Param id path string true "Comment ID"
 // @Success 200 {object} util.ResponseResult

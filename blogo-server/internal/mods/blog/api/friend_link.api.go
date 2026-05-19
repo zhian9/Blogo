@@ -19,7 +19,7 @@ type FriendLink struct {
 }
 
 // @Tags FriendLinkAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query friend link list
 // @Param current query int false "pagination index" default(1)
 // @Param pageSize query int false "pagination size" default(10)
@@ -46,7 +46,7 @@ func (f *FriendLink) Query(c *gin.Context) {
 }
 
 // @Tags FriendLinkAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get friend link by ID
 // @Param id path string true "Friend link ID"
 // @Success 200 {object} util.ResponseResult{data=schema.FriendLink}
@@ -80,7 +80,7 @@ func (f *FriendLink) GetAll(c *gin.Context) {
 }
 
 // @Tags FriendLinkAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Create friend link
 // @Param body body schema.FriendLinkForm true "Friend link form"
 // @Success 200 {object} util.ResponseResult{data=schema.FriendLink}
@@ -109,7 +109,7 @@ func (f *FriendLink) Create(c *gin.Context) {
 }
 
 // @Tags FriendLinkAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Update friend link
 // @Param id path string true "Friend link ID"
 // @Param body body schema.FriendLinkForm true "Friend link form"
@@ -140,7 +140,7 @@ func (f *FriendLink) Update(c *gin.Context) {
 }
 
 // @Tags FriendLinkAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Delete friend link
 // @Param id path string true "Friend link ID"
 // @Success 200 {object} util.ResponseResult

@@ -19,7 +19,7 @@ type Setting struct {
 }
 
 // @Tags SettingAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Query setting list
 // @Param current query int false "pagination index" default(1)
 // @Param pageSize query int false "pagination size" default(10)
@@ -45,7 +45,7 @@ func (s *Setting) Query(c *gin.Context) {
 }
 
 // @Tags SettingAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get setting by key
 // @Param key path string true "Setting key"
 // @Success 200 {object} util.ResponseResult{data=schema.Setting}
@@ -64,7 +64,7 @@ func (s *Setting) Get(c *gin.Context) {
 }
 
 // @Tags SettingAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Create setting
 // @Param body body schema.SettingForm true "Setting form"
 // @Success 200 {object} util.ResponseResult{data=schema.Setting}
@@ -93,7 +93,7 @@ func (s *Setting) Create(c *gin.Context) {
 }
 
 // @Tags SettingAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Update setting
 // @Param key path string true "Setting key"
 // @Param body body schema.SettingForm true "Setting form"
@@ -124,7 +124,7 @@ func (s *Setting) Update(c *gin.Context) {
 }
 
 // @Tags SettingAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Delete setting
 // @Param key path string true "Setting key"
 // @Success 200 {object} util.ResponseResult
@@ -143,7 +143,7 @@ func (s *Setting) Delete(c *gin.Context) {
 }
 
 // @Tags SettingAPI
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Summary Get all settings
 // @Success 200 {object} util.ResponseResult{data=[]schema.Setting}
 // @Failure 401 {object} util.ResponseResult
