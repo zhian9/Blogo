@@ -1,0 +1,16 @@
+# Blogo — Nginx 日志轮转
+# Debian: cp 到 /etc/logrotate.d/blogo-nginx
+
+/var/log/nginx/*.log {
+    daily
+    missingok
+    rotate 30
+    compress
+    delaycompress
+    notifempty
+    create 640 nginx adm
+    sharedscripts
+    postrotate
+        [ -f /var/run/nginx.pid ] && kill -USR1 $(cat /var/run/nginx.pid) 2>/dev/null || true
+    endscript
+}
