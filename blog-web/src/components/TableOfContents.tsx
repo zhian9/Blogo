@@ -1,0 +1,118 @@
+import { useEffect, useState, useRef, useCallback } from 'react'
+
+interface TocItem {
+  id: string
+  title: string
+  level: number
+}
+
+interface Props {
+  items: TocItem[]
+  contentRef: React.RefObject<HTMLDivElement | null>
+}
+
+export default function TableOfContents({ items, contentRef }: Props) {
+  const [activeId, setActiveId] = useState('')
+  const observerRef = useRef<IntersectionObserver | null>(null)
+
+  useEffect(() => {
+    if (!contentRef.current || items.length === 0) return
+    if (observerRef.current) observerRef.current.disconnect()
+
+    // Delay to ensure React DOM has rendered content (dangerouslySetInnerHTML / react-markdown)
+    const timer = setTimeout(() => {
+      const container = contentRef.current
+      if (!container) return
+
+      const headingEls = container.querySelectorAll('h1, h2, h3')
+      const elMap = new Map<string, HTMLElement>()
+
+      items.forEach((item) => {
+        for (let i = 0; i < headingEls.length; i++) {
+          const el = headingEls[i] as HTMLElement
+          if (el.textContent?.trim() === item.title && !el.id) {
+            el.id = item.id
+            elMap.set(item.id, el)
+            break
+          } else if (el.id === item.id) {
+            elMap.set(item.id, el)
+            break
+          }
+        }
+      })
+
+      if (elMap.size === 0) return
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const visible = entries.filter((e) => e.isIntersecting)
+          if (visible.length > 0) {
+            setActiveId(visible[0].target.id)
+          }
+        },
+        { rootMargin: '-80px 0px -70% 0px', threshold: 0 }
+      )
+      observerRef.current = observer
+      elMap.forEach((el) => observer.observe(el))
+    }, 150)
+
+    return () => {
+      clearTimeout(timer)
+      if (observerRef.current) observerRef.current.disconnect()
+    }
+  }, [items, contentRef])
+
+  const scrollTo = useCallback((id: string) => {
+    const el = document.getElementById(id)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      setActiveId(id)
+    }
+  }, [])
+
+  if (items.length === 0) return null
+
+  return (
+    <nav style={{ padding: '8px 0' }}>
+      <div style={{
+        fontSize: 12, fontWeight: 600, textTransform: 'uppercase',
+        letterSpacing: 1.5, color: '#8c8c8c', padding: '0 0 12px 16px',
+      }}>
+        目录
+      </div>
+      {items.map((item) => (
+        <button
+          type="button"
+          key={item.id}
+          onClick={() => scrollTo(item.id)}
+          style={{
+            display: 'block', width: '100%', textAlign: 'left',
+            padding: `5px 16px 5px ${12 + item.level * 12}px`,
+            fontSize: 13, lineHeight: 1.5,
+            color: activeId === item.id ? '#1890ff' : '#595959',
+            fontWeight: activeId === item.id ? 600 : 400,
+            background: activeId === item.id ? 'rgba(24,144,255,0.06)' : 'transparent',
+            border: 'none',
+            borderLeft: activeId === item.id ? '3px solid #1890ff' : '3px solid transparent',
+            cursor: 'pointer', transition: 'all 0.2s ease',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}
+          onMouseEnter={(e) => {
+            if (activeId !== item.id) {
+              e.currentTarget.style.color = '#1890ff'
+              e.currentTarget.style.background = 'rgba(24,144,255,0.03)'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeId !== item.id) {
+              e.currentTarget.style.color = '#595959'
+              e.currentTarget.style.background = 'transparent'
+            }
+          }}
+        >
+          {item.title}
+        </button>
+      ))}
+    </nav>
+  )
+}

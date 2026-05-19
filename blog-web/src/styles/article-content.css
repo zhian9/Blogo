@@ -1,0 +1,186 @@
+/* ============ Article Content Typography ============ */
+
+.article-body {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #333;
+  word-break: break-word;
+}
+
+/* --- Headings --- */
+.article-body h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  margin: 1.6em 0 0.8em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid #e8e8e8;
+  line-height: 1.3;
+}
+.article-body h2 {
+  font-size: 1.45em;
+  font-weight: 700;
+  margin: 1.5em 0 0.7em;
+  padding-left: 12px;
+  border-left: 4px solid #1890ff;
+  line-height: 1.3;
+  color: #1a1a1a;
+}
+.article-body h3 {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin: 1.3em 0 0.6em;
+  line-height: 1.3;
+  color: #262626;
+}
+.article-body h4 {
+  font-size: 1.05em;
+  font-weight: 600;
+  margin: 1.1em 0 0.5em;
+  color: #333;
+}
+
+/* --- Paragraphs --- */
+.article-body p {
+  margin: 0 0 1em;
+}
+
+/* --- Links --- */
+.article-body a {
+  color: #1890ff;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(24,144,255,0.3);
+  transition: border-color 0.2s;
+}
+.article-body a:hover {
+  border-bottom-color: #1890ff;
+}
+
+/* --- Lists --- */
+.article-body ul, .article-body ol {
+  padding-left: 1.8em;
+  margin: 0 0 1em;
+}
+.article-body li {
+  margin-bottom: 0.3em;
+}
+.article-body li > ul, .article-body li > ol {
+  margin-top: 0.3em;
+}
+
+/* --- Blockquotes --- */
+.article-body blockquote {
+  margin: 1.2em 0;
+  padding: 12px 20px;
+  border-left: 4px solid #1890ff;
+  background: #f0f5ff;
+  border-radius: 0 8px 8px 0;
+  color: #555;
+}
+.article-body blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* --- Code (inline) --- */
+.article-body code {
+  background: #f5f5f5;
+  color: #d63384;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+  word-break: break-all;
+}
+
+/* --- Code (block) --- */
+.article-body pre {
+  margin: 1.2em 0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.article-body pre code {
+  display: block;
+  background: #f6f8fa;
+  color: #24292f;
+  padding: 18px 22px;
+  font-size: 14px;
+  line-height: 1.65;
+  border-radius: 10px;
+  overflow-x: auto;
+  word-break: normal;
+}
+
+/* Dark code blocks via rehype-highlight */
+.article-body pre code.hljs {
+  background: #1e1e2e;
+  color: #cdd6f4;
+}
+
+/* --- Tables --- */
+.article-body table {
+  width: 100%;
+  max-width: 100%;
+  margin: 1.2em 0;
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  display: block;
+  overflow-x: auto;
+}
+.article-body thead {
+  background: #f6f8fa;
+}
+.article-body th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 2px solid #e8e8e8;
+  white-space: nowrap;
+}
+.article-body td {
+  padding: 10px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.article-body tbody tr:hover {
+  background: #fafbfc;
+}
+
+/* --- Horizontal Rule --- */
+.article-body hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #d9d9d9, transparent);
+  margin: 2em 0;
+}
+
+/* --- Images in content --- */
+.article-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: block;
+  margin: 1.2em auto;
+}
+
+/* --- Task Lists --- */
+.article-body input[type="checkbox"] {
+  margin-right: 6px;
+  accent-color: #1890ff;
+}
+
+/* --- Keyboard --- */
+.article-body kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 0.85em;
+  font-family: inherit;
+  background: #fafafa;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  box-shadow: 0 1px 0 #d1d5db;
+  color: #333;
+}

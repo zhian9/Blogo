@@ -1,0 +1,124 @@
+# Air 的配置文件，格式为 TOML
+# 用于 Go 项目的热重载开发（Live Reload）
+
+# 工作目录
+# 使用 "." 表示当前目录，也可以使用绝对路径
+# 注意：后续指定的目录（如 include_dir）必须位于此 root 目录下
+root = "."
+
+# Air 在运行时存储临时文件的目录（如日志、临时二进制等）
+tmp_dir = "/tmp/air"
+
+[build]
+# 每次构建前要运行的命令（数组形式）
+# 例如：清理缓存、生成代码等
+pre_cmd = []
+
+# 构建命令：使用 go build 编译主程序，输出为 app.exe
+# -v 参数用于显示详细构建过程（可选）
+cmd = "go build -ldflags \"-w -s -X main.VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo v1.0.0)\" -o app.exe main.go"
+
+# 构建完成后、程序退出前要运行的命令（数组形式）
+# 例如：清理临时资源、通知等
+post_cmd = []
+
+# 构建生成的二进制文件名（相对于 root 目录）
+bin = "app.exe"
+
+# 向二进制文件传递的命令行参数
+# 此处设置为 ["start"]，Air 会执行：./app.exe start
+# 如果有多个参数，例如 ["start", "--env", "dev"]，也会正确传递
+args_bin = ["start"]
+
+# （可选）自定义完整运行命令，会覆盖 bin + args_bin
+# 通常用于设置环境变量或复杂启动逻辑
+# full_bin = "APP_ENV=dev ./app.exe start"
+
+# 监听哪些文件扩展名的变化（触发重新构建）
+include_ext = ["go", "tpl", "tmpl", "html"]
+
+# 忽略哪些目录（不监听其内部文件变化）
+exclude_dir = ["assets", "tmp", "vendor", "frontend/node_modules"]
+
+# （可选）只监听指定目录（若为空，则监听整个 root）
+include_dir = []
+
+# （可选）明确监听的文件列表（通常不需要）
+include_file = []
+
+# （可选）明确排除的文件列表
+exclude_file = []
+
+# 使用正则表达式排除文件（例如排除所有测试文件）
+exclude_regex = ["_test\\.go"]
+
+# 是否忽略内容未发生变化的文件（提升性能）
+exclude_unchanged = true
+
+# 是否跟随符号链接（symlink）进行监听
+follow_symlink = true
+
+# 构建日志文件名，会保存在 tmp_dir 中
+log = "air.log"
+
+# 是否使用轮询方式检测文件变化（默认使用 fsnotify，更高效）
+# 设为 true 时适用于某些虚拟机或网络文件系统
+poll = false
+
+# 轮询间隔（毫秒），仅在 poll = true 时生效
+poll_interval = 500
+
+# 文件变化后延迟多少毫秒再触发构建（防抖，避免频繁编译）
+# 0 表示立即构建
+delay = 0
+
+# 构建失败时是否停止运行旧版本程序
+stop_on_error = true
+
+# 在终止进程前是否先发送中断信号（SIGINT）
+# 注意：Windows 不支持此功能，可保持 false
+send_interrupt = false
+
+# 发送中断信号后，等待多久（纳秒）再强制 kill 进程
+kill_delay = 500000000  # 500 毫秒 = 500 * 1e6 纳秒（原配置单位是纳秒！）
+
+# 是否在程序退出后自动重新运行（适用于常驻服务崩溃后重启）
+rerun = false
+
+# 每次 rerun 前的延迟（毫秒）
+rerun_delay = 500
+
+[log]
+# 是否在日志前显示时间戳
+time = false
+
+# 是否只显示主日志（隐藏 watcher/build/runner 的彩色日志）
+main_only = false
+
+[color]
+# 各模块日志的颜色配置（支持 ANSI 颜色名）
+main = "magenta"
+watcher = "cyan"
+build = "yellow"
+runner = "green"
+
+[misc]
+# 程序退出时是否自动清理 tmp_dir（删除临时文件）
+clean_on_exit = true
+
+[screen]
+# 每次重新构建前是否清屏
+clear_on_rebuild = true
+
+# 清屏时是否保留滚动位置（终端支持时有效）
+keep_scroll = true
+
+[proxy]
+# 是否启用浏览器实时重载代理（用于前端开发）
+enabled = true
+
+# 代理监听的端口（浏览器访问此端口）
+proxy_port = 8090
+
+# 你的应用实际运行的端口（Air 会将请求转发至此）
+app_port = 8040

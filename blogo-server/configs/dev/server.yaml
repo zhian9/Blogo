@@ -1,0 +1,230 @@
+# Copyright 2025 lxy911(李星云) <lxyaa911@gmail.com>. All rights reserved.
+# Use of this source code is governed by a [MIT/Apache/BSD] style license
+# that can be found in the LICENSE file.
+# Project repository: https://github.com/zhian9/go-admin
+
+# =================
+# 通用配置
+# =================
+general:
+  # 应用名称
+  app_name: "Blogo"
+  # 应用版本号
+  version: "v1.0.0"
+  # 是否启用调试模式 （影响日志详细程度、错误堆栈显示等）
+  debug: false
+  # pprof 性能分析监听地址，留空则不启用（示例："localhost:6060"）
+  pprof_addr: ""
+  # 是否禁用 Swagger API 文档界面
+  disable_swagger: true
+  # 启动时不打印完整配置信息
+  disable_print_config: false
+
+  menu_file: "menu.json"
+
+  deny_operate_menu: true
+
+  # 是否允许公开注册
+  allow_register: true
+
+  # 是否开启评论审核（true=先审后发，false=免审直接通过）
+  comment_moderation: true
+
+  # 站点 URL（用于邮件通知、激活链接等，部署时改为域名）
+  site_url: "${SITE_URL}"
+
+  # ----------------
+  # HTTP 服务配置
+  # -----------------
+  http:
+    # HTTP 服务监听地址
+    addr: ":8040"
+
+    # 服务优雅关闭的超时时间（秒 s）
+    shutdown_timeout: 10
+
+    # 读取请求头和 Body 的最大超时时间(s)
+    read_timeout: 60
+
+    # 写入响应的最大超时时间
+    write_timeout: 60
+
+    # 连接空闲超时时间
+    idle_timeout: 10
+
+  # --------------------------
+  # 超级管理员账户（系统初始化时创建）
+  # --------------------------
+  root:
+    # 超级管理员唯一 ID
+    id: "root"
+
+    # 登录用户名
+    username: "admin"
+
+    password: "${ROOT_PASSWORD_HASH}"
+    # 密码的 MD5 值，明文为 "abc-123"
+
+    # 显示名称
+    name: "Admin"
+
+# ================================
+# 存储配置（缓存 + 数据库）
+# ================================
+storage:
+  # ------------------------------
+  # R2 对象存储配置（Cloudflare R2）
+  # 不填则不启用，上传功能回退到本地磁盘
+  # ------------------------------
+  r2:
+    # Cloudflare 账号 ID
+    account_id: "${R2_ACCOUNT_ID}"
+    # R2 API Token - Access Key
+    access_key_id: "${R2_ACCESS_KEY_ID}"
+    # R2 API Token - Secret
+    secret_access_key: "${R2_SECRET_ACCESS_KEY}"
+    # Bucket 名称
+    bucket: "${R2_BUCKET}"
+    # 公开访问域名（可绑定自定义域名或使用 R2 默认域名）
+    public_domain: "${R2_PUBLIC_DOMAIN}"
+    # API Endpoint（留空自动生成：https://<account_id>.r2.cloudflarestorage.com）
+    endpoint: ""
+    # 上传文件在 bucket 中的目录前缀
+    upload_dir: "uploads"
+  # ------------------------------
+  # 缓存配置：
+  # 缓存类型：redis,memory(内存),badger(本地 KV)
+  # ------------------------------
+  cache:
+    # 缓存类型
+    type: "redis"
+
+    # 缓存key的分隔符
+    delimiter: ":"
+
+    # redis 缓存配置
+    redis:
+      # redis 地址
+      addr: "127.0.0.1:6379"
+      # 用户名
+      username: ""
+      # 密码
+      password: "${REDIS_PASSWORD}"
+      # 数据库编号
+      db: 1
+    # memory 内存缓存配置 （仅当 type=memory 时生效）
+    memory:
+      # 内存缓存自动清洗间隔(秒)
+      cleanup_interval: 60
+
+    # BadgerDB 缓存配置（仅当 type=badger 时生效）
+    badger:
+      # Badger 数据存储路径
+      path: "data/cache"
+
+  #--------------------------
+  # 数据库配置
+  # 支持 mysql
+  #--------------------------
+  db:
+    # 是否打印 SQL 语句（调试用）
+    debug: false
+
+    # 数据库类型
+    type: "mysql"
+
+    # DSN(数据源地址)
+    dsn: "${DB_DSN}"
+
+    # 数据库连接最大生命周期（秒）
+    max_lifetime: 86400
+
+    # 空闲连接最大生命周期
+    max_idle_time: 3600
+
+    # 最大打开链接数
+    max_open_conn: 100
+
+    # 最大空闲连接数
+    max_idle_conn: 50
+
+    # 数据库前缀
+    table_prefix: ""
+
+    # 是否在启动时自动迁移数据库表结构（create and update table）
+    auto_migrate: true
+
+# ================================
+# 工具类配置
+# ================================
+util:
+  # -------------------------------
+  # 图形验证码配置
+  # -------------------------------
+  captcha:
+    # 验证码字符长度
+    length: 4
+
+    # 验证码图片宽度（像素）
+    width: 400
+
+    # 验证码图片高度（像素）
+    height: 160
+
+    # 验证码缓存类型：memory 或 redis
+    cache_type: "redis"
+
+    # Redis 配置（仅当 cache type=redis 时生效）
+    redis:
+      # Redis 地址，若为空则复用 storage.cache.redis 配置
+      addr: ""
+      username: ""
+      password: "${REDIS_PASSWORD}"
+      db: 1
+      # 缓存 key 前缀，例如：captcha:abc123
+      key_prefix: "captcha:"
+
+  # -------------------------------
+  # Prometheus 监控配置
+  # -------------------------------
+  prometheus:
+    # 是否启用 Prometheus 指标暴露
+    enable: true
+
+    # 指标服务监听端口（promx 独立 HTTP 服务，与主服务分离）
+    port: 9101
+
+    # Basic Auth 用户名（用于保护指标接口）
+    basic_username: "${PROMETHEUS_USERNAME}"
+
+    # Basic Auth 密码
+    basic_password: "${PROMETHEUS_PASSWORD}"
+
+    # 需要记录调用日志的 API 路径列表（如 ["/api/v1/users"]）
+    log_apis: []
+
+    # 需要记录的日志 HTTP 方法（如 ["GET", "POST"]）
+    log_methods: []
+
+    # 是否启用默认指标收集（如 CPU、内存、Goroutine 等）
+    default_collect: true
+
+# ================================
+# 字典/常量配置
+# ================================
+dictionary:
+  # 用户信息在缓存中的过期时间（单位：小时）
+  user_cache_exp: 4
+
+# ================================
+# 邮件服务配置
+# ================================
+email:
+  # 发件人显示名
+  sender_name: "Blogo系统"
+  # SMTP 服务器地址（QQ邮箱）
+  host: "smtp.qq.com"
+  # SMTP 端口（SSL）
+  port: 465
+  # 发件人邮箱（请填写你的 QQ邮箱）
+  from_email: "508065909@qq.com"

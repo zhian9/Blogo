@@ -1,0 +1,66 @@
+# ================================
+# Project-wide .gitignore — Blogo
+# ================================
+
+# ---- Environment & Secrets ----
+.env
+.env.local
+.env.*.local
+prometheus.local.yml
+
+# ---- Dependencies ----
+node_modules/
+
+# ---- Build Output ----
+dist/
+dist-ssr/
+
+# ---- IDE & Editor ----
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ---- Go ----
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Workspace
+go.work
+go.work.sum
+
+# Backup
+*.bak
+
+# Test binary
+*.test
+
+# Coverage
+*.out
+coverage.html
+
+# Vendor
+vendor/
+
+# ---- Logs ----
+*.log
+logs/
+
+# ---- Uploads (dev) ----
+uploads/
+
+# ---- Runtime Data ----
+data/
+
+# ---- Temp & Cache ----
+tmp/
+temp/
+.vite/
+*.tmp

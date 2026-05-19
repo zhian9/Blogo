@@ -1,0 +1,78 @@
+{
+  "title": "Blogo Backend Overview",
+  "tags": ["blogo", "go"],
+  "refresh": "10s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "title": "HTTP Request Rate",
+      "type": "graph",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "rate(http_requests_total[1m])", "legendFormat": "{{method}} {{path}} ({{status}})" }
+      ],
+      "yaxes": [{ "format": "reqps" }]
+    },
+    {
+      "title": "Response Latency (p95)",
+      "type": "graph",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[1m]))", "legendFormat": "{{method}} {{path}}" }
+      ],
+      "yaxes": [{ "format": "s" }]
+    },
+    {
+      "title": "Status Code Distribution",
+      "type": "graph",
+      "gridPos": { "x": 0, "y": 8, "w": 8, "h": 8 },
+      "targets": [
+        { "expr": "sum(rate(http_requests_total[1m])) by (status)", "legendFormat": "HTTP {{status}}" }
+      ]
+    },
+    {
+      "title": "Active Goroutines",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 8, "w": 4, "h": 4 },
+      "targets": [
+        { "expr": "go_goroutines" }
+      ]
+    },
+    {
+      "title": "Memory Usage",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 8, "w": 4, "h": 4 },
+      "targets": [
+        { "expr": "go_memstats_alloc_bytes / 1024 / 1024" }
+      ],
+      "format": "decmbytes"
+    },
+    {
+      "title": "GC Pause (ns)",
+      "type": "graph",
+      "gridPos": { "x": 16, "y": 8, "w": 8, "h": 8 },
+      "targets": [
+        { "expr": "rate(go_gc_duration_seconds_sum[1m]) / rate(go_gc_duration_seconds_count[1m])", "legendFormat": "avg GC pause" }
+      ],
+      "yaxes": [{ "format": "ns" }]
+    },
+    {
+      "title": "Error Rate (4xx/5xx)",
+      "type": "graph",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sum(rate(http_requests_total{status=~\"4..|5..\"}[1m])) by (path, status)", "legendFormat": "{{path}} ({{status}})" }
+      ],
+      "yaxes": [{ "format": "reqps" }]
+    },
+    {
+      "title": "Request Duration Heatmap",
+      "type": "heatmap",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sum(rate(http_request_duration_seconds_bucket[1m])) by (le)" }
+      ],
+      "yaxes": [{ "format": "s" }]
+    }
+  ]
+}

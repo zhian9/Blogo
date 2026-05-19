@@ -1,0 +1,89 @@
+/* Blogo Admin — 极光暗黑科技风全局样式 */
+
+/* ---- 页面切换淡入动画 ---- */
+.page-fade {
+  animation: fadeIn 0.28s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- 全局 Card 悬浮感 ---- */
+.ant-card {
+  background: linear-gradient(135deg, rgba(30,30,47,0.85) 0%, rgba(21,21,34,0.85) 100%) !important;
+  border: 1px solid rgba(255,255,255,0.05) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
+  backdrop-filter: blur(6px);
+}
+
+/* ---- 表格表头加深 ---- */
+.ant-table-thead > tr > th {
+  background: rgba(255,255,255,0.03) !important;
+  color: rgba(255,255,255,0.50) !important;
+  font-weight: 500 !important;
+  font-size: 11px !important;
+  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+}
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid rgba(255,255,255,0.03) !important;
+}
+.ant-table-tbody > tr:hover > td {
+  background: rgba(255,255,255,0.02) !important;
+}
+
+/* ---- Switch 呼吸发光 ---- */
+.ant-switch-checked {
+  box-shadow: 0 0 8px rgba(59,130,246,0.3) !important;
+}
+
+/* ---- Tag 低饱和度胶囊 ---- */
+.ant-tag {
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  border: none !important;
+}
+.tag-super-admin { background: rgba(147,51,234,0.12); color: #a855f7; }
+.tag-content    { background: rgba(59,130,246,0.10); color: #60a5fa; }
+.tag-moderator  { background: rgba(245,158,11,0.10); color: #fbbf24; }
+.tag-user       { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.40); }
+.tag-enabled    { background: rgba(52,211,153,0.10); color: #34d399; }
+.tag-disabled   { background: rgba(239,68,68,0.10); color: #f87171; }
+
+/* ---- 输入框暗色 ---- */
+.ant-input, .ant-input-password, .ant-select-selector, .ant-picker {
+  background: rgba(255,255,255,0.03) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: rgba(255,255,255,0.85) !important;
+}
+.ant-input::placeholder { color: rgba(255,255,255,0.20) !important; }
+
+/* ---- 按钮微交互 ---- */
+.ant-btn-primary {
+  box-shadow: 0 4px 14px rgba(59,130,246,0.25) !important;
+  transition: all 0.25s !important;
+}
+.ant-btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(59,130,246,0.40) !important;
+  transform: translateY(-1px);
+}
+
+/* ---- 面包屑 ---- */
+.ant-breadcrumb a { color: rgba(255,255,255,0.40) !important; }
+.ant-breadcrumb a:hover { color: rgba(255,255,255,0.75) !important; }
+.ant-breadcrumb li:last-child { color: rgba(255,255,255,0.60) !important; }
+
+/* ---- 布局底色 ---- */
+.ant-layout { background: #0a0a14 !important; }
+.ant-layout-header {
+  background: rgba(15,15,28,0.92) !important;
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+}
+.ant-layout-sider {
+  background: #0d0d1a !important;
+}
+.ant-menu-dark {
+  background: transparent !important;
+}

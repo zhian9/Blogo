@@ -1,0 +1,108 @@
+# 声明伪目标（phony targets），避免与同名文件冲突
+.PHONY: start build build-linux wire swagger openapi clean serve serve-d stop
+
+# ========== 构建参数 ==========
+# 应用名称
+APP             := goAdmin
+# 二进制文件名（与 APP 一致）
+SERVER_BIN      := $(APP)
+
+# 从 Git 获取最新 tag（含距离和哈希），若失败则默认为基础版本
+GIT_DESCRIBE    := $(shell git describe --tags --always --dirty 2>/dev/null || echo v1.0.0)
+# 从 Git 获取短哈希（用于版本标识），若失败则默认为 unknown
+GIT_HASH        := $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
+
+# 基础版本号（语义化版本）
+RELEASE_VERSION := v1.0.0
+# 完整发布标签：基于 git describe（含 dirty 标记）
+RELEASE_TAG     := $(GIT_DESCRIBE)
+
+# ldflags：注入版本 + git 哈希 + 构建时间
+LDFLAGS         := -w -s \
+	-X 'main.VERSION=$(RELEASE_TAG)' \
+	-X 'main.GIT_HASH=$(GIT_HASH)' \
+	-X 'main.BUILD_TIME=$(shell date -u '+%Y-%m-%d %H:%M UTC')' \
+	-X 'github.com/zhian9/blogo-server/cmd.gitHash=$(GIT_HASH)' \
+	-X 'github.com/zhian9/blogo-server/cmd.buildTime=$(shell date -u '+%Y-%m-%d %H:%M UTC')'
+
+# ========== 运行配置 ==========
+# 配置文件目录
+CONFIG_DIR      := ./configs
+# 默认使用的配置文件名（无后缀，如 dev 表示 configs/dev.yaml）
+CONFIG_FILES    := dev
+# 静态资源目录（如前端 dist）
+STATIC_DIR      := ./build/dist
+# 启动命令的通用参数
+START_ARGS      := -d $(CONFIG_DIR) -c $(CONFIG_FILES) -s $(STATIC_DIR)
+
+
+# ========== 默认目标 ==========
+# 执行 `make` 或 `make all` 时默认运行 start
+all: start
+
+
+# ========== 开发与构建目标 ==========
+
+# 启动开发模式：直接运行源码（不编译），适合快速调试
+start:
+	go run -ldflags "$(LDFLAGS)" main.go start $(START_ARGS)
+
+# 编译当前平台的二进制文件（用于本地测试）
+build:
+	go build -ldflags "$(LDFLAGS)" -o $(SERVER_BIN)
+
+# 使用 Zig 工具链交叉编译 Linux 静态二进制（支持 CGO + musl）
+# 适用于部署到 Alpine 等轻量容器
+build-linux:
+	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 \
+	CC="zig cc -target x86_64-linux-musl" \
+	CXX="zig c++ -target x86_64-linux-musl" \
+	CGO_CFLAGS="-D_LARGEFILE64_SOURCE" \
+	go build -ldflags "-extldflags '-static' $(LDFLAGS)" -o $(SERVER_BIN)_linux_amd64.static
+
+
+# ========== 代码生成工具 ==========
+
+# 使用 Wire 生成依赖注入代码（需先安装 wire）
+# 安装命令：go install github.com/google/wire/cmd/wire@latest
+wire:
+	wire gen ./internal/wirex
+
+# 使用 Swag 生成 Swagger API 文档（需先安装 swag）
+# 安装命令：go install github.com/swaggo/swag/cmd/swag@latest
+swagger:
+	swag init --parseDependency --generalInfo ./main.go --output ./internal/swagger
+
+
+# ========== OpenAPI 规范生成 ==========
+
+# 使用 OpenAPI Generator 将 Swagger 2.0 转换为 OpenAPI 3.0 规范
+# 依赖 Docker 运行官方 CLI 工具
+openapi:
+	# 清理旧的输出目录
+	rm -rf ./internal/swagger/v3
+	# 运行 openapi-generator-cli 容器，生成 OpenAPI 3.0 YAML
+	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate \
+		-i /local/internal/swagger/swagger.yaml \
+		-g openapi \
+		-o /local/internal/swagger/v3
+	@echo "✅ OpenAPI v3 规范已生成：./internal/swagger/v3/openapi.yaml"
+
+
+# ========== 清理与运行 ==========
+
+# 清理构建产物和临时数据
+clean:
+	rm -rf data $(SERVER_BIN) $(SERVER_BIN)_linux_amd64.static
+
+# 先构建，再前台运行（适合本地测试）
+serve: build
+	./$(SERVER_BIN) start $(START_ARGS)
+
+# 先构建，再后台运行（需程序支持 --daemon 参数）
+serve-d: build
+	./$(SERVER_BIN) start $(START_ARGS) --daemon
+
+# 停止后台运行的进程（依赖程序实现 stop 命令）
+stop:
+	./$(SERVER_BIN) stop

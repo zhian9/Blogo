@@ -1,0 +1,4158 @@
+# Copyright 2025 lxy911(李星云) <lxyaa911@gmail.com>. All rights reserved.
+# Use of this source code is governed by a [MIT/Apache/BSD] style license
+# that can be found in the LICENSE file.
+# Project repository: https://github.com/zhian9/go-admin
+
+definitions:
+  errors.Error:
+    properties:
+      code:
+        description: HTTP 状态码
+        type: integer
+      detail:
+        description: 详细描述
+        type: string
+      id:
+        description: 错误标识（前端友好）
+        type: string
+      status:
+        description: 状态文本（如 "Not Found"）
+        type: string
+    type: object
+  schema.ArchiveItem:
+    properties:
+      count:
+        description: 该月文章数量
+        type: integer
+      month:
+        description: 月份，如 10
+        type: integer
+      year:
+        description: 年份，如 2025
+        type: integer
+    type: object
+  schema.Article:
+    properties:
+      category:
+        allOf:
+        - $ref: '#/definitions/schema.Category'
+        description: 关联分类（可选加载）
+      category_id:
+        description: 分类ID
+        type: string
+      content:
+        description: Markdown内容
+        type: string
+      cover_image:
+        allOf:
+        - $ref: '#/definitions/schema.Image'
+        description: 封面图URL
+      cover_image_id:
+        description: 封面图ID
+        type: string
+      created_at:
+        description: 创建时间
+        type: string
+      id:
+        description: 唯一ID
+        type: string
+      is_top:
+        description: 是否置顶
+        type: boolean
+      published_at:
+        description: 发布时间（用于归档）
+        type: string
+      seo_desc:
+        description: SEO描述
+        type: string
+      seo_keywords:
+        description: SEO关键词
+        type: string
+      seo_title:
+        description: SEO标题
+        type: string
+      slug:
+        description: SEO友好URL路径（如 go-concurrency-patterns）
+        type: string
+      status:
+        description: 状态：draft / published
+        type: string
+      summary:
+        description: 摘要（可自动截取）
+        type: string
+      tags:
+        description: 标签（多对多）
+        items:
+          $ref: '#/definitions/schema.Tag'
+        type: array
+      title:
+        description: 文章标题
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+      views:
+        description: 浏览量
+        type: integer
+    type: object
+  schema.ArticleForm:
+    properties:
+      category_id:
+        description: 分类ID
+        type: string
+      content:
+        description: 内容（Markdown）
+        type: string
+      cover_image:
+        allOf:
+        - $ref: '#/definitions/schema.Image'
+        description: 封面图
+      cover_image_id:
+        description: 封面图ID
+        type: string
+      is_top:
+        description: 是否置顶
+        type: boolean
+      published_at:
+        description: 发布时间（可为空，发布时自动设为 now）
+        type: string
+      seo_desc:
+        description: SEO描述
+        maxLength: 1000
+        type: string
+      seo_keywords:
+        description: SEO关键词
+        maxLength: 512
+        type: string
+      seo_title:
+        description: SEO标题
+        maxLength: 255
+        type: string
+      slug:
+        description: URL路径
+        maxLength: 255
+        type: string
+      status:
+        description: 状态
+        enum:
+        - draft
+        - published
+        type: string
+      summary:
+        description: 摘要
+        maxLength: 1000
+        type: string
+      tag_ids:
+        description: 标签ID列表
+        items:
+          type: string
+        type: array
+      title:
+        description: 标题
+        maxLength: 255
+        type: string
+    required:
+    - category_id
+    - content
+    - cover_image_id
+    - slug
+    - status
+    - tag_ids
+    - title
+    type: object
+  schema.BatchIDsForm:
+    properties:
+      ids:
+        items:
+          type: string
+        type: array
+    type: object
+  schema.BatchUpdateStatusForm:
+    properties:
+      ids:
+        items:
+          type: string
+        type: array
+      status:
+        description: draft | published
+        type: string
+    type: object
+  schema.Captcha:
+    properties:
+      captcha_id:
+        description: |-
+          CaptchaID: 验证码唯一标识（用于后续验证）
+          前端需在登录时提交此 ID + 用户输入的验证码
+        example: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+        type: string
+    type: object
+  schema.Category:
+    properties:
+      created_at:
+        description: 创建时间
+        type: string
+      id:
+        description: 唯一ID
+        type: string
+      name:
+        description: 分类名称（唯一）
+        type: string
+      sort:
+        description: 排序值（越小越靠前）
+        type: integer
+      updated_at:
+        description: 更新时间
+        type: string
+    type: object
+  schema.CategoryForm:
+    properties:
+      name:
+        description: 分类名称
+        maxLength: 100
+        type: string
+      sort:
+        description: 排序值
+        minimum: 0
+        type: integer
+    required:
+    - name
+    type: object
+  schema.Comment:
+    properties:
+      article:
+        allOf:
+        - $ref: '#/definitions/schema.Article'
+        description: 所属文章（可选加载）
+      article_id:
+        description: 关联文章ID
+        type: string
+      content:
+        description: 评论内容
+        type: string
+      created_at:
+        description: 创建时间
+        type: string
+      email:
+        description: 评论者邮箱（用于通知，可选）
+        type: string
+      id:
+        description: 评论唯一ID
+        type: string
+      ip:
+        description: 评论者IP（IPv4/IPv6）
+        type: string
+      is_top:
+        description: 是否置顶（管理员可置顶优质评论）
+        type: boolean
+      parent:
+        allOf:
+        - $ref: '#/definitions/schema.Comment'
+        description: 父评论（用于前端展示“回复 @xxx”）
+      parent_id:
+        description: 父评论ID（用于回复评论，实现嵌套）
+        type: string
+      status:
+        description: 评论状态（approved/pending/rejected）
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/schema.User'
+        description: 关联字段（非数据库字段，用于 API 返回）
+      user_agent:
+        description: 浏览器UA
+        type: string
+      user_id:
+        description: 评论者ID（可为空，支持游客评论）
+        type: string
+      username:
+        description: 评论者名称（若为游客，则存储输入的名称）
+        type: string
+    type: object
+  schema.CommentForm:
+    properties:
+      article_id:
+        description: 文章ID
+        type: string
+      content:
+        description: 评论内容
+        maxLength: 2000
+        type: string
+      email:
+        description: 邮箱（可选，但若填则需合法）
+        type: string
+      parent_id:
+        description: 父评论ID（可选）
+        type: string
+      user_id:
+        description: 已登录用户ID（由 token 解析，前端不应传）
+        type: string
+      username:
+        description: 游客需填名称
+        type: string
+    required:
+    - article_id
+    - content
+    type: object
+  schema.FriendLink:
+    properties:
+      created_at:
+        description: 创建时间
+        type: string
+      description:
+        description: 站点描述
+        type: string
+      email:
+        description: 联系邮箱（用于审核沟通）
+        type: string
+      id:
+        description: 友链唯一ID
+        type: string
+      logo:
+        description: Logo图片URL（可关联 Image 表）
+        type: string
+      name:
+        description: 站点名称
+        type: string
+      sort:
+        description: 排序值（越小越靠前）
+        type: integer
+      status:
+        description: 状态：enabled / disabled
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+      url:
+        description: 站点链接
+        type: string
+    type: object
+  schema.FriendLinkForm:
+    properties:
+      description:
+        description: 描述
+        maxLength: 255
+        type: string
+      email:
+        description: 联系邮箱
+        maxLength: 128
+        type: string
+      logo:
+        description: Logo图片URL
+        maxLength: 512
+        type: string
+      name:
+        description: 站点名称
+        maxLength: 100
+        type: string
+      sort:
+        description: 排序值
+        minimum: 0
+        type: integer
+      status:
+        description: 状态
+        enum:
+        - enabled
+        - disabled
+        type: string
+      url:
+        description: 站点链接
+        type: string
+    required:
+    - name
+    - status
+    - url
+    type: object
+  schema.Image:
+    properties:
+      category:
+        description: 分类（如 "article_cover", "ad_image", "friend_link_logo"）
+        type: string
+      created_at:
+        description: 上传时间
+        type: string
+      height:
+        description: 图片高度（像素）
+        type: integer
+      id:
+        description: 图片唯一ID
+        type: string
+      name:
+        description: 原始文件名（如 architecture-diagram.png）
+        type: string
+      path:
+        description: 存储路径（如 /uploads/2025/10/xxx.png）
+        type: string
+      size:
+        description: 文件大小（字节）
+        type: integer
+      type:
+        description: MIME 类型（如 image/png）
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+      url:
+        description: 图片访问URL（如 https://cdn.example.com/xxx.png）
+        type: string
+      width:
+        description: 图片宽度（像素）
+        type: integer
+    type: object
+  schema.ImageForm:
+    properties:
+      category:
+        description: 分类
+        type: string
+      height:
+        description: 高度
+        minimum: 0
+        type: integer
+      name:
+        description: 原始文件名
+        maxLength: 255
+        type: string
+      path:
+        description: 存储路径
+        type: string
+      size:
+        description: 文件大小
+        minimum: 1
+        type: integer
+      type:
+        description: MIME类型
+        type: string
+      url:
+        description: 图片URL
+        type: string
+      width:
+        description: 宽度
+        minimum: 0
+        type: integer
+    required:
+    - category
+    - name
+    - path
+    - size
+    - type
+    - url
+    type: object
+  schema.Logger:
+    properties:
+      created_at:
+        description: 创建时间（索引，用于时间范围查询）
+        type: string
+      data:
+        description: 其他结构化字段的 JSON 序列化结果（TEXT 类型）
+        type: string
+      id:
+        description: 唯一 ID（主键，20 字符）
+        type: string
+      level:
+        description: 日志级别（索引，便于查询）
+        type: string
+      login_name:
+        description: |-
+          LoginName: 关联用户的登录名（来自 User.Username）
+          gorm:"<-:false" 表示禁止写入数据库
+          gorm:"-:migration" 表示迁移时忽略此字段
+        type: string
+      message:
+        description: 日志主消息（最多 1024 字符）
+        type: string
+      stack:
+        description: 错误堆栈（TEXT 类型，存储长文本）
+        type: string
+      tag:
+        description: 日志分类标签（索引，如 "login", "system"）
+        type: string
+      trace_id:
+        description: 链路追踪 ID（索引，用于排查问题）
+        type: string
+      user_id:
+        description: 操作用户 ID（索引，用于审计）
+        type: string
+      user_name:
+        description: 'UserName: 关联用户的真实姓名（来自 User.Name）'
+        type: string
+    type: object
+  schema.LoginForm:
+    properties:
+      captcha_code:
+        description: |-
+          CaptchaCode: 用户输入的验证码（必填）
+          前端从验证码图片中识别的字符
+          Example: aB3x9
+        example: aB3x9
+        type: string
+      captcha_id:
+        description: |-
+          CaptchaID: 验证码 ID（必填）
+          来自 Captcha 接口的 captcha_id
+          Example: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+        example: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+        type: string
+      password:
+        description: |-
+          Password: 登录密码（必填）
+          Example: goadmin123456
+        example: goadmin123456
+        type: string
+      username:
+        description: |-
+          Username: 登录用户名（必填）
+          Example: admin
+        example: admin
+        type: string
+    required:
+    - captcha_code
+    - captcha_id
+    - password
+    - username
+    type: object
+  schema.LoginToken:
+    properties:
+      access_token:
+        description: |-
+          AccessToken: 访问令牌（JWT 字符串）
+          前端需在后续请求的 Authorization 头中携带
+          Example: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.xxxxx
+        example: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.xxxxx
+        type: string
+      expires_at:
+        description: |-
+          ExpiresAt: 令牌过期时间（Unix 时间戳，秒）
+          前端可用于自动刷新令牌
+          Example: 1730466240
+        example: 1730466240
+        type: integer
+      token_type:
+        description: |-
+          TokenType: 令牌类型（通常为 "Bearer"）
+          使用方式: Authorization: ${token_type} ${access_token}
+          Example: Bearer
+        example: Bearer
+        type: string
+    type: object
+  schema.Menu:
+    properties:
+      children:
+        description: 子菜单列表（用于前端树形展示）
+        items:
+          $ref: '#/definitions/schema.Menu'
+        type: array
+      code:
+        description: 菜单编码（同级唯一，用于权限标识）
+        type: string
+      created_at:
+        description: 创建时间
+        type: string
+      description:
+        description: 描述信息
+        type: string
+      id:
+        description: 唯一 ID（主键）
+        type: string
+      name:
+        description: 显示名称
+        type: string
+      parent_id:
+        description: 父菜单 ID（根菜单为空）
+        type: string
+      parent_path:
+        description: 父菜单路径（如 "root.parent"，用于快速查询祖先）
+        type: string
+      path:
+        description: 访问路径（前端路由或 API 路径）
+        type: string
+      properties:
+        description: '扩展属性（JSON 格式，如 {"icon": "user", "hidden": true}）'
+        type: string
+      resources:
+        description: 关联的资源列表（API 路径+方法，用于 Casbin 权限）
+        items:
+          $ref: '#/definitions/schema.MenuResource'
+        type: array
+      sequence:
+        description: 排序序号（越大越靠前）
+        type: integer
+      status:
+        description: 状态（enabled/disabled）
+        type: string
+      type:
+        description: 菜单类型（page/button）
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+    type: object
+  schema.MenuForm:
+    properties:
+      code:
+        description: 菜单编码（必填，同级唯一）
+        maxLength: 32
+        type: string
+      description:
+        description: 描述信息
+        type: string
+      name:
+        description: 显示名称（必填）
+        maxLength: 128
+        type: string
+      parent_id:
+        description: 父菜单 ID
+        type: string
+      path:
+        description: 访问路径
+        type: string
+      properties:
+        description: 扩展属性（JSON 格式）
+        type: string
+      resources:
+        description: 关联的资源列表
+        items:
+          $ref: '#/definitions/schema.MenuResource'
+        type: array
+      sequence:
+        description: 排序序号
+        type: integer
+      status:
+        description: 状态（必填，enabled/disabled）
+        enum:
+        - disabled
+        - enabled
+        type: string
+      type:
+        description: 菜单类型（必填，page/button）
+        enum:
+        - page
+        - button
+        type: string
+    required:
+    - code
+    - name
+    - status
+    - type
+    type: object
+  schema.MenuResource:
+    properties:
+      created_at:
+        description: 创建时间
+        type: string
+      id:
+        description: 唯一 ID（主键）
+        type: string
+      menu_id:
+        description: 关联的菜单 ID（外键，指向 menu.id）
+        type: string
+      method:
+        description: HTTP 方法（如 GET, POST, PUT, DELETE）
+        type: string
+      path:
+        description: |-
+          API 请求路径（支持路径参数）
+          示例: /api/v1/users, /api/v1/users/:id
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+    type: object
+  schema.Notification:
+    properties:
+      content:
+        description: 内容
+        type: string
+      created_at:
+        description: 创建时间
+        type: string
+      id:
+        description: 通知ID
+        type: string
+      is_read:
+        description: 是否已读
+        type: boolean
+      related_id:
+        description: 关联ID（如评论ID）
+        type: string
+      title:
+        description: 标题
+        type: string
+      type:
+        description: 通知类型
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+      user_id:
+        description: 接收者ID
+        type: string
+    type: object
+  schema.Page:
+    properties:
+      content:
+        description: Markdown内容
+        type: string
+      created_at:
+        description: 创建时间
+        type: string
+      id:
+        description: 页面唯一ID
+        type: string
+      is_published:
+        description: 是否发布
+        type: boolean
+      slug:
+        description: URL路径（如 /about）
+        type: string
+      title:
+        description: 页面标题
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+    type: object
+  schema.PageForm:
+    properties:
+      content:
+        type: string
+      is_published:
+        type: boolean
+      slug:
+        maxLength: 255
+        type: string
+      title:
+        maxLength: 255
+        type: string
+    required:
+    - content
+    - slug
+    - title
+    type: object
+  schema.RegisterForm:
+    properties:
+      captcha_code:
+        description: |-
+          CaptchaCode: 验证码输入（必填）
+          Example: xK9m2
+        example: xK9m2
+        type: string
+      captcha_id:
+        description: |-
+          CaptchaID: 验证码 ID（必填）
+          Example: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+        example: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+        type: string
+      confirm_password:
+        description: |-
+          ConfirmPassword: 二次确认密码（必填）
+          Example: MyPass123!
+        example: MyPass123!
+        maxLength: 64
+        type: string
+      email:
+        description: |-
+          Email: 邮箱（必填，合法格式）
+          Example: user2025@example.com
+        example: user2025@example.com
+        maxLength: 128
+        type: string
+      password:
+        description: |-
+          Password: 登录密码（必填）
+          Example: MyPass123!
+        example: MyPass123!
+        maxLength: 64
+        type: string
+      phone:
+        description: |-
+          Phone: 手机号（必填）
+          Example: +8613900001111
+        example: "+8613900001111"
+        maxLength: 32
+        type: string
+      username:
+        description: |-
+          Username: 登录用户名（必填）
+          Example: newuser2025
+        example: newuser2025
+        maxLength: 64
+        type: string
+    required:
+    - captcha_code
+    - captcha_id
+    - confirm_password
+    - email
+    - password
+    - phone
+    - username
+    type: object
+  schema.Role:
+    properties:
+      code:
+        description: Code of role (unique)
+        type: string
+      created_at:
+        description: Create time
+        type: string
+      description:
+        description: Details about role
+        type: string
+      id:
+        description: Unique ID
+        type: string
+      menus:
+        description: Role menu list
+        items:
+          $ref: '#/definitions/schema.RoleMenu'
+        type: array
+      name:
+        description: Display name of role
+        type: string
+      sequence:
+        description: Sequence for sorting
+        type: integer
+      status:
+        description: Status of role (disabled, enabled)
+        type: string
+      updated_at:
+        description: Update time
+        type: string
+    type: object
+  schema.RoleForm:
+    properties:
+      code:
+        description: Code of role (unique)
+        maxLength: 32
+        type: string
+      description:
+        description: Details about role
+        type: string
+      menus:
+        description: Role menu list
+        items:
+          $ref: '#/definitions/schema.RoleMenu'
+        type: array
+      name:
+        description: Display name of role
+        maxLength: 128
+        type: string
+      sequence:
+        description: Sequence for sorting
+        type: integer
+      status:
+        description: Status of role (enabled, disabled)
+        enum:
+        - disabled
+        - enabled
+        type: string
+    required:
+    - code
+    - name
+    - status
+    type: object
+  schema.RoleMenu:
+    properties:
+      created_at:
+        description: 创建时间 / Create timestamp
+        type: string
+      id:
+        description: 唯一标识符 / Unique identifier
+        type: string
+      menu_id:
+        description: 菜单ID，来自Menu表的ID / Menu ID, from Menu.ID
+        type: string
+      role_id:
+        description: 角色ID，来自Role表的ID / Role ID, from Role.ID
+        type: string
+      updated_at:
+        description: 更新时间 / Update timestamp
+        type: string
+    type: object
+  schema.Setting:
+    properties:
+      created_at:
+        description: 创建时间
+        type: string
+      description:
+        description: 描述（可选）
+        type: string
+      key:
+        description: 配置键（如 site_title）
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+      value:
+        description: 配置值
+        type: string
+    type: object
+  schema.SettingForm:
+    properties:
+      description:
+        maxLength: 255
+        type: string
+      key:
+        maxLength: 100
+        type: string
+      value:
+        type: string
+    required:
+    - key
+    - value
+    type: object
+  schema.Statistics:
+    properties:
+      created_at:
+        description: 创建时间
+        type: string
+      date:
+        description: 日期（格式：2025-10-28）
+        type: string
+      id:
+        description: 统计ID
+        type: string
+      ip_count:
+        description: 独立IP数
+        type: integer
+      pv:
+        description: 页面浏览量
+        type: integer
+      updated_at:
+        description: 更新时间
+        type: string
+      uv:
+        description: 独立访客数
+        type: integer
+    type: object
+  schema.Tag:
+    properties:
+      created_at:
+        description: 创建时间
+        type: string
+      id:
+        description: 唯一ID
+        type: string
+      name:
+        description: 标签名称（唯一）
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+    type: object
+  schema.TagForm:
+    properties:
+      name:
+        description: 标签名称
+        maxLength: 100
+        type: string
+    required:
+    - name
+    type: object
+  schema.UpdateCurrentUser:
+    properties:
+      email:
+        description: |-
+          Email: 邮箱地址（可选，最大 128 字符）
+          Example: lxy911@gmail.com
+        example: lxy911@gmail.com
+        maxLength: 128
+        type: string
+      name:
+        description: |-
+          Name: 用户姓名（必填，最大 64 字符）
+          Example: 李星云
+        example: 李星云
+        maxLength: 64
+        type: string
+      phone:
+        description: |-
+          Phone: 手机号码（可选，最大 32 字符）
+          Example: +8613800138000
+        example: "+8613800138000"
+        maxLength: 32
+        type: string
+      remark:
+        description: |-
+          Remark: 备注信息（可选，最大 1024 字符）
+          Example: 开发者
+        example: 开发者
+        maxLength: 1024
+        type: string
+    required:
+    - name
+    type: object
+  schema.UpdateLoginPassword:
+    properties:
+      new_password:
+        description: |-
+          NewPassword: 新密码
+          Example: newSecurePass!2025
+        example: newSecurePass!2025
+        type: string
+      old_password:
+        description: |-
+          OldPassword: 旧密码
+          用于验证用户身份
+          Example: oldPass123
+        example: oldPass123
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
+  schema.User:
+    properties:
+      created_at:
+        description: Create time
+        type: string
+      email:
+        description: Email of user
+        type: string
+      id:
+        description: Unique ID
+        type: string
+      name:
+        description: Name of user
+        type: string
+      phone:
+        description: Phone number of user
+        type: string
+      remark:
+        description: Remark of user
+        type: string
+      roles:
+        description: Roles of user
+        items:
+          $ref: '#/definitions/schema.UserRole'
+        type: array
+      status:
+        description: Status of user (activated, freezed)
+        type: string
+      updated_at:
+        description: Update time
+        type: string
+      username:
+        description: Username for login
+        type: string
+    type: object
+  schema.UserForm:
+    properties:
+      email:
+        description: Email of user
+        maxLength: 128
+        type: string
+      name:
+        description: Name of user
+        maxLength: 64
+        type: string
+      password:
+        description: Password for login (md5 hash)
+        maxLength: 64
+        type: string
+      phone:
+        description: Phone number of user
+        maxLength: 32
+        type: string
+      remark:
+        description: Remark of user
+        maxLength: 1024
+        type: string
+      roles:
+        description: Roles of user
+        items:
+          $ref: '#/definitions/schema.UserRole'
+        type: array
+      status:
+        description: Status of user (activated, freezed)
+        enum:
+        - activated
+        - freezed
+        type: string
+      username:
+        description: Username for login
+        maxLength: 64
+        type: string
+    required:
+    - name
+    - roles
+    - status
+    - username
+    type: object
+  schema.UserRole:
+    properties:
+      created_at:
+        description: Create time
+        type: string
+      id:
+        description: Unique ID
+        type: string
+      role_id:
+        description: From Role.ID
+        type: string
+      role_name:
+        description: From Role.Name
+        type: string
+      updated_at:
+        description: Update time
+        type: string
+      user_id:
+        description: From User.ID
+        type: string
+    type: object
+  util.ResponseResult:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/errors.Error'
+      success:
+        type: boolean
+      total:
+        type: integer
+    type: object
+info:
+  contact: {}
+  description: A lightweight, flexible, elegant and full-featured RBAC scaffolding
+    based on GIN + GORM 2.0 + Casbin 2.0 + Wire DI.
+  title: goAdmin
+  version: v1.0.0
+paths:
+  /api/v1/archives:
+    get:
+      description: Get article archive grouped by year and month
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.ArchiveItem'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Get article archive (public)
+      tags:
+      - ArticleAPI
+  /api/v1/articles:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        type: integer
+      - description: Article title (fuzzy)
+        in: query
+        name: title
+        type: string
+      - description: Category ID
+        in: query
+        name: category_id
+        type: string
+      - description: Status (draft/published)
+        enum:
+        - draft
+        - published
+        in: query
+        name: status
+        type: string
+      - description: Is top
+        in: query
+        name: is_top
+        type: boolean
+      - description: Published at >= (YYYY-MM-DD)
+        in: query
+        name: published_at_gte
+        type: string
+      - description: Published at <= (YYYY-MM-DD)
+        in: query
+        name: published_at_lte
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Article'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query article list
+      tags:
+      - ArticleAPI
+    post:
+      parameters:
+      - description: Article form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ArticleForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Article'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Create article
+      tags:
+      - ArticleAPI
+  /api/v1/articles/{id}:
+    delete:
+      parameters:
+      - description: Article ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete article by ID
+      tags:
+      - ArticleAPI
+    get:
+      parameters:
+      - description: Article ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Article'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get article by ID
+      tags:
+      - ArticleAPI
+    put:
+      parameters:
+      - description: Article ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Article form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ArticleForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Update article by ID
+      tags:
+      - ArticleAPI
+  /api/v1/articles/{id}/views:
+    post:
+      description: Atomic increment article views by ID
+      parameters:
+      - description: Article ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 1
+        description: Increment number
+        in: query
+        name: num
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Increment article views (public)
+      tags:
+      - ArticleAPI
+  /api/v1/articles/slug/{slug}:
+    get:
+      description: Get article by slug, only published articles are accessible
+      parameters:
+      - description: Article slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Article'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Get published article by slug (public)
+      tags:
+      - ArticleAPI
+  /api/v1/articles/status:
+    patch:
+      parameters:
+      - description: IDs and status
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.BatchUpdateStatusForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Batch update article status
+      tags:
+      - ArticleAPI
+  /api/v1/captcha/id:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Captcha'
+              type: object
+      summary: Get captcha ID
+      tags:
+      - LoginAPI
+  /api/v1/captcha/image:
+    get:
+      parameters:
+      - description: Captcha ID
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Reload captcha image (reload=1)
+        in: query
+        name: reload
+        type: number
+      produces:
+      - image/png
+      responses:
+        "200":
+          description: Captcha image
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Response captcha image
+      tags:
+      - LoginAPI
+  /api/v1/categories:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        type: integer
+      - description: Category name (fuzzy)
+        in: query
+        name: name
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Category'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query category list
+      tags:
+      - CategoryAPI
+    post:
+      parameters:
+      - description: Category form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CategoryForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Category'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Create category
+      tags:
+      - CategoryAPI
+  /api/v1/categories/{id}:
+    delete:
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete category
+      tags:
+      - CategoryAPI
+    get:
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Category'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get category by ID
+      tags:
+      - CategoryAPI
+    put:
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Category form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CategoryForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Update category
+      tags:
+      - CategoryAPI
+  /api/v1/categories/all:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Category'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Get all categories (public)
+      tags:
+      - CategoryAPI
+  /api/v1/comments:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        type: integer
+      - description: Article ID
+        in: query
+        name: article_id
+        type: string
+      - description: User ID
+        in: query
+        name: user_id
+        type: string
+      - description: Status
+        enum:
+        - approved
+        - pending
+        - rejected
+        in: query
+        name: status
+        type: string
+      - description: Parent comment ID
+        in: query
+        name: parent_id
+        type: string
+      - description: Is top
+        in: query
+        name: is_top
+        type: boolean
+      - description: Created at >= (YYYY-MM-DD)
+        in: query
+        name: created_at_gte
+        type: string
+      - description: Created at <= (YYYY-MM-DD)
+        in: query
+        name: created_at_lte
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Comment'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query comment list (admin)
+      tags:
+      - CommentAPI
+    post:
+      description: Create a new comment, supports guest and logged-in users.
+      parameters:
+      - description: Comment form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CommentForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Comment'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Create comment (public)
+      tags:
+      - CommentAPI
+  /api/v1/comments/{id}:
+    delete:
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete comment by ID
+      tags:
+      - CommentAPI
+    get:
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Comment'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get comment by ID
+      tags:
+      - CommentAPI
+    put:
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update (e.g. {\
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Update comment by ID
+      tags:
+      - CommentAPI
+  /api/v1/comments/{id}/approve:
+    patch:
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Approve comment
+      tags:
+      - CommentAPI
+  /api/v1/comments/{id}/reject:
+    patch:
+      parameters:
+      - description: Comment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Reject comment
+      tags:
+      - CommentAPI
+  /api/v1/current/logout:
+    post:
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Logout system
+      tags:
+      - LoginAPI
+  /api/v1/current/menus:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Menu'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query current user menus based on the current user role
+      tags:
+      - LoginAPI
+  /api/v1/current/password:
+    put:
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UpdateLoginPassword'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Change current user password
+      tags:
+      - LoginAPI
+  /api/v1/current/refresh-token:
+    post:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.LoginToken'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Refresh current access token
+      tags:
+      - LoginAPI
+  /api/v1/current/user:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.User'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get current user info
+      tags:
+      - LoginAPI
+    put:
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UpdateCurrentUser'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Update current user info
+      tags:
+      - LoginAPI
+  /api/v1/friend-links:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        type: integer
+      - description: Friend link name (fuzzy)
+        in: query
+        name: name
+        type: string
+      - description: Status
+        enum:
+        - enabled
+        - disabled
+        in: query
+        name: status
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.FriendLink'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query friend link list
+      tags:
+      - FriendLinkAPI
+    post:
+      parameters:
+      - description: Friend link form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.FriendLinkForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.FriendLink'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Create friend link
+      tags:
+      - FriendLinkAPI
+  /api/v1/friend-links/{id}:
+    delete:
+      parameters:
+      - description: Friend link ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete friend link
+      tags:
+      - FriendLinkAPI
+    get:
+      parameters:
+      - description: Friend link ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.FriendLink'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get friend link by ID
+      tags:
+      - FriendLinkAPI
+    put:
+      parameters:
+      - description: Friend link ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Friend link form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.FriendLinkForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Update friend link
+      tags:
+      - FriendLinkAPI
+  /api/v1/friend-links/all:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.FriendLink'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Get all enabled friend links (public)
+      tags:
+      - FriendLinkAPI
+  /api/v1/images:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        type: integer
+      - description: Image URL (fuzzy)
+        in: query
+        name: url
+        type: string
+      - description: Category
+        enum:
+        - article_cover
+        - ad_image
+        - friend_link_logo
+        in: query
+        name: category
+        type: string
+      - description: MIME type
+        enum:
+        - image/png
+        - image/jpeg
+        - image/gif
+        in: query
+        name: type
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Image'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query image list
+      tags:
+      - ImageAPI
+    post:
+      description: This only creates DB record. File upload should be handled separately.
+      parameters:
+      - description: Image form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ImageForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Image'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Create image record
+      tags:
+      - ImageAPI
+  /api/v1/images/{id}:
+    delete:
+      parameters:
+      - description: Image ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete image
+      tags:
+      - ImageAPI
+    get:
+      parameters:
+      - description: Image ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Image'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get image by ID
+      tags:
+      - ImageAPI
+    put:
+      parameters:
+      - description: Image ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Image form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ImageForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Update image
+      tags:
+      - ImageAPI
+  /api/v1/images/batch-delete:
+    delete:
+      parameters:
+      - description: Image IDs
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.BatchIDsForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Batch delete images
+      tags:
+      - ImageAPI
+  /api/v1/images/category/{category}:
+    get:
+      parameters:
+      - description: Category
+        enum:
+        - article_cover
+        - ad_image
+        - friend_link_logo
+        in: path
+        name: category
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Image'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Get images by category (public)
+      tags:
+      - ImageAPI
+  /api/v1/loggers:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        required: true
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      - description: log level
+        in: query
+        name: level
+        type: string
+      - description: trace ID
+        in: query
+        name: traceID
+        type: string
+      - description: user name
+        in: query
+        name: userName
+        type: string
+      - description: log tag
+        in: query
+        name: tag
+        type: string
+      - description: log message
+        in: query
+        name: message
+        type: string
+      - description: start time
+        in: query
+        name: startTime
+        type: string
+      - description: end time
+        in: query
+        name: endTime
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Logger'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query logger list
+      tags:
+      - LoggerAPI
+  /api/v1/login:
+    post:
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.LoginForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.LoginToken'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Login system with username and password
+      tags:
+      - LoginAPI
+  /api/v1/menus:
+    get:
+      parameters:
+      - description: Code path of menu (like xxx.xxx.xxx)
+        in: query
+        name: code
+        type: string
+      - description: Name of menu
+        in: query
+        name: name
+        type: string
+      - description: Whether to include menu resources
+        in: query
+        name: includeResources
+        type: boolean
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Menu'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query menu tree data
+      tags:
+      - MenuAPI
+    post:
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.MenuForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Menu'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Create menu record
+      tags:
+      - MenuAPI
+  /api/v1/menus/{id}:
+    delete:
+      parameters:
+      - description: unique id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete menu record by ID
+      tags:
+      - MenuAPI
+    get:
+      parameters:
+      - description: unique id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Menu'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get menu record by ID
+      tags:
+      - MenuAPI
+    put:
+      parameters:
+      - description: unique id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.MenuForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Update menu record by ID
+      tags:
+      - MenuAPI
+  /api/v1/notifications:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        type: integer
+      - description: User ID
+        in: query
+        name: user_id
+        required: true
+        type: string
+      - description: Notification type
+        enum:
+        - comment
+        - system
+        in: query
+        name: type
+        type: string
+      - description: Is read
+        in: query
+        name: is_read
+        type: boolean
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Notification'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query notification list
+      tags:
+      - NotificationAPI
+  /api/v1/notifications/{id}:
+    delete:
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete notification
+      tags:
+      - NotificationAPI
+    get:
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Notification'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get notification by ID
+      tags:
+      - NotificationAPI
+  /api/v1/notifications/{id}/read:
+    patch:
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Mark notification as read
+      tags:
+      - NotificationAPI
+  /api/v1/notifications/read-all:
+    patch:
+      parameters:
+      - description: User ID
+        in: query
+        name: user_id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Mark all notifications as read
+      tags:
+      - NotificationAPI
+  /api/v1/pages:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        type: integer
+      - description: Page slug
+        in: query
+        name: slug
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Page'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query page list
+      tags:
+      - PageAPI
+    post:
+      parameters:
+      - description: Page form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.PageForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Page'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Create page
+      tags:
+      - PageAPI
+  /api/v1/pages/{id}:
+    delete:
+      parameters:
+      - description: Page ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete page
+      tags:
+      - PageAPI
+    get:
+      parameters:
+      - description: Page ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Page'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get page by ID
+      tags:
+      - PageAPI
+    put:
+      parameters:
+      - description: Page ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Page form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.PageForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Update page
+      tags:
+      - PageAPI
+  /api/v1/pages/slug/{slug}:
+    get:
+      parameters:
+      - description: Page slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Page'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Get published page by slug (public)
+      tags:
+      - PageAPI
+  /api/v1/register:
+    post:
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.RegisterForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.LoginToken'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Register a new user
+      tags:
+      - LoginAPI
+  /api/v1/roles:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        required: true
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      - description: Display name of role
+        in: query
+        name: name
+        type: string
+      - description: Status of role (disabled, enabled)
+        in: query
+        name: status
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Role'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query role list
+      tags:
+      - RoleAPI
+    post:
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.RoleForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Role'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Create role record
+      tags:
+      - RoleAPI
+  /api/v1/roles/{id}:
+    delete:
+      parameters:
+      - description: unique id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete role record by ID
+      tags:
+      - RoleAPI
+    get:
+      parameters:
+      - description: unique id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Role'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get role record by ID
+      tags:
+      - RoleAPI
+    put:
+      parameters:
+      - description: unique id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.RoleForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Update role record by ID
+      tags:
+      - RoleAPI
+  /api/v1/settings:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        type: integer
+      - description: Setting key
+        in: query
+        name: key
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Setting'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query setting list
+      tags:
+      - SettingAPI
+    post:
+      parameters:
+      - description: Setting form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.SettingForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Setting'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Create setting
+      tags:
+      - SettingAPI
+  /api/v1/settings/{key}:
+    delete:
+      parameters:
+      - description: Setting key
+        in: path
+        name: key
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete setting
+      tags:
+      - SettingAPI
+    get:
+      parameters:
+      - description: Setting key
+        in: path
+        name: key
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Setting'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get setting by key
+      tags:
+      - SettingAPI
+    put:
+      parameters:
+      - description: Setting key
+        in: path
+        name: key
+        required: true
+        type: string
+      - description: Setting form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.SettingForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Update setting
+      tags:
+      - SettingAPI
+  /api/v1/settings/all:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Setting'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all settings
+      tags:
+      - SettingAPI
+  /api/v1/statistics:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        type: integer
+      - description: Date >= (YYYY-MM-DD)
+        in: query
+        name: date_gte
+        type: string
+      - description: Date <= (YYYY-MM-DD)
+        in: query
+        name: date_lte
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Statistics'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query statistics list
+      tags:
+      - StatisticsAPI
+  /api/v1/statistics/{date}:
+    get:
+      parameters:
+      - description: Date (YYYY-MM-DD)
+        in: path
+        name: date
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Statistics'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get statistics by date
+      tags:
+      - StatisticsAPI
+  /api/v1/statistics/latest:
+    get:
+      parameters:
+      - default: 7
+        description: Number of days
+        in: query
+        name: days
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Statistics'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Get latest N days statistics (public)
+      tags:
+      - StatisticsAPI
+  /api/v1/tags:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        type: integer
+      - description: Tag name (fuzzy)
+        in: query
+        name: name
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Tag'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query tag list
+      tags:
+      - TagAPI
+    post:
+      parameters:
+      - description: Tag form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.TagForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Tag'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Create tag
+      tags:
+      - TagAPI
+  /api/v1/tags/{id}:
+    delete:
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete tag
+      tags:
+      - TagAPI
+    get:
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.Tag'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get tag by ID
+      tags:
+      - TagAPI
+    put:
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag form
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.TagForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Update tag
+      tags:
+      - TagAPI
+  /api/v1/tags/all:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.Tag'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      summary: Get all tags (public, for tag cloud)
+      tags:
+      - TagAPI
+  /api/v1/users:
+    get:
+      parameters:
+      - default: 1
+        description: pagination index
+        in: query
+        name: current
+        required: true
+        type: integer
+      - default: 10
+        description: pagination size
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      - description: Username for login
+        in: query
+        name: username
+        type: string
+      - description: Name of user
+        in: query
+        name: name
+        type: string
+      - description: Status of user (activated, freezed)
+        in: query
+        name: status
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.User'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Query user list
+      tags:
+      - UserAPI
+    post:
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Create user record
+      tags:
+      - UserAPI
+  /api/v1/users/{id}:
+    delete:
+      parameters:
+      - description: unique id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete user record by ID
+      tags:
+      - UserAPI
+    get:
+      parameters:
+      - description: unique id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.User'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user record by ID
+      tags:
+      - UserAPI
+    put:
+      parameters:
+      - description: unique id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserForm'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Update user record by ID
+      tags:
+      - UserAPI
+  /api/v1/users/{id}/reset-pwd:
+    patch:
+      parameters:
+      - description: unique id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/util.ResponseResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Reset user password by ID
+      tags:
+      - UserAPI
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
