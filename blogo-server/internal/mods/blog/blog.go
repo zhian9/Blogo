@@ -158,8 +158,6 @@ func (b *Blog) RegisterV1Routers(ctx context.Context, v1 *gin.RouterGroup) error
 		public.POST("/articles/:id/views", b.ArticleAPI.IncViews)
 
 		// 评论
-		public.POST("/comments", b.CommentAPI.Create)
-		public.GET("/articles/:id/comments", b.CommentAPI.GetByArticleID)
 
 		// 页面
 		public.GET("/users/:id/profile", b.ProfileAPI.GetDashboard)
