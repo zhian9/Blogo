@@ -1,5 +1,5 @@
 # Blogo — 监控栈 Docker Compose
-# 用法：docker-compose -f deployment/monitoring/docker-compose.yml up -d
+# 用法：docker-compose -f deploy/compose/monitoring.yml up -d
 #
 # 服务说明：
 #   prometheus   — 指标采集与存储（:9090）

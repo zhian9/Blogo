@@ -1,61 +1,65 @@
-# SPDX-License-Identifier: MIT
-# Copyright (c) 2026-present 李星云 (lxy911)
-# Project: Blogo — https://github.com/zhian9/Blogo
-#
-# 多阶段构建 Dockerfile
-# 用法:
-#   docker build -t blogo-server:latest -f deploy/docker/Dockerfile blogo-server
-#   docker run -d --name blogo-server -p 8040:8040 --env-file blogo-server/.env blogo-server:latest
+# ═══════════════════════════════════════════════════════
+# Blogo — 生产级多阶段 Dockerfile
+# ═══════════════════════════════════════════════════════
+# 构建:
+#   docker build -t blogo:latest -f deploy/docker/Dockerfile .
+# 运行:
+#   docker run -d --name blogo -p 8040:8040 --env-file blogo-server/.env blogo:latest
+# ═══════════════════════════════════════════════════════
 
-# ═══════════════════════════════════════════════════════
-# Stage 1: 构建
-# ═══════════════════════════════════════════════════════
+# ── Stage 1: 编译 ────────────────────────────────────
 FROM golang:1.25-alpine AS builder
 
-ARG APP=Blogo
 ARG VERSION=v1.0.0
+ARG GOPROXY=https://goproxy.cn,direct
 
-RUN apk add --no-cache gcc musl-dev
-
-ENV CGO_CFLAGS="-D_LARGEFILE64_SOURCE"
-ENV GOPROXY=https://goproxy.cn,direct
+RUN apk add --no-cache git ca-certificates tzdata
 
 WORKDIR /src
-COPY go.mod go.sum ./
+
+# 缓存依赖层（仅 go.mod / go.sum 变化时重建）
+COPY blogo-server/go.mod blogo-server/go.sum ./
 RUN go mod download
 
-COPY . .
-
-RUN CGO_ENABLED=1 go build -trimpath \
+# 复制源码并编译
+COPY blogo-server/ ./
+RUN CGO_ENABLED=0 go build -trimpath \
     -ldflags "-w -s -X main.VERSION=${VERSION}" \
-    -o /bin/${APP} .
+    -o /bin/blogo .
 
-# ═══════════════════════════════════════════════════════
-# Stage 2: 运行
-# ═══════════════════════════════════════════════════════
+# ── Stage 2: 运行 ────────────────────────────────────
 FROM alpine:3.21
 
-RUN apk --no-cache add ca-certificates tzdata \
+RUN apk add --no-cache ca-certificates tzdata curl \
     && rm -rf /var/cache/apk/*
 
 ENV TZ=Asia/Shanghai
 
-RUN adduser -D -s /bin/sh appuser && \
-    mkdir -p /logs /app
+# 非 root 用户
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# 创建运行时目录
+RUN mkdir -p /app/configs /app/storage/uploads /app/logs \
+    && chown -R appuser:appgroup /app
 
 WORKDIR /app
 
-COPY --from=builder /bin/${APP} /usr/local/bin/blogo-server
-COPY --from=builder /src/configs ./configs
+# 从构建阶段复制二进制
+COPY --from=builder /bin/blogo /usr/local/bin/blogo
 
-# 宿主机挂载日志: docker run -v ./logs:/logs ...
-RUN mkdir -p /logs && chown -R appuser:appuser /logs
+# 从项目根复制配置
+COPY configs/server/ /app/configs/
+
+# 复制静态文件目录（如有前端产物）
+# COPY blogo-admin/dist/ /app/static/
 
 USER appuser
 
 EXPOSE 8040
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget -qO- http://localhost:8040/health || exit 1
+STOPSIGNAL SIGTERM
 
-ENTRYPOINT ["blogo-server", "start", "-d", "./configs", "-c", "dev"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -sf http://localhost:8040/health || exit 1
+
+ENTRYPOINT ["blogo", "start", "-d", "/app/configs", "-c", "prod"]

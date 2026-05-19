@@ -1,46 +1,43 @@
+# ═══════════════════════════════════════════════════════
 # Blogo — 全栈 Docker Compose
-# 用法: docker-compose -f deploy/compose/full-stack.yml up -d
-#
-# 服务:
-#   blogo-server  — Go 后端 API (:8040)
-#   blogo-mysql   — MySQL 8.0 (:3306)
-#   blogo-redis   — Redis 7 (:6379)
-#   blogo-nginx   — 反向代理 (:80/:443)
-#
-# 前置条件:
-#   1. 创建 blogo-net 网络: docker network create blogo-net
-#   2. 配置 blogo-server/.env 环境变量
-#   3. 构建镜像: docker build -t blogo-server:latest -f deploy/docker/Dockerfile blogo-server
+# ═══════════════════════════════════════════════════════
+# 用法:
+#   docker network create blogo-net
+#   docker-compose -f deploy/compose/full-stack.yml up -d
+# ═══════════════════════════════════════════════════════
 
 version: "3.8"
 
 services:
-  # ── Go 后端 ──────────────────────────────────────
-  blogo-server:
-    image: blogo-server:latest
-    container_name: blogo-server
+  # ── Go 后端 ────────────────────────────────────────
+  blogo:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+    image: blogo:latest
+    container_name: blogo
     restart: unless-stopped
     env_file:
-      - ../blogo-server/.env
+      - ../../blogo-server/.env
     volumes:
-      - ../../logs:/logs
+      - blogo_uploads:/app/storage/uploads
     ports:
       - "8040:8040"
     depends_on:
-      blogo-mysql:
+      mysql:
         condition: service_healthy
-      blogo-redis:
+      redis:
         condition: service_healthy
     networks:
       - blogo-net
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: "20m"
+        max-file: "5"
 
-  # ── MySQL ─────────────────────────────────────────
-  blogo-mysql:
+  # ── MySQL ───────────────────────────────────────────
+  mysql:
     image: mysql:8.0
     container_name: blogo-mysql
     restart: unless-stopped
@@ -51,8 +48,6 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-blogo123}
     volumes:
       - mysql_data:/var/lib/mysql
-    volumes:
-      - ../../logs:/logs
     ports:
       - "3306:3306"
     networks:
@@ -65,19 +60,17 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: "20m"
+        max-file: "5"
 
-  # ── Redis ─────────────────────────────────────────
-  blogo-redis:
+  # ── Redis ───────────────────────────────────────────
+  redis:
     image: redis:7-alpine
     container_name: blogo-redis
     restart: unless-stopped
     command: redis-server --requirepass ${REDIS_PASSWORD:-redis123} --appendonly yes
     volumes:
       - redis_data:/data
-    volumes:
-      - ../../logs:/logs
     ports:
       - "6379:6379"
     networks:
@@ -90,33 +83,32 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: "20m"
+        max-file: "5"
 
-  # ── Nginx 反向代理 ──────────────────────────────
-  blogo-nginx:
+  # ── Nginx ───────────────────────────────────────────
+  nginx:
     image: nginx:alpine
     container_name: blogo-nginx
     restart: unless-stopped
     volumes:
       - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../nginx/conf.d:/etc/nginx/conf.d:ro
-    volumes:
-      - ../../logs:/logs
     ports:
       - "80:80"
       - "443:443"
     networks:
       - blogo-net
     depends_on:
-      - blogo-server
+      - blogo
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: "20m"
+        max-file: "5"
 
 volumes:
+  blogo_uploads:
   mysql_data:
   redis_data:
 

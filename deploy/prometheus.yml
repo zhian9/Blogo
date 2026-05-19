@@ -16,7 +16,7 @@ scrape_configs:
       password: admin
     static_configs:
       - targets:
-          - blogo-backend:8040
+          - blogo:8040
         labels:
           service: go-admin
           version: v1.0.0

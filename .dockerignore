@@ -1,0 +1,43 @@
+# ── Git ──
+.git
+.gitignore
+
+# ── Node ──
+**/node_modules
+**/dist
+
+# ── IDE ──
+.idea
+.vscode
+
+# ── Docs ──
+docs
+
+# ── Logs ──
+logs
+*.log
+
+# ── Runtime ──
+storage/uploads/*
+storage/temp/*
+!storage/**/.gitkeep
+tmp
+data
+uploads
+
+# ── Secrets ──
+.env
+*.local
+
+# ── Deploy ──
+deploy/compose
+deploy/nginx
+deploy/grafana
+deploy/scripts
+deploy/prometheus.yml
+
+# ── Misc ──
+*.md
+LICENSE
+Makefile
+scripts

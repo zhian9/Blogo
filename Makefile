@@ -55,7 +55,7 @@ build-admin:
 # ═══════════════════════════════════════════════════════
 
 docker:
-	docker build -t blogo-server:latest -f $(DOCKER_DIR)/Dockerfile $(SERVER_DIR)
+	docker build -t blogo:latest -f $(DOCKER_DIR)/Dockerfile .
 
 # ═══════════════════════════════════════════════════════
 # 代码生成
