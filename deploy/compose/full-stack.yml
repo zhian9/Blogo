@@ -124,6 +124,8 @@ services:
     volumes:
       - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../nginx/conf.d:/etc/nginx/conf.d:ro
+      - ../../blogo-web/dist:/usr/share/nginx/html/blogo-web:ro
+      - ../../blogo-admin/dist:/usr/share/nginx/html/blogo-admin:ro
     ports:
       - "80:80"
       # HTTPS 接入 Cloudflare 后由 Cloudflare 处理
