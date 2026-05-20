@@ -239,11 +239,14 @@ func expandEnvVars(config interface{}) interface{} {
 		}
 		return result
 	case string:
-		// 使用 os.ExpandEnv 替换 ${VAR} 格式的环境变量
-		expanded := os.ExpandEnv(v)
-		// 如果替换后仍然包含 ${，说明环境变量未设置
-		if strings.Contains(expanded, "${") {
-			fmt.Printf("Warning: Environment variable not set in string: %s\n", v)
+		// 递归展开环境变量（支持 ${DB_DSN} 内嵌 ${DB_HOST}）
+		expanded := v
+		for i := 0; i < 10; i++ {
+			prev := expanded
+			expanded = os.ExpandEnv(expanded)
+			if !strings.Contains(expanded, "${") || expanded == prev {
+				break
+			}
 		}
 		return expanded
 	default:
