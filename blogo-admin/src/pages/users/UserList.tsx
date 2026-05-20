@@ -82,14 +82,14 @@ export default function UserList() {
 
   const stats = useMemo(() => ({
     total: total,
-    superAdmin: users.filter(u => u.roles?.some(r => (r.role_code || r.role?.code) === 'super_admin' || (r.role_code || r.role?.code) === 'admin')).length,
-    contentMgr: users.filter(u => u.roles?.some(r => (r.role_code || r.role?.code) === 'content_manager')).length,
+    superAdmin: users.filter(u => u.roles?.some(r => ((r.role?.code)) === 'super_admin' || ((r.role?.code)) === 'admin')).length,
+    contentMgr: users.filter(u => u.roles?.some(r => ((r.role?.code)) === 'content_manager')).length,
     banned: users.filter(u => u.status === 'freezed').length,
   }), [users, total])
 
   const getUserRole = (u: User) => {
     if (u.id === 'root') return { code: 'super_admin', label: '超级管理员' }
-    const codes = (u.roles || []).map(r => r.role_code || r.role?.code || '')
+    const codes = (u.roles || []).map(r => (r.role?.code) || '')
     if (codes.includes('super_admin') || codes.includes('admin')) return { code: 'super_admin', label: '超级管理员' }
     if (codes.includes('content_manager')) return { code: 'content_manager', label: '内容管理员' }
     if (codes.includes('comment_moderator')) return { code: 'comment_moderator', label: '评论审核员' }

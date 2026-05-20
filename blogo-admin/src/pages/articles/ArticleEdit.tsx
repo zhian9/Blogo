@@ -234,7 +234,7 @@ export default function ArticleEdit() {
                 style={{ width: 360 }}
                 filterOption={false}
                 onSearch={(val) => setUserSearch(val)}
-                onSelect={(val: string) => handleUserSelect(val)}
+                onSelect={(val) => val && handleUserSelect(val)}
                 value={undefined}
                 notFoundContent={userSearch ? '未找到相关用户' : '输入关键词搜索'}
                 options={filteredUsers.map((u) => ({

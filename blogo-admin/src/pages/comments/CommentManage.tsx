@@ -150,7 +150,7 @@ export default function CommentManage() {
             <Card variant="borderless" style={cardStyle} styles={{ body: { padding: '16px 20px' } }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Statistic title={<span style={muted}>{s.label}</span>} value={s.value}
-                  styles={{ value: { color: s.color === '#6b7280' ? 'rgba(255,255,255,0.4)' : '#fff', fontSize: 24, fontWeight: 700, fontFamily: "'Barlow', sans-serif" } }} />
+                  styles={{ content: { color: s.color === '#6b7280' ? 'rgba(255,255,255,0.4)' : '#fff', fontSize: 24, fontWeight: 700, fontFamily: "'Barlow', sans-serif" } }} />
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: `${s.color}15`, border: `1px solid ${s.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: s.color }}>{s.icon}</div>
               </div>
             </Card>
