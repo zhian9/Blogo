@@ -36,7 +36,6 @@ services:
       test: ["CMD", "curl", "-sf", "http://localhost:8040/health"]
       interval: 30s
       timeout: 3s
-      start-period: 15s
       retries: 3
     logging:
       driver: "json-file"
@@ -80,7 +79,6 @@ services:
         ]
       interval: 10s
       timeout: 5s
-      start-period: 30s
       retries: 5
     logging:
       driver: "json-file"
@@ -111,7 +109,6 @@ services:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
-      start-period: 10s
       retries: 5
     logging:
       driver: "json-file"

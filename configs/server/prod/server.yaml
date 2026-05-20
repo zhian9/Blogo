@@ -83,7 +83,7 @@ dictionary:
   user_cache_exp: 4
 
 email:
-  sender_name: "${SMTP_SENDER}"
-  host: "${SMTP_HOST}"
-  port: ${SMTP_PORT}
-  from_email: "${SMTP_FROM}"
+  sender_name: "Blogo"
+  host: "smtp.qq.com"
+  port: 465
+  from_email: "508065909@qq.com"

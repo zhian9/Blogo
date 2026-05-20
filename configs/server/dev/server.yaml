@@ -220,7 +220,7 @@ dictionary:
 # 邮件服务配置
 # ================================
 email:
-  sender_name: "${SMTP_SENDER}"
-  host: "${SMTP_HOST}"
-  port: ${SMTP_PORT}
-  from_email: "${SMTP_FROM}"
+  sender_name: "Blogo系统"
+  host: "smtp.qq.com"
+  port: 465
+  from_email: "508065909@qq.com"
