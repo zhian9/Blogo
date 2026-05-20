@@ -73,10 +73,10 @@ export default function UserProfile() {
     if (!isAuthenticated) { message.warning('请先登录'); return }
     try {
       if (isFollowing) {
-        await unfollowMutation.mutateAsync(userId)
+        await unfollowMutation.mutateAsync()
         message.success('已取消关注')
       } else {
-        await followMutation.mutateAsync(userId)
+        await followMutation.mutateAsync()
         message.success('已关注')
       }
     } catch (err: any) { message.error(err.message || '操作失败') }

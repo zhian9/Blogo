@@ -71,7 +71,7 @@ export default function Publish() {
   const [visibility, setVisibility] = useState<string>('public')
   const [selectedUsers, setSelectedUsers] = useState<SelectedUser[]>([])
   const [userSearchText, setUserSearchText] = useState('')
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const token = useAuthStore((s) => s.token)
   const user = useAuthStore((s) => s.user)
@@ -79,7 +79,7 @@ export default function Publish() {
   // 是否允许置顶（仅 admin / content_manager）
   // 兼容后端两种返回格式：嵌套 role.code 和扁平 role_name
   const canSetTop = user && (user.id === 'root' || (user.roles || []).some(ur => {
-    const code = ur.role?.code || roleNameToCode(ur.role_name)
+    const code = ur.role?.code || roleNameToCode(ur.role?.name || '')
     return code === 'admin' || code === 'content_manager'
   }))
 
@@ -380,7 +380,7 @@ export default function Publish() {
                   style={{ width: '100%', maxWidth: 400 }}
                   filterOption={false}
                   onSearch={handleUserSearch}
-                  onSelect={(val: string) => handleUserSelect(val)}
+                  onSelect={(val) => val && handleUserSelect(val)}
                   value={undefined}
                   loading={loadingUsers}
                   notFoundContent={userSearchText && !loadingUsers ? '未找到相关用户' : '输入关键词搜索'}

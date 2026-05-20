@@ -27,7 +27,7 @@ export default function Login() {
   const [fpConfirmPwd, setFpConfirmPwd] = useState('')
   const [fpLoading, setFpLoading] = useState(false)
   const [fpCountdown, setFpCountdown] = useState(0)
-  const fpTimer = useRef<ReturnType<typeof setInterval>>()
+  const fpTimer = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const redirectTo = searchParams.get('redirect') || '/'
 

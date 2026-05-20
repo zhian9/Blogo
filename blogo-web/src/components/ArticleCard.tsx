@@ -103,7 +103,6 @@ export default function ArticleCard({ article }: Props) {
             fontFamily: "'Barlow', sans-serif",
             overflow: 'hidden', display: '-webkit-box',
             WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-            display: 'block',
           }}>
             {article.summary || article.content?.replace(/[#*`>\[\]!~-]/g, '').slice(0, 200)}
           </Text>
