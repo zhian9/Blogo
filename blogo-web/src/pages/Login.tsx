@@ -79,7 +79,7 @@ export default function Login() {
       message.success('验证码已发送，请查收邮件')
       setFpStep(1)
       setFpCountdown(60)
-      fpTimer.current = setInterval(() => setFpCountdown(c => { if (c <= 1) { clearInterval(fpTimer.current); return 0 }; return c - 1 }), 1000)
+      fpTimer.current = setInterval(() => setFpCountdown(c => { if (c <= 1) { clearInterval(fpTimer.current!); return 0 }; return c - 1 }), 1000)
     } catch (err: any) { message.error(err.message || '发送失败') }
     finally { setFpLoading(false) }
   }
