@@ -11,7 +11,7 @@ general:
   disable_print_config: true
   menu_file: "menu.json"
   deny_operate_menu: true
-  allow_register: false
+  allow_register: true
   comment_moderation: true
   site_url: "${SITE_URL}"
   http:

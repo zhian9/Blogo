@@ -128,8 +128,7 @@ services:
       - ../../blogo-admin/dist:/usr/share/nginx/html/blogo-admin:ro
     ports:
       - "80:80"
-      # HTTPS 接入 Cloudflare 后由 Cloudflare 处理
-      # - "443:443"
+      - "81:81"
     networks:
       - blogo-net
     depends_on:
