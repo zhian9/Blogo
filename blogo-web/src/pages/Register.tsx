@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { Form, Input, Button, Card, Typography, message, Space, Row, Col } from 'antd'
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, ArrowLeftOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
-import { register as registerApi, getCaptchaId, getCurrentUser } from '../api/auth'
+import { register as registerApi, getCaptchaId } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
 import client from '../api/client'
 
@@ -16,7 +16,7 @@ export default function Register() {
   const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null)
   const [checkingEmail, setCheckingEmail] = useState(false)
   const [searchParams] = useSearchParams()
-  const { isAuthenticated, login: storeLogin } = useAuthStore()
+  const { isAuthenticated } = useAuthStore()
   const navigate = useNavigate()
 
   const redirectTo = searchParams.get('redirect') || '/'
@@ -57,18 +57,14 @@ export default function Register() {
     if (!captchaId) { message.warning('验证码加载中，请稍候'); return }
     setLoading(true)
     try {
-      const res = await registerApi({
+      await registerApi({
         username: values.username, password: values.password,
         confirm_password: values.confirm_password, phone: values.phone,
         email: values.email, captcha_id: captchaId,
         captcha_code: values.captcha_code?.trim() || '',
       })
-      const { access_token } = res.data
-      sessionStorage.setItem('blog-token', access_token)
-      const userRes = await getCurrentUser()
-      storeLogin(access_token, userRes.data)
-      message.success('注册成功！')
-      navigate(redirectTo, { replace: true })
+      message.success('注册成功！请查看邮箱，点击激活链接完成账号激活', 5)
+      setTimeout(() => navigate('/login', { replace: true }), 2000)
     } catch (err: any) {
       message.error(err.message || '注册失败')
       fetchCaptcha()
