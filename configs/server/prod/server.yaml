@@ -84,7 +84,7 @@ dictionary:
 
 middleware:
   casbin:
-    gen_policy_file: "/app/storage/gen_rbac_policy.csv"
+    gen_policy_file: "../storage/gen_rbac_policy.csv"
 
 email:
   sender_name: "Blogo"
