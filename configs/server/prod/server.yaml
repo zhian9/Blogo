@@ -82,6 +82,10 @@ util:
 dictionary:
   user_cache_exp: 4
 
+middleware:
+  casbin:
+    gen_policy_file: "/app/storage/gen_rbac_policy.csv"
+
 email:
   sender_name: "Blogo"
   host: "smtp.qq.com"
