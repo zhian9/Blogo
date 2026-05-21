@@ -1,5 +1,13 @@
 /* Blogo Admin — 极光暗黑科技风全局样式 */
 
+/* ---- 根元素全暗底色 ---- */
+html, body, #root {
+  background: #0a0a14 !important;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
 /* ---- 页面切换淡入动画 ---- */
 .page-fade {
   animation: fadeIn 0.28s ease-out;
@@ -75,13 +83,20 @@
 .ant-breadcrumb li:last-child { color: rgba(255,255,255,0.60) !important; }
 
 /* ---- 布局底色 ---- */
-.ant-layout { background: #0a0a14 !important; }
+.ant-layout,
+.ant-layout-content,
+.ant-layout-footer {
+  background: #0a0a14 !important;
+}
 .ant-layout-header {
   background: rgba(15,15,28,0.92) !important;
   backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(255,255,255,0.04) !important;
 }
 .ant-layout-sider {
+  background: #0d0d1a !important;
+}
+.ant-layout-sider-trigger {
   background: #0d0d1a !important;
 }
 .ant-menu-dark {
