@@ -520,11 +520,6 @@ func (l *Login) GetUserInfo(ctx context.Context) (*schema.User, error) {
 
 // UpdatePassword 修改当前用户登录密码。
 func (l *Login) UpdatePassword(ctx context.Context, updateItem *schema.UpdateLoginPassword) error {
-	// 超级管理员禁止修改密码
-	if util.FromIsRootUser(ctx) {
-		return errors.BadRequest("", "Root user cannot change password")
-	}
-
 	userID := util.FromUserID(ctx)
 	// 查询用户密码
 	user, err := l.UserDAL.Get(ctx, userID, schema.UserQueryOptions{
