@@ -8,7 +8,7 @@ logger:
   # 主日志（全量业务日志）
   file:
     enable: true
-    path: "../logs/server/app.log"
+    path: "/app/logs/server/app.log"
     max_size: 128
     max_backups: 90
     max_age: 30
@@ -17,7 +17,7 @@ logger:
   # HTTP 访问日志（tag=request）
   access_log:
     enable: true
-    path: "../logs/server/access.log"
+    path: "/app/logs/server/access.log"
     max_size: 128
     max_backups: 30
     max_age: 30
@@ -26,7 +26,7 @@ logger:
   # 错误日志（level >= error）
   error_log:
     enable: true
-    path: "../logs/server/error.log"
+    path: "/app/logs/server/error.log"
     max_size: 64
     max_backups: 30
     max_age: 30
@@ -35,7 +35,7 @@ logger:
   # 后台审计日志（tag=audit）
   audit_log:
     enable: true
-    path: "../logs/audit/admin.log"
+    path: "/app/logs/audit/admin.log"
     max_size: 128
     max_backups: 90
     max_age: 90
@@ -44,7 +44,7 @@ logger:
   # 安全事件日志（tag=security）
   security_log:
     enable: true
-    path: "../logs/audit/security.log"
+    path: "/app/logs/audit/security.log"
     max_size: 64
     max_backups: 90
     max_age: 180

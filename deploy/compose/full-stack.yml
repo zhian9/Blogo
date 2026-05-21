@@ -23,7 +23,7 @@ services:
       - ../../blogo-server/.env
     volumes:
       - blogo_uploads:/app/storage/uploads
-      - ../../configs/server:/app/configs:ro
+      - ../../configs/server:/app/configs
     ports:
       - "8040:8040"
     depends_on:

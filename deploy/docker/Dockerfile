@@ -39,7 +39,7 @@ ENV TZ=Asia/Shanghai
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # 创建运行时目录
-RUN mkdir -p /app/configs /app/storage/uploads /app/logs \
+RUN mkdir -p /app/configs /app/storage/uploads /app/logs/server /app/logs/audit \
     && chown -R appuser:appgroup /app
 
 WORKDIR /app
