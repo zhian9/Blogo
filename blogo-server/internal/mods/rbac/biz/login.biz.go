@@ -690,6 +690,9 @@ func (l *Login) sendActivationEmail(to, username, token string) {
 		strings.TrimRight(config.C.General.SiteURL, "/"),
 		url.QueryEscape(token))
 
+	logging.Context(context.Background()).Info("Activation link",
+		zap.String("url", activationURL), zap.String("to", to))
+
 	var buf bytes.Buffer
 	if err := parsedActivationTemplate.Execute(&buf, activationEmailData{
 		ActivationURL: activationURL,
