@@ -91,7 +91,7 @@ func (c *Contribution) ComputeContributions(ctx context.Context, userID string) 
 	now := time.Now()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	dateFrom := today.AddDate(0, 0, -364).Format("2006-01-02")
-	dateTo := today.Format("2006-01-02")
+	dateTo := today.AddDate(0, 0, 1).Format("2006-01-02") // 明天零点，覆盖今天全天
 
 	articleTable := (&schema.Article{}).TableName()
 	db := util.GetDB(ctx, c.DB)
@@ -103,7 +103,7 @@ func (c *Contribution) ComputeContributions(ctx context.Context, userID string) 
 	}
 	var publishAgg []dayAgg
 	if err := db.Raw(
-		"SELECT DATE(published_at) as date, COUNT(*) as cnt FROM `"+articleTable+"` WHERE author_id = ? AND status = ? AND published_at >= ? AND published_at <= ? GROUP BY DATE(published_at)",
+		"SELECT DATE(published_at) as date, COUNT(*) as cnt FROM `"+articleTable+"` WHERE author_id = ? AND status = ? AND published_at >= ? AND published_at < ? GROUP BY DATE(published_at)",
 		userID, "published", dateFrom, dateTo,
 	).Scan(&publishAgg).Error; err != nil {
 		return nil, errors.WithStack(err)
@@ -117,7 +117,7 @@ func (c *Contribution) ComputeContributions(ctx context.Context, userID string) 
 	// 2. 查询编辑贡献（按日期聚合，updated_at > published_at 表示文章被修改过）
 	var editAgg []dayAgg
 	if err := db.Raw(
-		"SELECT DATE(updated_at) as date, COUNT(*) as cnt FROM `"+articleTable+"` WHERE author_id = ? AND updated_at >= ? AND updated_at <= ? AND updated_at > published_at GROUP BY DATE(updated_at)",
+		"SELECT DATE(updated_at) as date, COUNT(*) as cnt FROM `"+articleTable+"` WHERE author_id = ? AND updated_at >= ? AND updated_at < ? AND updated_at > published_at GROUP BY DATE(updated_at)",
 		userID, dateFrom, dateTo,
 	).Scan(&editAgg).Error; err != nil {
 		return nil, errors.WithStack(err)
@@ -142,7 +142,7 @@ func (c *Contribution) ComputeContributions(ctx context.Context, userID string) 
 		d := today.AddDate(0, 0, -364+i)
 		dateStr := d.Format("2006-01-02")
 		day := &schema.ContributionDay{Date: dateStr}
-		// 合并文章查询结果
+		// 合并文章查询结果（authoritative source for publish / edit）
 		if pub, ok := pubMap[dateStr]; ok {
 			day.PublishCount = pub
 			day.Count += pub
@@ -151,12 +151,10 @@ func (c *Contribution) ComputeContributions(ctx context.Context, userID string) 
 			day.EditCount = ed
 			day.Count += ed
 		}
-		// 合并存储的贡献记录
+		// 合并存储的贡献记录（仅补充 login_count，文章表没有此数据）
 		if e, ok := existMap[dateStr]; ok {
-			day.PublishCount += e.PublishCount
-			day.EditCount += e.EditCount
 			day.LoginCount += e.LoginCount
-			day.Count += e.TotalCount
+			day.Count += e.LoginCount
 		}
 		days = append(days, day)
 	}

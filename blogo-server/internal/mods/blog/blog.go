@@ -106,7 +106,28 @@ func (b *Blog) initDefaultPages(ctx context.Context) error {
 			ID:          util.NewXID(),
 			Title:       "关于我",
 			Slug:        "about",
-			Content:     "这是关于我的介绍页面，你可以在这里写一些个人简介、技术栈、项目经历等。",
+			Content: `## 👋 关于我
+
+一名热爱技术的全栈开发者，专注于 **Go** 后端开发与 **React** 前端工程化。
+
+### 🛠 技术栈
+
+- **后端**: Go · Gin · GORM · MySQL · Redis
+- **前端**: React · TypeScript · Ant Design · Framer Motion
+- **运维**: Docker · Nginx · Linux · GitHub Actions
+
+### 📝 关于本站
+
+Blogo 是一个自建的轻量级博客系统，后端基于 **Go + Gin + GORM 2.0**，前端使用 **React + TypeScript**，支持 Markdown 写作、RBAC 权限管理、邮件订阅等功能。
+
+写博客的初衷是记录学习过程中的思考与踩坑，同时分享给有同样兴趣的朋友。
+
+### 📬 联系方式
+
+- GitHub: [github.com/zhian9](https://github.com/zhian9)
+- Email: 通过网站侧边栏订阅更新
+
+> "Stay hungry, stay foolish." — Steve Jobs`,
 			IsPublished: true,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),

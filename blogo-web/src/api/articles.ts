@@ -9,6 +9,8 @@ export interface ArticleListParams {
   tag_name?: string
   status?: string
   is_top?: boolean
+  published_at_gte?: string
+  published_at_lte?: string
 }
 
 export async function getArticles(params: ArticleListParams) {

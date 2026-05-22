@@ -59,7 +59,7 @@ export default function Archives() {
                   .map((item) => ({
                     color: 'blue',
                     children: (
-                      <Link to={`/?year=${item.year}&month=${item.month}`}>
+                      <Link to={`/articles?year=${item.year}&month=${item.month}`}>
                         <Card
                           size="small"
                           hoverable

@@ -73,11 +73,11 @@ func (a *Article) TableName() string {
 // ArticleQueryParam 文章查询参数
 type ArticleQueryParam struct {
 	util.PaginationParam
-	Title          string     `form:”title”`                                                        // 标题模糊搜索
-	CategoryID     string     `form:”category_id”`                                                  // 分类ID
-	TagName        string     `form:”tag_name”`                                                     // 标签名称精确匹配
-	AuthorID       string     `form:”author_id”`                                                    // 作者ID（用于”我的文章”过滤）
-	Status         string     `form:”status” binding:”oneof=draft published ''”`                    // 状态
+	Title          string     `form:"title"`                                                        // 标题模糊搜索
+	CategoryID     string     `form:"category_id"`                                                  // 分类ID
+	TagName        string     `form:"tag_name"`                                                     // 标签名称精确匹配
+	AuthorID       string     `form:"author_id"`                                                    // 作者ID（用于"我的文章"过滤）
+	Status         string     `form:"status" binding:"oneof=draft published ''"`                    // 状态
 	Visibility     string     `form:"visibility" binding:"oneof=public private partial_visible ''"` // 可见性
 	IsTop          *bool      `form:"is_top"`                                                       // 是否置顶
 	PublishedAtGte *time.Time `form:"published_at_gte"`                                             // 发布时间 >=

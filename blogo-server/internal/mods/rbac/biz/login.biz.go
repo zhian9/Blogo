@@ -602,17 +602,24 @@ func (l *Login) QueryMenus(ctx context.Context) (schema.Menus, error) {
 
 // UpdateUser 更新当前用户信息。
 func (l *Login) UpdateUser(ctx context.Context, updateItem *schema.UpdateCurrentUser) error {
-	// 超级管理员禁止更新
-	if util.FromIsRootUser(ctx) {
-		return errors.BadRequest("", "Root user cannot update")
-	}
-
 	userID := util.FromUserID(ctx)
 	user, err := l.UserDAL.Get(ctx, userID)
 	if err != nil {
 		return err
-	} else if user == nil {
-		return errors.NotFound("", "User not found")
+	}
+
+	// Root 用户没有 DB 记录时自动创建一条，后续更新走正常流程
+	if user == nil {
+		user = &schema.User{
+			ID:        userID,
+			Username:  config.C.General.Root.Username,
+			Email:     updateItem.Email,
+			Status:    schema.UserStatusActivated,
+			CreatedAt: time.Now(),
+		}
+		if err := l.UserDAL.Create(ctx, user); err != nil {
+			return err
+		}
 	}
 
 	// 更新字段

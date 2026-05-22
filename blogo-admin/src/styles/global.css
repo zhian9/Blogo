@@ -102,3 +102,188 @@ html, body, #root {
 .ant-menu-dark {
   background: transparent !important;
 }
+
+/* ---- 表格内容区暗底 ---- */
+.ant-table {
+  background: transparent !important;
+}
+.ant-table-tbody > tr.ant-table-row > td {
+  background: transparent !important;
+}
+.ant-table-container {
+  background: transparent !important;
+}
+
+/* ---- 弹窗暗底 ---- */
+.ant-modal-content {
+  background: #141428 !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+.ant-modal-header {
+  background: transparent !important;
+  border-bottom-color: rgba(255,255,255,0.05) !important;
+}
+.ant-modal-title {
+  color: rgba(255,255,255,0.85) !important;
+}
+
+/* ---- 抽屉暗底 ---- */
+.ant-drawer-content {
+  background: #0d0d1a !important;
+}
+.ant-drawer-header {
+  background: transparent !important;
+  border-bottom-color: rgba(255,255,255,0.05) !important;
+}
+.ant-drawer-title {
+  color: rgba(255,255,255,0.85) !important;
+}
+
+/* ---- 下拉菜单 / 选择器 ---- */
+.ant-dropdown-menu, .ant-select-dropdown {
+  background: #141428 !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+.ant-dropdown-menu-item, .ant-select-item {
+  color: rgba(255,255,255,0.7) !important;
+}
+.ant-dropdown-menu-item:hover, .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background: rgba(255,255,255,0.06) !important;
+}
+
+/* ---- 气泡 / 确认框 ---- */
+.ant-popover-inner, .ant-popconfirm .ant-popover-inner {
+  background: #141428 !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+.ant-popover-title, .ant-popconfirm .ant-popover-message-title {
+  color: rgba(255,255,255,0.85) !important;
+}
+.ant-popover-inner-content {
+  color: rgba(255,255,255,0.55) !important;
+}
+
+/* ---- 分页器 ---- */
+.ant-pagination-item {
+  background: rgba(255,255,255,0.03) !important;
+  border-color: rgba(255,255,255,0.06) !important;
+}
+.ant-pagination-item a {
+  color: rgba(255,255,255,0.55) !important;
+}
+.ant-pagination-item-active {
+  background: rgba(79,110,247,0.15) !important;
+  border-color: rgba(79,110,247,0.3) !important;
+}
+.ant-pagination-item-active a {
+  color: #818cf8 !important;
+}
+.ant-pagination-prev .ant-pagination-item-link,
+.ant-pagination-next .ant-pagination-item-link {
+  background: rgba(255,255,255,0.03) !important;
+  border-color: rgba(255,255,255,0.06) !important;
+  color: rgba(255,255,255,0.5) !important;
+}
+
+/* ---- 标签页 ---- */
+.ant-tabs-nav {
+  margin-bottom: 12px !important;
+}
+.ant-tabs-tab {
+  color: rgba(255,255,255,0.45) !important;
+}
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #818cf8 !important;
+}
+.ant-tabs-ink-bar {
+  background: #818cf8 !important;
+}
+
+/* ---- Radio / Segmented 暗底 ---- */
+.ant-radio-button-wrapper {
+  background: rgba(255,255,255,0.03) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: rgba(255,255,255,0.55) !important;
+}
+.ant-radio-button-wrapper:not(.ant-radio-button-wrapper-disabled):hover {
+  color: rgba(255,255,255,0.8) !important;
+}
+.ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) {
+  background: rgba(79,110,247,0.2) !important;
+  border-color: rgba(79,110,247,0.4) !important;
+  color: #ffffff !important;
+}
+.ant-segmented {
+  background: rgba(255,255,255,0.04) !important;
+}
+.ant-segmented-item {
+  color: rgba(255,255,255,0.5) !important;
+}
+.ant-segmented-item-selected {
+  background: rgba(79,110,247,0.2) !important;
+  color: #ffffff !important;
+}
+
+/* ---- 空状态 ---- */
+.ant-empty-description {
+  color: rgba(255,255,255,0.25) !important;
+}
+
+/* ---- 结果页 ---- */
+.ant-result-title {
+  color: rgba(255,255,255,0.85) !important;
+}
+.ant-result-subtitle {
+  color: rgba(255,255,255,0.45) !important;
+}
+
+/* ---- 卡片内 Statistic 标题 ---- */
+.ant-statistic-title {
+  color: rgba(255,255,255,0.35) !important;
+}
+
+/* ---- 提醒 / 警告 ---- */
+.ant-alert-info {
+  background: rgba(79,110,247,0.08) !important;
+  border-color: rgba(79,110,247,0.15) !important;
+}
+.ant-alert-message {
+  color: rgba(255,255,255,0.75) !important;
+}
+.ant-alert-description {
+  color: rgba(255,255,255,0.45) !important;
+}
+.ant-alert-success {
+  background: rgba(52,211,153,0.08) !important;
+  border-color: rgba(52,211,153,0.15) !important;
+}
+.ant-alert-warning {
+  background: rgba(245,158,11,0.08) !important;
+  border-color: rgba(245,158,11,0.15) !important;
+}
+.ant-alert-error {
+  background: rgba(239,68,68,0.08) !important;
+  border-color: rgba(239,68,68,0.15) !important;
+}
+
+/* ---- 全局文字颜色修复 ---- */
+.ant-typography { color: rgba(255,255,255,0.75); }
+.ant-form-item-label > label { color: rgba(255,255,255,0.5) !important; }
+
+/* ---- 上传组件 ---- */
+.ant-upload.ant-upload-drag {
+  background: rgba(255,255,255,0.02) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+.ant-upload.ant-upload-drag p.ant-upload-text {
+  color: rgba(255,255,255,0.45) !important;
+}
+.ant-upload.ant-upload-drag p.ant-upload-hint {
+  color: rgba(255,255,255,0.25) !important;
+}
+
+/* ---- 提及 / 标签输入 ---- */
+.ant-mentions textarea {
+  background: rgba(255,255,255,0.03) !important;
+  color: rgba(255,255,255,0.85) !important;
+}

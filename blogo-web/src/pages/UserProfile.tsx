@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { Typography, Tabs, Button, Avatar, Spin, Empty, message, Affix, Card } from 'antd'
 import {
-  EditOutlined, FileTextOutlined, HeartOutlined, StarOutlined,
+  EditOutlined, FileTextOutlined, HeartOutlined, EyeOutlined,
   UserOutlined, InfoCircleOutlined,
   ArrowLeftOutlined, PlusOutlined,
   FireOutlined, ThunderboltOutlined,
@@ -121,7 +121,7 @@ export default function UserProfile() {
     { label: '文章', value: profile.articles?.length || 0, icon: <FileTextOutlined />, color: '#4f6ef7' },
     { label: '粉丝', value: user.follower_count || 0, icon: <HeartOutlined />, color: '#ec4899' },
     { label: '关注', value: user.following_count || 0, icon: <UserOutlined />, color: '#10b981' },
-    { label: '阅读', value: totalViews, icon: <StarOutlined />, color: '#f59e0b' },
+    { label: '阅读', value: totalViews, icon: <EyeOutlined />, color: '#f59e0b' },
     { label: '贡献', value: contributionStats?.total_contributions || 0, icon: <FireOutlined />, color: '#818cf8' },
     { label: '连续', value: `${contributionStats?.current_streak || 0}天`, icon: <ThunderboltOutlined />, color: '#c084fc' },
   ]

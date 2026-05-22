@@ -8,7 +8,7 @@ import App from './App'
 import './index.css'
 
 function Root() {
-  const themeMode = useAppSelector((s) => s.auth.token ? (localStorage.getItem('admin-theme') || 'light') : 'light')
+  const themeMode = useAppSelector((s) => s.auth.token ? (localStorage.getItem('admin-theme') || 'dark') : 'dark')
   const isDark = themeMode === 'dark'
 
   return (

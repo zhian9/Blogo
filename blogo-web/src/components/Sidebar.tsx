@@ -22,7 +22,7 @@ export default function Sidebar() {
     <aside>
       <Space vertical size={16} style={{ width: '100%' }}>
         {/* ── Categories ── */}
-        <div className="liquid-glass-card" style={{ padding: '20px' }}>
+        <div className="liquid-glass-card" style={{ padding: '20px', overflow: 'hidden' }}>
           <h4 style={{
             fontFamily: "'Instrument Serif', serif", fontStyle: 'italic',
             fontSize: 20, fontWeight: 400, color: '#ffffff',
@@ -33,7 +33,7 @@ export default function Sidebar() {
           {catLoading ? (
             <div style={{ textAlign: 'center', padding: 16 }}><Spin size="small" /></div>
           ) : (
-            <Space size={[6, 6]}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {categories.map((cat) => (
                 <Link key={cat.id} to={`/categories?category_id=${cat.id}`}>
                   <motion.span
@@ -65,12 +65,12 @@ export default function Sidebar() {
                   </motion.span>
                 </Link>
               ))}
-            </Space>
+            </div>
           )}
         </div>
 
         {/* ── Tags ── */}
-        <div className="liquid-glass-card" style={{ padding: '20px' }}>
+        <div className="liquid-glass-card" style={{ padding: '20px', overflow: 'hidden' }}>
           <h4 style={{
             fontFamily: "'Instrument Serif', serif", fontStyle: 'italic',
             fontSize: 20, fontWeight: 400, color: '#ffffff',
@@ -81,7 +81,7 @@ export default function Sidebar() {
           {tagLoading ? (
             <div style={{ textAlign: 'center', padding: 16 }}><Spin size="small" /></div>
           ) : (
-            <Space size={[6, 6]}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {tags.map((tag) => (
                 <Link key={tag.id} to={`/tags?tag_name=${encodeURIComponent(tag.name)}`}>
                   <motion.span
@@ -113,7 +113,7 @@ export default function Sidebar() {
                   </motion.span>
                 </Link>
               ))}
-            </Space>
+            </div>
           )}
         </div>
 

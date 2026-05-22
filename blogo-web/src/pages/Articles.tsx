@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Row, Col, Pagination, Space } from 'antd'
 import { motion } from 'framer-motion'
 import ArticleListHeader from '../components/ArticleListHeader'
@@ -13,8 +14,28 @@ import { useAppStore } from '../store/appStore'
 
 const PAGE_SIZE = 12
 
+function lastDayOfMonth(y: number, m: number) {
+  return new Date(y, m, 0).getDate()
+}
+
+function pad(n: number) {
+  return String(n).padStart(2, '0')
+}
+
+function parseDateRange(sp: URLSearchParams) {
+  const y = parseInt(sp.get('year') || '', 10)
+  const m = parseInt(sp.get('month') || '', 10)
+  if (!y || !m || m < 1 || m > 12) return {}
+  return {
+    published_at_gte: `${y}-${pad(m)}-01`,
+    published_at_lte: `${y}-${pad(m)}-${pad(lastDayOfMonth(y, m))}`,
+  }
+}
+
 export default function Articles() {
   const theme = useAppStore((s) => s.theme)
+  const [searchParams] = useSearchParams()
+  const dateRange = parseDateRange(searchParams)
 
   // 状态管理
   const [search, setSearch] = useState('')
@@ -30,6 +51,7 @@ export default function Articles() {
     title: search || undefined,
     category_id: categoryId,
     status: 'published',
+    ...dateRange,
   })
 
   const { data: categoriesData } = useCategories()
