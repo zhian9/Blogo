@@ -3,7 +3,7 @@ import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { Typography, Tabs, Button, Avatar, Spin, Empty, message, Affix, Card } from 'antd'
 import {
   EditOutlined, FileTextOutlined, HeartOutlined, EyeOutlined,
-  UserOutlined, InfoCircleOutlined,
+  UserOutlined, InfoCircleOutlined, StarOutlined,
   ArrowLeftOutlined, PlusOutlined,
   FireOutlined, ThunderboltOutlined,
 } from '@ant-design/icons'
