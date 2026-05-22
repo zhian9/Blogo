@@ -324,7 +324,7 @@ export default function UserProfile() {
       {/* ================================================================ */}
       {/*  CONTRIBUTION ACTIVITY CENTER                                     */}
       {/* ================================================================ */}
-      {profile.contributions && profile.contributions.length > 0 && (
+      {profile.contributions && (
         <motion.div
           initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3, ease: 'easeOut' }}
