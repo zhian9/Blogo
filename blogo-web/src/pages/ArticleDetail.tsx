@@ -25,15 +25,19 @@ import '../styles/article-content.css'
 const { Title, Text, Paragraph } = Typography
 
 function extractHeadings(article: Article | undefined) {
-  if (!article?.content) return []
-  const regex = /^(#{1,3})\s+(.+)$/gm
+  // 从渲染后的 HTML 提取标题文本和层级，避免 Markdown 语法（如 **粗体**）导致文本不匹配
+  const html = article?.html_content
+  if (!html) return []
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  const headings = doc.querySelectorAll('h1, h2, h3')
   const items: { id: string; title: string; level: number }[] = []
-  let match: RegExpExecArray | null
-  while ((match = regex.exec(article.content)) !== null) {
-    const title = match[2].trim()
+  headings.forEach((h) => {
+    const title = h.textContent?.trim() || ''
+    if (!title) return
+    const level = parseInt(h.tagName.charAt(1))
     const id = title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w一-鿿-]/g, '')
-    items.push({ id, title, level: match[1].length })
-  }
+    items.push({ id, title, level })
+  })
   return items
 }
 

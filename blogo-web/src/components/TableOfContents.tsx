@@ -63,12 +63,27 @@ export default function TableOfContents({ items, contentRef }: Props) {
   }, [items, contentRef])
 
   const scrollTo = useCallback((id: string) => {
-    const el = document.getElementById(id)
+    // 先按 id 找
+    let el = document.getElementById(id)
+    // 回退：按标题文本匹配
+    if (!el) {
+      const item = items.find((i) => i.id === id)
+      if (item && contentRef.current) {
+        const headings = contentRef.current.querySelectorAll('h1, h2, h3')
+        for (const h of headings) {
+          if (h.textContent?.trim() === item.title) {
+            if (!h.id) h.id = id
+            el = h as HTMLElement
+            break
+          }
+        }
+      }
+    }
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       setActiveId(id)
     }
-  }, [])
+  }, [items, contentRef])
 
   if (items.length === 0) return null
 
