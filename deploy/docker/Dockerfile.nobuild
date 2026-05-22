@@ -1,0 +1,38 @@
+# ═══════════════════════════════════════════════════════
+# Blogo — 低配服务器专用（本地预编译，镜像内不编译）
+# ═══════════════════════════════════════════════════════
+# 构建前先在本地交叉编译:
+#   cd blogo-server
+#   GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-w -s -X main.VERSION=v1.0.0" -o blogo .
+# 然后把二进制 blogo 放到 blogo-server/ 目录下
+# ═══════════════════════════════════════════════════════
+
+FROM alpine:3.21
+
+RUN apk add --no-cache ca-certificates tzdata curl \
+    && rm -rf /var/cache/apk/*
+
+ENV TZ=Asia/Shanghai
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+RUN mkdir -p /app/configs /app/storage/uploads /app/logs/server /app/logs/audit \
+    && chown -R appuser:appgroup /app
+
+WORKDIR /app
+
+COPY blogo-server/blogo /usr/local/bin/blogo
+COPY configs/server/ /app/configs/
+
+RUN chmod +x /usr/local/bin/blogo
+
+USER appuser
+
+EXPOSE 8040
+
+STOPSIGNAL SIGTERM
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -sf http://localhost:8040/health || exit 1
+
+ENTRYPOINT ["blogo", "start", "-d", "/app/configs", "-c", "prod"]

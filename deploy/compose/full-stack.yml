@@ -15,7 +15,7 @@ services:
   blogo-api:
     build:
       context: ../..
-      dockerfile: deploy/docker/Dockerfile
+      dockerfile: deploy/docker/Dockerfile.nobuild
     image: blogo:latest
     container_name: blogo-api
     restart: unless-stopped
