@@ -89,3 +89,14 @@ func (s *Statistics) GetLatest(c *gin.Context) {
 func (s *Statistics) GetTraffic(c *gin.Context) {
 	s.GetLatest(c)
 }
+
+// GetPublicStats 返回首页公开聚合统计（文章数、分类数、用户数）
+func (s *Statistics) GetPublicStats(c *gin.Context) {
+	ctx := c.Request.Context()
+	stats, err := s.StatisticsBIZ.GetPublicStats(ctx)
+	if err != nil {
+		util.ResError(c, err)
+		return
+	}
+	util.ResSuccess(c, stats)
+}

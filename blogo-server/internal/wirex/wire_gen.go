@@ -283,6 +283,7 @@ func NewInjector(ctx context.Context) (*Injector, func(), error) {
 		DB: db,
 	}
 	bizStatistics := &biz2.Statistics{
+		DB:            db,
 		Trans:         trans,
 		StatisticsDAL: statistics,
 	}

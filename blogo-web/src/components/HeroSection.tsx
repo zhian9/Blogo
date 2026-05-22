@@ -1,15 +1,16 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRightOutlined, UserOutlined, MailOutlined } from '@ant-design/icons'
 import { motion } from 'framer-motion'
 import VideoBackground from './VideoBackground'
+import { getPublicStats } from '../api/statistics'
 
 const HERO_VIDEO = 'https://cmxxx.dpdns.org/blogo.mp4'
 
-const stats = [
-  { value: '50+', label: '篇文章' },
-  { value: '10+', label: '个分类' },
-  { value: '1K+', label: '位读者' },
-]
+function formatStat(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}K+`
+  return `${n}+`
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -36,6 +37,25 @@ const statVariants = {
 
 export default function HeroSection() {
   const navigate = useNavigate()
+  const [stats, setStats] = useState([
+    { value: '0+', label: '篇文章' },
+    { value: '0+', label: '个分类' },
+    { value: '0+', label: '位读者' },
+  ])
+
+  useEffect(() => {
+    getPublicStats()
+      .then((res) => {
+        setStats([
+          { value: formatStat(res.data.article_count), label: '篇文章' },
+          { value: formatStat(res.data.category_count), label: '个分类' },
+          { value: formatStat(res.data.user_count), label: '位读者' },
+        ])
+      })
+      .catch(() => {
+        // keep defaults on error
+      })
+  }, [])
 
   return (
     <section style={{

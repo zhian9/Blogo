@@ -13,11 +13,14 @@ import (
 
 	"github.com/zhian9/blogo-server/internal/mods/blog/dal"
 	"github.com/zhian9/blogo-server/internal/mods/blog/schema"
+	rschema "github.com/zhian9/blogo-server/internal/mods/rbac/schema"
 	"github.com/zhian9/blogo-server/pkg/errors"
 	"github.com/zhian9/blogo-server/pkg/util"
+	"gorm.io/gorm"
 )
 
 type Statistics struct {
+	DB            *gorm.DB        // 数据库连接（用于跨表聚合查询）
 	Trans         *util.Trans     // 事务管理器
 	StatisticsDAL *dal.Statistics // 统计数据访问层
 }
@@ -93,4 +96,21 @@ func (s *Statistics) Update(ctx context.Context, date string, form *schema.Stati
 // GetLatest 获取最近 N 天统计数据（用于趋势图）
 func (s *Statistics) GetLatest(ctx context.Context, days int) ([]schema.Statistics, error) {
 	return s.StatisticsDAL.GetLatest(ctx, days)
+}
+
+// GetPublicStats 获取首页公开聚合统计（文章数、分类数、用户数）
+func (s *Statistics) GetPublicStats(ctx context.Context) (*schema.PublicStats, error) {
+	var stats schema.PublicStats
+
+	if err := s.DB.Model(&schema.Article{}).Where("status = ?", schema.ArticleStatusPublished).Count(&stats.ArticleCount).Error; err != nil {
+		return nil, errors.WithStack(err)
+	}
+	if err := s.DB.Model(&schema.Category{}).Count(&stats.CategoryCount).Error; err != nil {
+		return nil, errors.WithStack(err)
+	}
+	if err := s.DB.Model(&rschema.User{}).Where("status = ?", rschema.UserStatusActivated).Count(&stats.UserCount).Error; err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return &stats, nil
 }

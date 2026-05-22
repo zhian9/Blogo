@@ -173,6 +173,7 @@ func (b *Blog) RegisterV1PublicRouters(ctx context.Context, v1 *gin.RouterGroup)
 
 		// 统计
 		public.GET("/statistics/latest", b.StatisticsAPI.GetLatest)
+		public.GET("/statistics/public", b.StatisticsAPI.GetPublicStats)
 
 		// 图片
 		public.GET("/images/category/:category", b.ImageAPI.GetByCategory)

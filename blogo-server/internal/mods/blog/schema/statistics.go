@@ -60,6 +60,13 @@ func (s Statisticss) ToIDs() []string {
 	return ids
 }
 
+// PublicStats 公开聚合统计（文章数、分类数、用户数）
+type PublicStats struct {
+	ArticleCount  int64 `json:"article_count"`
+	CategoryCount int64 `json:"category_count"`
+	UserCount     int64 `json:"user_count"`
+}
+
 // StatisticsForm 统计表单（通常由定时任务填充）
 type StatisticsForm struct {
 	Date    string `json:"date" binding:"required"`

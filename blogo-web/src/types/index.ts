@@ -152,6 +152,12 @@ export interface Statistics {
   updated_at: string
 }
 
+export interface PublicStats {
+  article_count: number
+  category_count: number
+  user_count: number
+}
+
 // ==================== Image ====================
 
 export interface Image {
