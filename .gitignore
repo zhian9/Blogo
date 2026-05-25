@@ -72,3 +72,4 @@ storage/temp/*
 !storage/temp/.gitkeep
 .vite/
 *.tmp
+/blogo-server/blogo
