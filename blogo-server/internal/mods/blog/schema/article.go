@@ -13,6 +13,9 @@ import (
 	"time"
 
 	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
+	"github.com/yuin/goldmark/renderer/html"
 	"github.com/zhian9/blogo-server/internal/config"
 	rschema "github.com/zhian9/blogo-server/internal/mods/rbac/schema"
 	"github.com/zhian9/blogo-server/pkg/errors"
@@ -36,7 +39,19 @@ var ArticleVisibilityTypes = []string{
 }
 
 // goldmark 实例（线程安全，全局复用）
-var md = goldmark.New()
+var md = goldmark.New(
+	goldmark.WithExtensions(
+		extension.GFM,
+		extension.NewTypographer(),
+	),
+	goldmark.WithParserOptions(
+		parser.WithAutoHeadingID(),
+	),
+	goldmark.WithRendererOptions(
+		html.WithHardWraps(),
+		html.WithXHTML(),
+	),
+)
 
 // Article 文章表，数据持久化
 type Article struct {

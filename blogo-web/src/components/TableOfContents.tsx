@@ -27,17 +27,12 @@ export default function TableOfContents({ items, contentRef }: Props) {
       const headingEls = container.querySelectorAll('h1, h2, h3')
       const elMap = new Map<string, HTMLElement>()
 
-      items.forEach((item) => {
-        for (let i = 0; i < headingEls.length; i++) {
-          const el = headingEls[i] as HTMLElement
-          if (el.textContent?.trim() === item.title && !el.id) {
-            el.id = item.id
-            elMap.set(item.id, el)
-            break
-          } else if (el.id === item.id) {
-            elMap.set(item.id, el)
-            break
-          }
+      items.forEach((item, idx) => {
+        // 按顺序匹配：TOC 第 n 项对应文档中第 n 个标题
+        if (idx < headingEls.length) {
+          const el = headingEls[idx] as HTMLElement
+          el.id = item.id
+          elMap.set(item.id, el)
         }
       })
 
@@ -63,27 +58,12 @@ export default function TableOfContents({ items, contentRef }: Props) {
   }, [items, contentRef])
 
   const scrollTo = useCallback((id: string) => {
-    // 先按 id 找
-    let el = document.getElementById(id)
-    // 回退：按标题文本匹配
-    if (!el) {
-      const item = items.find((i) => i.id === id)
-      if (item && contentRef.current) {
-        const headings = contentRef.current.querySelectorAll('h1, h2, h3')
-        for (const h of headings) {
-          if (h.textContent?.trim() === item.title) {
-            if (!h.id) h.id = id
-            el = h as HTMLElement
-            break
-          }
-        }
-      }
-    }
+    const el = document.getElementById(id)
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       setActiveId(id)
     }
-  }, [items, contentRef])
+  }, [])
 
   if (items.length === 0) return null
 
