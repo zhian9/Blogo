@@ -86,27 +86,33 @@ func (c *Contribution) RecordEdit(ctx context.Context, userID string) error {
 
 // ComputeContributions 根据文章数据计算用户贡献。
 // 返回最近 365 天的每日贡献列表。
-// 该函数不依赖 user_contribution 表，直接查询 article 表聚合数据。
+// 即使查询失败也返回 365 天空网格，确保前端始终有数据渲染。
 func (c *Contribution) ComputeContributions(ctx context.Context, userID string) ([]*schema.ContributionDay, error) {
 	now := time.Now()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	dateFrom := today.AddDate(0, 0, -364).Format("2006-01-02")
-	dateTo := today.AddDate(0, 0, 1).Format("2006-01-02") // 明天零点，覆盖今天全天
+	dateTo := today.AddDate(0, 0, 1).Format("2006-01-02")
+
+	// 生成 365 天空网格
+	days := make([]*schema.ContributionDay, 0, 365)
+	for i := 0; i < 365; i++ {
+		d := today.AddDate(0, 0, -364+i)
+		days = append(days, &schema.ContributionDay{Date: d.Format("2006-01-02")})
+	}
 
 	articleTable := (&schema.Article{}).TableName()
 	db := util.GetDB(ctx, c.DB)
 
 	// 1. 查询文章发布贡献（按日期聚合）
-	type dayAgg struct {
+	var publishAgg []struct {
 		Date string
 		Cnt  int
 	}
-	var publishAgg []dayAgg
 	if err := db.Raw(
 		"SELECT DATE(published_at) as date, COUNT(*) as cnt FROM `"+articleTable+"` WHERE author_id = ? AND status = ? AND published_at >= ? AND published_at < ? GROUP BY DATE(published_at)",
 		userID, "published", dateFrom, dateTo,
 	).Scan(&publishAgg).Error; err != nil {
-		return nil, errors.WithStack(err)
+		return days, nil // 查询失败返回空网格
 	}
 
 	pubMap := make(map[string]int, len(publishAgg))
@@ -114,50 +120,50 @@ func (c *Contribution) ComputeContributions(ctx context.Context, userID string) 
 		pubMap[a.Date] = a.Cnt
 	}
 
-	// 2. 查询编辑贡献（按日期聚合，updated_at > published_at 表示文章被修改过）
-	var editAgg []dayAgg
+	// 2. 查询编辑贡献（按日期聚合）
+	var editAgg []struct {
+		Date string
+		Cnt  int
+	}
 	if err := db.Raw(
 		"SELECT DATE(updated_at) as date, COUNT(*) as cnt FROM `"+articleTable+"` WHERE author_id = ? AND updated_at >= ? AND updated_at < ? AND updated_at > published_at GROUP BY DATE(updated_at)",
 		userID, dateFrom, dateTo,
 	).Scan(&editAgg).Error; err != nil {
-		return nil, errors.WithStack(err)
+		// 编辑查询失败不影响，保留发布数据
+	} else {
+		editMap := make(map[string]int, len(editAgg))
+		for _, a := range editAgg {
+			editMap[a.Date] = a.Cnt
+		}
+		for _, day := range days {
+			if cnt, ok := editMap[day.Date]; ok {
+				day.EditCount = cnt
+				day.Count += cnt
+			}
+		}
 	}
 
-	editMap := make(map[string]int, len(editAgg))
-	for _, a := range editAgg {
-		editMap[a.Date] = a.Cnt
-	}
-
-	// 3. 查询已存储的贡献记录（UserContribution 表，可选，不存在则跳过）
-	existMap := make(map[string]*schema.UserContribution)
+	// 3. 查询已存储的贡献记录（补充 login_count）
 	if existing, err := c.QueryByUser(ctx, userID, dateFrom, dateTo); err == nil {
 		for _, e := range existing {
-			existMap[e.Date] = e
+			for _, day := range days {
+				if day.Date == e.Date {
+					day.LoginCount = e.LoginCount
+					day.Count += e.LoginCount
+					break
+				}
+			}
 		}
 	}
 
-	// 4. 构建 365 天数据
-	days := make([]*schema.ContributionDay, 0, 365)
-	for i := 0; i < 365; i++ {
-		d := today.AddDate(0, 0, -364+i)
-		dateStr := d.Format("2006-01-02")
-		day := &schema.ContributionDay{Date: dateStr}
-		// 合并文章查询结果（authoritative source for publish / edit）
-		if pub, ok := pubMap[dateStr]; ok {
-			day.PublishCount = pub
-			day.Count += pub
+	// 4. 填充发布计数
+	for _, day := range days {
+		if cnt, ok := pubMap[day.Date]; ok {
+			day.PublishCount = cnt
+			day.Count += cnt
 		}
-		if ed, ok := editMap[dateStr]; ok {
-			day.EditCount = ed
-			day.Count += ed
-		}
-		// 合并存储的贡献记录（仅补充 login_count，文章表没有此数据）
-		if e, ok := existMap[dateStr]; ok {
-			day.LoginCount += e.LoginCount
-			day.Count += e.LoginCount
-		}
-		days = append(days, day)
 	}
+
 	return days, nil
 }
 

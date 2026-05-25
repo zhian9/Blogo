@@ -78,9 +78,17 @@ export default function ArticleList() {
   const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) { message.warning('请先选择文章'); return }
     Modal.confirm({
-      title: '批量删除', icon: <ExclamationCircleOutlined />,
-      content: `确定要删除选中的 ${selectedRowKeys.length} 篇文章吗？此操作不可逆。`,
+      title: '确认删除',
+      icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />,
+      content: (
+        <div style={{ fontSize: 14, lineHeight: 1.6 }}>
+          你选中了 <strong style={{ color: '#ff4d4f', fontSize: 16 }}>{selectedRowKeys.length}</strong> 篇文章，
+          删除后将<strong>无法恢复</strong>，包括文章评论、标签关联等数据。
+        </div>
+      ),
       okText: '确认删除', okType: 'danger', cancelText: '取消',
+      okButtonProps: { danger: true, type: 'primary', style: { borderRadius: 8 } },
+      cancelButtonProps: { style: { borderRadius: 8 } },
       onOk: async () => {
         try {
           await Promise.all(selectedRowKeys.map(id => deleteArticle(id).unwrap()))
@@ -177,7 +185,12 @@ export default function ArticleList() {
       render: (_: any, r: Article) => canManage(r) ? (
         <Space size={4}>
           <Button size="small" type="primary" ghost icon={<EditOutlined />} onClick={() => navigate(`/articles/${r.id}`)}>编辑</Button>
-          <Popconfirm title="确定要删除这篇文章吗？此操作不可逆。" onConfirm={() => handleDelete(r)} okText="删除" okType="danger" cancelText="取消">
+          <Popconfirm
+            title="确认删除"
+            description={<span>确定要删除《<strong style={{ color: '#ff4d4f' }}>{r.title}</strong>》吗？此操作<strong>不可恢复</strong>。</span>}
+            onConfirm={() => handleDelete(r)} okText="确认删除" okType="danger" cancelText="取消"
+            okButtonProps={{ danger: true, type: 'primary' }}
+          >
             <Button size="small" danger icon={<DeleteOutlined />} />
           </Popconfirm>
         </Space>
