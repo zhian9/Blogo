@@ -25,19 +25,44 @@ import '../styles/article-content.css'
 const { Title, Text, Paragraph } = Typography
 
 function extractHeadings(article: Article | undefined) {
-  // 从渲染后的 HTML 提取标题文本和层级，避免 Markdown 语法（如 **粗体**）导致文本不匹配
+  // 优先从渲染后 HTML 提取标题文本，避免 Markdown 语法导致文本不匹配；
+  // 旧的没有 html_content 的文章退回到 Markdown 源码解析（去除格式标记）
   const html = article?.html_content
-  if (!html) return []
-  const doc = new DOMParser().parseFromString(html, 'text/html')
-  const headings = doc.querySelectorAll('h1, h2, h3')
+  if (html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    const headings = doc.querySelectorAll('h1, h2, h3')
+    const items: { id: string; title: string; level: number }[] = []
+    headings.forEach((h) => {
+      const title = h.textContent?.trim() || ''
+      if (!title) return
+      const level = parseInt(h.tagName.charAt(1))
+      const id = title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w一-鿿-]/g, '')
+      items.push({ id, title, level })
+    })
+    return items
+  }
+
+  // fallback：从 Markdown 源码提取，并清理 Markdown 格式标记
+  const content = article?.content
+  if (!content) return []
+  const mdHeadingRegex = /^(#{1,3})\s+(.+)$/gm
   const items: { id: string; title: string; level: number }[] = []
-  headings.forEach((h) => {
-    const title = h.textContent?.trim() || ''
-    if (!title) return
-    const level = parseInt(h.tagName.charAt(1))
+  let match: RegExpExecArray | null
+  while ((match = mdHeadingRegex.exec(content)) !== null) {
+    // 去除 Markdown 行内格式：粗体、斜体、删除线、行内代码、链接
+    let title = match[2].trim()
+    title = title.replace(/`([^`]+)`/g, '$1')
+    title = title.replace(/\*\*([^*]+)\*\*/g, '$1')
+    title = title.replace(/__([^_]+)__/g, '$1')
+    title = title.replace(/\*([^*]+)\*/g, '$1')
+    title = title.replace(/_([^_]+)_/g, '$1')
+    title = title.replace(/~~([^~]+)~~/g, '$1')
+    title = title.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    title = title.trim()
+    if (!title) continue
     const id = title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w一-鿿-]/g, '')
-    items.push({ id, title, level })
-  })
+    items.push({ id, title, level: match[1].length })
+  }
   return items
 }
 
