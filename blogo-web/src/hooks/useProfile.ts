@@ -6,6 +6,8 @@ export function useUserProfile(userId: string) {
     queryKey: ['profile', userId],
     queryFn: () => getUserProfile(userId),
     enabled: !!userId,
-    staleTime: 30_000,
+    staleTime: 0,           // 每次进入页面都重新拉取，确保贡献数据是新的
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   })
 }

@@ -27,14 +27,31 @@ export default function TableOfContents({ items, contentRef }: Props) {
       const headingEls = container.querySelectorAll('h1, h2, h3')
       const elMap = new Map<string, HTMLElement>()
 
+      // 按顺序匹配：TOC 第 n 项对应文档中第 n 个标题
       items.forEach((item, idx) => {
-        // 按顺序匹配：TOC 第 n 项对应文档中第 n 个标题
         if (idx < headingEls.length) {
           const el = headingEls[idx] as HTMLElement
           el.id = item.id
           elMap.set(item.id, el)
         }
       })
+
+      // 如果按位置匹配数不够，回退到文本匹配
+      if (elMap.size < items.length) {
+        const usedEls = new Set(elMap.values())
+        items.forEach((item) => {
+          if (elMap.has(item.id)) return
+          for (let i = 0; i < headingEls.length; i++) {
+            const el = headingEls[i] as HTMLElement
+            if (!usedEls.has(el) && el.textContent?.trim() === item.title) {
+              el.id = item.id
+              elMap.set(item.id, el)
+              usedEls.add(el)
+              break
+            }
+          }
+        })
+      }
 
       if (elMap.size === 0) return
 
@@ -58,12 +75,27 @@ export default function TableOfContents({ items, contentRef }: Props) {
   }, [items, contentRef])
 
   const scrollTo = useCallback((id: string) => {
-    const el = document.getElementById(id)
+    // 先按 id 查找（由 useEffect 预设）
+    let el: HTMLElement | null = document.getElementById(id)
+    // 回退：按文本内容匹配（确保首次点击也能跳转）
+    if (!el && contentRef.current) {
+      const item = items.find((i) => i.id === id)
+      if (item) {
+        const headings = contentRef.current.querySelectorAll('h1, h2, h3')
+        for (const h of headings) {
+          if ((h as HTMLElement).textContent?.trim() === item.title) {
+            el = h as HTMLElement
+            el.id = id // 补设 ID，下次直接用
+            break
+          }
+        }
+      }
+    }
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       setActiveId(id)
     }
-  }, [])
+  }, [items, contentRef])
 
   if (items.length === 0) return null
 

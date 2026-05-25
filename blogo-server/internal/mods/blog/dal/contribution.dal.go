@@ -13,7 +13,9 @@ import (
 
 	"github.com/zhian9/blogo-server/internal/mods/blog/schema"
 	"github.com/zhian9/blogo-server/pkg/errors"
+	"github.com/zhian9/blogo-server/pkg/logging"
 	"github.com/zhian9/blogo-server/pkg/util"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -108,16 +110,31 @@ func (c *Contribution) ComputeContributions(ctx context.Context, userID string) 
 		Date string
 		Cnt  int
 	}
-	if err := db.Raw(
-		"SELECT DATE(published_at) as date, COUNT(*) as cnt FROM `"+articleTable+"` WHERE author_id = ? AND status = ? AND published_at >= ? AND published_at < ? GROUP BY DATE(published_at)",
-		userID, "published", dateFrom, dateTo,
-	).Scan(&publishAgg).Error; err != nil {
-		return days, nil // 查询失败返回空网格
+	sql := "SELECT DATE_FORMAT(published_at, '%Y-%m-%d') as date, COUNT(*) as cnt FROM `" + articleTable + "` WHERE author_id = ? AND status = ? AND published_at >= ? AND published_at < ? GROUP BY DATE_FORMAT(published_at, '%Y-%m-%d')"
+	if err := db.Raw(sql, userID, "published", dateFrom, dateTo).Scan(&publishAgg).Error; err != nil {
+		logging.Context(ctx).Warn("[Contribution] publish query failed", zap.Error(err))
+		return days, nil
 	}
+	logging.Context(ctx).Info("[Contribution] publish query",
+		zap.String("user", userID),
+		zap.Int("rows", len(publishAgg)))
 
 	pubMap := make(map[string]int, len(publishAgg))
 	for _, a := range publishAgg {
 		pubMap[a.Date] = a.Cnt
+	}
+	if len(pubMap) > 0 {
+		for k, v := range pubMap {
+			logging.Context(ctx).Info("[Contribution] pubMap entry",
+				zap.String("dateKey", k),
+				zap.Int("cnt", v))
+			break // 只打印第一条
+		}
+	}
+	if len(days) > 0 {
+		logging.Context(ctx).Info("[Contribution] grid sample",
+			zap.String("firstDay", days[0].Date),
+			zap.String("lastDay", days[len(days)-1].Date))
 	}
 
 	// 2. 查询编辑贡献（按日期聚合）
@@ -126,7 +143,7 @@ func (c *Contribution) ComputeContributions(ctx context.Context, userID string) 
 		Cnt  int
 	}
 	if err := db.Raw(
-		"SELECT DATE(updated_at) as date, COUNT(*) as cnt FROM `"+articleTable+"` WHERE author_id = ? AND updated_at >= ? AND updated_at < ? AND updated_at > published_at GROUP BY DATE(updated_at)",
+		"SELECT DATE_FORMAT(updated_at, '%Y-%m-%d') as date, COUNT(*) as cnt FROM `"+articleTable+"` WHERE author_id = ? AND updated_at >= ? AND updated_at < ? AND updated_at > published_at GROUP BY DATE_FORMAT(updated_at, '%Y-%m-%d')",
 		userID, dateFrom, dateTo,
 	).Scan(&editAgg).Error; err != nil {
 		// 编辑查询失败不影响，保留发布数据

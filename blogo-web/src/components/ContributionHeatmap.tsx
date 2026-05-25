@@ -106,9 +106,7 @@ export default function ContributionHeatmap({ data }: Props) {
 
   // Tooltip
   const showTip = useCallback((cell: Cell, e: React.MouseEvent) => {
-    const rect = scrollRef.current?.getBoundingClientRect()
-    if (!rect) return
-    setTooltip({ cell, x: e.clientX - rect.left, y: e.clientY - rect.top })
+    setTooltip({ cell, x: e.clientX, y: e.clientY })
   }, [])
 
   if (!data || data.length === 0) {
@@ -195,13 +193,13 @@ export default function ContributionHeatmap({ data }: Props) {
           </div>
         </div>
 
-        {/* ── Tooltip (inside scroll area) ── */}
+        {/* ── Tooltip (fixed position，不受滚动裁剪) ── */}
         {tooltip && (
           <div style={{
-            position: 'absolute',
-            left: Math.min(tooltip.x + 14, gridW + LABEL_W - 195),
-            top: Math.max(tooltip.y - 70, 20),
-            zIndex: 10,
+            position: 'fixed',
+            left: Math.min(tooltip.x + 12, window.innerWidth - 200),
+            top: Math.max(tooltip.y - 80, 8),
+            zIndex: 9999,
             background: 'rgba(12,12,24,0.97)',
             backdropFilter: 'blur(16px)',
             border: '1px solid rgba(255,255,255,0.1)',
