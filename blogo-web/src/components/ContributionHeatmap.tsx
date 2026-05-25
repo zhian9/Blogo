@@ -3,8 +3,8 @@ import { motion } from 'framer-motion'
 import type { ContributionDay } from '../types'
 
 // ── GitHub green scale ──
-const CELL_COLORS = ['#1a1a2e', '#0e4429', '#006d32', '#26a641', '#39d353']
-function cellColor(n: number) { if (n===0) return CELL_COLORS[0]; if (n<=3) return CELL_COLORS[1]; if (n<=7) return CELL_COLORS[2]; if (n<=12) return CELL_COLORS[3]; return CELL_COLORS[4] }
+const CELL_COLORS = ['rgba(255,255,255,0.04)', '#1a5e30', '#0e8c3a', '#2db84d', '#39d353']
+function cellColor(n: number) { if (n===0) return CELL_COLORS[0]; if (n<=2) return CELL_COLORS[1]; if (n<=5) return CELL_COLORS[2]; if (n<=9) return CELL_COLORS[3]; return CELL_COLORS[4] }
 
 const toDateStr = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']

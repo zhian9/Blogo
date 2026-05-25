@@ -202,10 +202,12 @@ func (a *Article) Create(ctx context.Context, articleForm *schema.ArticleForm) (
 
 	// 5. 初始化文章实体 + 记录作者
 	article := &schema.Article{
-		ID:          util.NewXID(),
-		AuthorID:    userID(ctx),
-		CreatedAt:   time.Now(),
-		PublishedAt: time.Now(),
+		ID:        util.NewXID(),
+		AuthorID:  userID(ctx),
+		CreatedAt: time.Now(),
+	}
+	if articleForm.Status == schema.ArticleStatusPublished {
+		article.PublishedAt = time.Now()
 	}
 
 	// 6. 普通用户禁止置顶
@@ -345,6 +347,8 @@ func (a *Article) Update(ctx context.Context, id string, articleForm *schema.Art
 		articleForm.IsTop = article.IsTop // 保持原有置顶状态
 	}
 
+		wasDraft := article.Status != schema.ArticleStatusPublished
+
 	if err := articleForm.FillTo(article); err != nil {
 		return err
 	}
@@ -396,6 +400,9 @@ func (a *Article) Update(ctx context.Context, id string, articleForm *schema.Art
 		return err
 	}
 	_ = a.ContributionDAL.RecordEdit(ctx, uid)
+	if wasDraft && articleForm.Status == schema.ArticleStatusPublished {
+		_ = a.ContributionDAL.RecordPublish(ctx, uid)
+	}
 	return nil
 }
 
