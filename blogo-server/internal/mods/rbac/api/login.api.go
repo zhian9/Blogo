@@ -112,11 +112,12 @@ func (l *Login) Register(c *gin.Context) {
 func (l *Login) VerifyEmail(c *gin.Context) {
 	ctx := c.Request.Context()
 	token := c.Query("token")
-	if err := l.LoginBIZ.ActivateAccount(ctx, token); err != nil {
-		util.ResError(c, err)
+	err := l.LoginBIZ.ActivateAccount(ctx, token)
+	if err != nil {
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(activationFailureHTML(err.Error())))
 		return
 	}
-	util.ResOK(c)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(activationSuccessHTML))
 }
 
 // @Tags LoginAPI
