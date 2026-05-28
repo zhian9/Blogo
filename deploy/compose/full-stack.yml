@@ -126,11 +126,13 @@ services:
     volumes:
       - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../nginx/conf.d:/etc/nginx/conf.d:ro
+      - ../nginx/certs:/etc/nginx/certs:ro
       - ../../blogo-web/dist:/usr/share/nginx/html/blogo-web:ro
       - ../../blogo-admin/dist:/usr/share/nginx/html/blogo-admin:ro
     ports:
       - "80:80"
       - "81:81"
+      - "443:443"
     networks:
       - blogo-net
     depends_on:
