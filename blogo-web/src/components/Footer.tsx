@@ -1,4 +1,4 @@
-import { CopyrightOutlined } from '@ant-design/icons'
+import { GithubOutlined, CopyrightOutlined } from '@ant-design/icons'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -61,6 +61,39 @@ export default function Footer() {
           <CopyrightOutlined style={{ marginRight: 4 }} />
           {currentYear} Blogo. All rights reserved.
         </p>
+
+        {/* ── GitHub ── */}
+        <a
+          href="https://github.com/zhian9"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            marginBottom: 10,
+            color: 'rgba(255,255,255,0.3)',
+            fontSize: 20,
+            borderRadius: 10,
+            border: '1px solid transparent',
+            transition: 'all 0.3s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#ffffff'
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
+            e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'rgba(255,255,255,0.3)'
+            e.currentTarget.style.borderColor = 'transparent'
+            e.currentTarget.style.background = 'transparent'
+          }}
+        >
+          <GithubOutlined />
+        </a>
 
         {/* ── ICP License ── */}
         <a
