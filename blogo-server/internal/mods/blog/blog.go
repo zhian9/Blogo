@@ -285,7 +285,6 @@ func (b *Blog) RegisterV1Routers(ctx context.Context, v1 *gin.RouterGroup) error
 	// 项目资源管理
 	projectRes := v1.Group("/projects/:id/resources")
 	{
-		projectRes.GET("", b.ProjectResourceAPI.GetByProjectID)
 		projectRes.POST("", b.ProjectResourceAPI.Create)
 		projectRes.PUT("/:rid", b.ProjectResourceAPI.Update)
 		projectRes.DELETE("/:rid", b.ProjectResourceAPI.Delete)
