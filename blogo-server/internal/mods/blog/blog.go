@@ -277,7 +277,6 @@ func (b *Blog) RegisterV1Routers(ctx context.Context, v1 *gin.RouterGroup) error
 	// 项目时间线管理
 	projectTL := v1.Group("/projects/:id/timeline")
 	{
-		projectTL.GET("", b.ProjectTimelineAPI.GetByProjectID)
 		projectTL.POST("", b.ProjectTimelineAPI.Create)
 		projectTL.PUT("/:tid", b.ProjectTimelineAPI.Update)
 		projectTL.DELETE("/:tid", b.ProjectTimelineAPI.Delete)
