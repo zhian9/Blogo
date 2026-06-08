@@ -93,6 +93,9 @@ func (c *Comment) Query(ctx context.Context, params schema.CommentQueryParam, op
 	if v := params.ArticleID; len(v) > 0 {
 		db = db.Where("article_id = ?", v)
 	}
+	if v := params.ProjectID; len(v) > 0 {
+		db = db.Where("project_id = ?", v)
+	}
 	if v := params.UserID; len(v) > 0 {
 		db = db.Where("user_id = ?", v)
 	}
@@ -240,6 +243,62 @@ func (c *Comment) DeleteByArticleID(ctx context.Context, articleID string) error
 	}
 	result := GetCommentDB(ctx, c.DB).Where("article_id = ?", articleID).Delete(new(schema.Comment))
 	return errors.WithStack(result.Error)
+}
+
+// DeleteByProjectID 根据项目 ID 删除所有评论（用于删除项目时清理）
+func (c *Comment) DeleteByProjectID(ctx context.Context, projectID string) error {
+	if projectID == "" {
+		return nil
+	}
+	result := GetCommentDB(ctx, c.DB).Where("project_id = ?", projectID).Delete(new(schema.Comment))
+	return errors.WithStack(result.Error)
+}
+
+// CountByProjectID 统计某个项目的评论总数（仅顶级评论）
+func (c *Comment) CountByProjectID(ctx context.Context, projectID string) (int64, error) {
+	var count int64
+	err := GetCommentDB(ctx, c.DB).
+		Where("project_id = ?", projectID).
+		Where("parent_id = '' OR parent_id IS NULL").
+		Count(&count).Error
+	return count, errors.WithStack(err)
+}
+
+// QueryByProjectID 获取某个项目的所有已通过评论
+func (c *Comment) QueryByProjectID(ctx context.Context, projectID string) (schema.Comments, error) {
+	var list schema.Comments
+	err := GetCommentDB(ctx, c.DB).
+		Where("project_id = ? AND status = ?", projectID, schema.CommentStatusApproved).
+		Order("is_top DESC, created_at ASC").
+		Find(&list).Error
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	if len(list) > 0 {
+		parentIDs := make([]string, 0)
+		for _, cm := range list {
+			if cm.ParentID != "" {
+				parentIDs = append(parentIDs, cm.ParentID)
+			}
+		}
+		if len(parentIDs) > 0 {
+			var parents schema.Comments
+			GetCommentDB(ctx, c.DB).Where("id IN ?", parentIDs).Find(&parents)
+			parentMap := make(map[string]*schema.Comment)
+			for _, p := range parents {
+				parentMap[p.ID] = p
+			}
+			for _, cm := range list {
+				if p, ok := parentMap[cm.ParentID]; ok {
+					cm.Parent = p
+				}
+			}
+		}
+		if err := c.loadUsers(ctx, list); err != nil {
+			return nil, errors.WithStack(err)
+		}
+	}
+	return list, nil
 }
 
 // CommentStats 评论统计

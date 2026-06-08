@@ -23,9 +23,10 @@ var commentModeratorRoles = []string{"super_admin", "admin", "content_manager", 
 
 // Comment 是评论管理业务的核心对象。
 type Comment struct {
-	Trans      *util.Trans  // 事务管理器
-	CommentDAL *dal.Comment // 评论数据访问层
-	ArticleDAL *dal.Article // 文章数据访问层（用于校验）
+	Trans       *util.Trans   // 事务管理器
+	CommentDAL  *dal.Comment  // 评论数据访问层
+	ArticleDAL  *dal.Article  // 文章数据访问层（用于校验）
+	ProjectDAL  *dal.Project  // 项目数据访问层（用于校验）
 }
 
 // canModerateComments 检查当前用户是否有评论管理权限。
@@ -82,16 +83,25 @@ func (c *Comment) Get(ctx context.Context, id string) (*schema.Comment, error) {
 
 // Create 创建新评论（支持游客和登录用户）。
 // 流程：
-//  1. 校验文章是否存在且已发布
+//  1. 校验文章/项目是否存在且已发布
 //  2. 校验父评论（如果提供）
 //  3. 事务内创建评论
 func (c *Comment) Create(ctx context.Context, commentForm *schema.CommentForm, ip, userAgent string) (*schema.Comment, error) {
-	// 1. 校验文章
-	article, err := c.ArticleDAL.Get(ctx, commentForm.ArticleID)
-	if err != nil {
-		return nil, err
-	} else if article == nil || article.Status != schema.ArticleStatusPublished {
-		return nil, errors.BadRequest("", "Article not found or not published")
+	// 1. 校验文章或项目
+	if commentForm.ArticleID != "" {
+		article, err := c.ArticleDAL.Get(ctx, commentForm.ArticleID)
+		if err != nil {
+			return nil, err
+		} else if article == nil || article.Status != schema.ArticleStatusPublished {
+			return nil, errors.BadRequest("", "Article not found or not published")
+		}
+	} else if commentForm.ProjectID != "" {
+		project, err := c.ProjectDAL.Get(ctx, commentForm.ProjectID)
+		if err != nil {
+			return nil, err
+		} else if project == nil || project.Status != schema.ProjectStatusPublished {
+			return nil, errors.BadRequest("", "Project not found or not published")
+		}
 	}
 
 	// 2. 校验父评论（如果提供）
@@ -124,10 +134,9 @@ func (c *Comment) Create(ctx context.Context, commentForm *schema.CommentForm, i
 	}
 
 	// 6. 事务内创建
-	err = c.Trans.Exec(ctx, func(ctx context.Context) error {
+	if err := c.Trans.Exec(ctx, func(ctx context.Context) error {
 		return c.CommentDAL.Create(ctx, comment)
-	})
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 
@@ -196,6 +205,11 @@ func (c *Comment) Reject(ctx context.Context, id string) error {
 // 返回平铺列表，前端根据 parent_id 自行构建树形结构。
 func (c *Comment) GetByArticleID(ctx context.Context, articleID string) (schema.Comments, error) {
 	return c.CommentDAL.QueryByArticleID(ctx, articleID)
+}
+
+// GetByProjectID 获取项目的所有已通过评论
+func (c *Comment) GetByProjectID(ctx context.Context, projectID string) (schema.Comments, error) {
+	return c.CommentDAL.QueryByProjectID(ctx, projectID)
 }
 
 // Stats 获取全站评论统计

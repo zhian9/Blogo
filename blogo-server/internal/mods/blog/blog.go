@@ -22,23 +22,28 @@ import (
 
 // Blog 是博客模块的核心聚合对象，包含所有子组件。
 type Blog struct {
-	DB              *gorm.DB             // 数据库连接
-	ArticleAPI      *api.Article         // 文章 API 控制器
-	CategoryAPI     *api.Category        // 分类 API 控制器
-	TagAPI          *api.Tag             // 标签 API 控制器
-	CommentAPI      *api.Comment         // 评论 API 控制器
-	PageAPI         *api.Page            // 页面 API 控制器
-	FriendLinkAPI   *api.FriendLink      // 友情链接 API 控制器
-	SettingAPI      *api.Setting         // 系统配置 API 控制器
-	NotificationAPI *api.Notification    // 通知 API 控制器
-	ImageAPI        *api.Image           // 图片 API 控制器
-	StatisticsAPI   *api.Statistics      // 统计 API 控制器
-	ArticleLikeAPI  *api.ArticleLike     // 点赞 API 控制器
-	FavoriteAPI     *api.ArticleFavorite // 收藏 API 控制器
-	ProfileAPI      *api.Profile         // 个人主页 API 控制器
-	SEOAPI          *api.SEO             // SEO API 控制器
-	SubscriberAPI   *api.Subscriber      // 订阅者 API 控制器
-	MailWorker      *msg.MailWorker      // 异步邮件 Worker
+	DB                 *gorm.DB              // 数据库连接
+	ArticleAPI         *api.Article          // 文章 API 控制器
+	CategoryAPI        *api.Category         // 分类 API 控制器
+	TagAPI             *api.Tag              // 标签 API 控制器
+	CommentAPI         *api.Comment          // 评论 API 控制器
+	PageAPI            *api.Page             // 页面 API 控制器
+	FriendLinkAPI      *api.FriendLink       // 友情链接 API 控制器
+	SettingAPI         *api.Setting          // 系统配置 API 控制器
+	NotificationAPI    *api.Notification     // 通知 API 控制器
+	ImageAPI           *api.Image            // 图片 API 控制器
+	StatisticsAPI      *api.Statistics       // 统计 API 控制器
+	ArticleLikeAPI     *api.ArticleLike      // 点赞 API 控制器
+	FavoriteAPI        *api.ArticleFavorite  // 收藏 API 控制器
+	ProfileAPI         *api.Profile          // 个人主页 API 控制器
+	SEOAPI             *api.SEO              // SEO API 控制器
+	SubscriberAPI      *api.Subscriber       // 订阅者 API 控制器
+	MailWorker         *msg.MailWorker       // 异步邮件 Worker
+	ProjectAPI         *api.Project          // 项目 API 控制器
+	ProjectLikeAPI     *api.ProjectLike      // 项目点赞 API 控制器
+	ProjectFavoriteAPI *api.ProjectFavorite  // 项目收藏 API 控制器
+	ProjectTimelineAPI *api.ProjectTimeline  // 项目时间线 API 控制器
+	ProjectResourceAPI *api.ProjectResource  // 项目资源 API 控制器
 }
 
 // AutoMigrate 自动创建或更新博客模块相关数据库表。
@@ -60,6 +65,13 @@ func (b *Blog) AutoMigrate(ctx context.Context) error {
 		new(schema.Subscriber),         // 邮件订阅者表
 		new(schema.ArticleVisibleUser), // 文章可见用户关联表
 		new(schema.UserContribution),   // 用户贡献记录表
+		new(schema.Project),            // 项目表
+		new(schema.ProjectTag),         // 项目-标签中间表
+		new(schema.ProjectLike),        // 项目点赞表
+		new(schema.ProjectFavorite),    // 项目收藏表
+		new(schema.ProjectVisibleUser), // 项目可见用户关联表
+		new(schema.ProjectTimeline),    // 项目历程表
+		new(schema.ProjectResource),    // 项目资源表
 	)
 }
 
@@ -176,6 +188,15 @@ func (b *Blog) RegisterV1PublicRouters(ctx context.Context, v1 *gin.RouterGroup)
 		public.GET("/archives", b.ArticleAPI.GetArchive)
 		public.POST("/articles/:id/views", b.ArticleAPI.IncViews)
 
+		// 项目（公开）
+		public.GET("/projects", b.ProjectAPI.Query)
+		public.GET("/projects/featured", b.ProjectAPI.GetFeatured)
+		public.GET("/projects/slug/:slug", b.ProjectAPI.GetBySlug)
+		public.POST("/projects/:id/views", b.ProjectAPI.IncViews)
+		public.GET("/projects/:id/timeline", b.ProjectTimelineAPI.GetByProjectID)
+		public.GET("/projects/:id/resources", b.ProjectResourceAPI.GetByProjectID)
+		public.GET("/projects/:id/comments", b.CommentAPI.GetByProjectID)
+
 		// 评论
 		public.POST("/comments", b.CommentAPI.Create)
 		public.GET("/articles/:id/comments", b.CommentAPI.GetByArticleID)
@@ -221,6 +242,54 @@ func (b *Blog) RegisterV1Routers(ctx context.Context, v1 *gin.RouterGroup) error
 		article.DELETE("/:id", b.ArticleAPI.Delete)
 		article.PATCH("/status", b.ArticleAPI.UpdateStatus)
 		article.PATCH("/:id/top", b.ArticleAPI.ToggleTop)
+	}
+
+	// 项目管理
+	project := v1.Group("/projects")
+	{
+		project.GET("/admin", b.ProjectAPI.Query)
+		project.GET("/:id", b.ProjectAPI.Get)
+		project.POST("", b.ProjectAPI.Create)
+		project.PUT("/:id", b.ProjectAPI.Update)
+		project.DELETE("/:id", b.ProjectAPI.Delete)
+		project.PATCH("/status", b.ProjectAPI.UpdateStatus)
+		project.PATCH("/:id/top", b.ProjectAPI.ToggleTop)
+		project.PATCH("/:id/featured", b.ProjectAPI.ToggleFeatured)
+	}
+
+	// 项目点赞
+	projectLike := v1.Group("/projects")
+	{
+		projectLike.GET("/:id/like", b.ProjectLikeAPI.GetLikeStatus)
+		projectLike.POST("/:id/like", b.ProjectLikeAPI.Like)
+		projectLike.DELETE("/:id/like", b.ProjectLikeAPI.UnLike)
+	}
+
+	// 项目收藏
+	projectFav := v1.Group("/projects")
+	{
+		projectFav.GET("/:id/favorite", b.ProjectFavoriteAPI.IsFavorite)
+		projectFav.POST("/:id/favorite", b.ProjectFavoriteAPI.Create)
+		projectFav.DELETE("/:id/favorite", b.ProjectFavoriteAPI.Delete)
+		projectFav.GET("/:id/favorite/count", b.ProjectFavoriteAPI.Count)
+	}
+
+	// 项目时间线管理
+	projectTL := v1.Group("/projects/:id/timeline")
+	{
+		projectTL.GET("", b.ProjectTimelineAPI.GetByProjectID)
+		projectTL.POST("", b.ProjectTimelineAPI.Create)
+		projectTL.PUT("/:tid", b.ProjectTimelineAPI.Update)
+		projectTL.DELETE("/:tid", b.ProjectTimelineAPI.Delete)
+	}
+
+	// 项目资源管理
+	projectRes := v1.Group("/projects/:id/resources")
+	{
+		projectRes.GET("", b.ProjectResourceAPI.GetByProjectID)
+		projectRes.POST("", b.ProjectResourceAPI.Create)
+		projectRes.PUT("/:rid", b.ProjectResourceAPI.Update)
+		projectRes.DELETE("/:rid", b.ProjectResourceAPI.Delete)
 	}
 
 	// 评论管理

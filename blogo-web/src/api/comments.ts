@@ -6,6 +6,11 @@ export async function getComments(articleId: string) {
   return res.data
 }
 
+export async function getProjectComments(projectId: string) {
+  const res = await client.get<ApiResponse<Comment[]>>(`/projects/${projectId}/comments`)
+  return res.data
+}
+
 export async function createComment(data: CommentForm) {
   const res = await client.post<ApiResponse<Comment>>('/comments', data)
   return res.data

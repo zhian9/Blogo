@@ -96,6 +96,40 @@ var Set = wire.NewSet(
 	wire.Struct(new(biz.Subscriber), "*"),
 	wire.Struct(new(api.Subscriber), "*"),
 
+	// Project 相关
+	wire.Struct(new(dal.Project), "*"),
+	wire.Struct(new(biz.Project), "*"),
+	wire.Struct(new(api.Project), "*"),
+
+	// ProjectTag 中间表
+	wire.Struct(new(dal.ProjectTag), "*"),
+
+	// ProjectVisibleUser 可见用户关联
+	wire.Struct(new(dal.ProjectVisibleUser), "*"),
+
+	// ProjectPermission 项目阅读权限
+	wire.Struct(new(biz.ProjectPermission), "*"),
+
+	// ProjectLike 相关
+	wire.Struct(new(dal.ProjectLike), "*"),
+	wire.Struct(new(biz.ProjectLike), "*"),
+	wire.Struct(new(api.ProjectLike), "*"),
+
+	// ProjectFavorite 相关
+	wire.Struct(new(dal.ProjectFavorite), "*"),
+	wire.Struct(new(biz.ProjectFavorite), "*"),
+	wire.Struct(new(api.ProjectFavorite), "*"),
+
+	// ProjectTimeline 相关
+	wire.Struct(new(dal.ProjectTimeline), "*"),
+	wire.Struct(new(biz.ProjectTimeline), "*"),
+	wire.Struct(new(api.ProjectTimeline), "*"),
+
+	// ProjectResource 相关
+	wire.Struct(new(dal.ProjectResource), "*"),
+	wire.Struct(new(biz.ProjectResource), "*"),
+	wire.Struct(new(api.ProjectResource), "*"),
+
 	// MailWorker (constructor — avoid exposing unexported fields to Wire)
 	msg.NewMailWorker,
 

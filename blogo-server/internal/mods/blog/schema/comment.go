@@ -26,7 +26,8 @@ const (
 // Comment 评论表
 type Comment struct {
 	ID        string    `json:"id" gorm:"size:20;primarykey;"`                // 评论唯一ID
-	ArticleID string    `json:"article_id" gorm:"size:20;index;not null"`     // 关联文章ID
+	ArticleID string    `json:"article_id" gorm:"size:20;index;"`             // 关联文章ID
+	ProjectID string    `json:"project_id" gorm:"size:20;index;"`             // 关联项目ID
 	UserID    string    `json:"user_id" gorm:"size:20;index;"`                // 评论者ID（可为空，支持游客评论）
 	Username  string    `json:"username" gorm:"size:64;"`                     // 评论者名称（若为游客，则存储输入的名称）
 	Email     string    `json:"email" gorm:"size:128;"`                       // 评论者邮箱（用于通知，可选）
@@ -54,6 +55,7 @@ func (c *Comment) TableName() string {
 type CommentQueryParam struct {
 	util.PaginationParam
 	ArticleID    string     `form:"article_id"`                                          // 按文章ID查询
+	ProjectID    string     `form:"project_id"`                                          // 按项目ID查询
 	UserID       string     `form:"user_id"`                                             // 按用户ID查询
 	Status       string     `form:"status" binding:"oneof=approved pending rejected ''"` // 状态筛选
 	ParentID     string     `form:"parent_id"`                                           // 父评论ID（查子评论）
@@ -90,7 +92,8 @@ func (c Comments) ToIDs() []string {
 
 // CommentForm 评论表单（用于创建评论）
 type CommentForm struct {
-	ArticleID string `json:"article_id" binding:"required"`       // 文章ID
+	ArticleID string `json:"article_id"`                         // 文章ID（与 ProjectID 二选一）
+	ProjectID string `json:"project_id"`                         // 项目ID（与 ArticleID 二选一）
 	Content   string `json:"content" binding:"required,max=2000"` // 评论内容
 	ParentID  string `json:"parent_id" binding:"omitempty"`       // 父评论ID（可选）
 	Username  string `json:"username"`                            // 游客需填名称
@@ -100,6 +103,15 @@ type CommentForm struct {
 
 // Validate 验证评论表单
 func (cf *CommentForm) Validate() error {
+	// ArticleID 和 ProjectID 至少提供一个
+	if cf.ArticleID == "" && cf.ProjectID == "" {
+		return errors.BadRequest("", "Either article_id or project_id is required")
+	}
+	// 不能同时提供
+	if cf.ArticleID != "" && cf.ProjectID != "" {
+		return errors.BadRequest("", "Cannot specify both article_id and project_id")
+	}
+
 	// 如果 UserID 为空（游客），则 Username 必填
 	if cf.UserID == "" && cf.Username == "" {
 		return errors.BadRequest("", "Username is required for guest comments")
@@ -123,6 +135,7 @@ func (cf *CommentForm) Validate() error {
 // FillTo 将表单数据填充到 Comment 模型
 func (cf *CommentForm) FillTo(comment *Comment, ip, userAgent string) error {
 	comment.ArticleID = cf.ArticleID
+	comment.ProjectID = cf.ProjectID
 	comment.Content = cf.Content
 	comment.ParentID = cf.ParentID
 	comment.IP = ip

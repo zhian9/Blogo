@@ -93,6 +93,16 @@ func (c *Comment) GetByArticleID(cxt *gin.Context) {
 	util.ResSuccess(cxt, comments)
 }
 
+func (c *Comment) GetByProjectID(cxt *gin.Context) {
+	ctx := cxt.Request.Context()
+	comments, err := c.CommentBIZ.GetByProjectID(ctx, cxt.Param("id"))
+	if err != nil {
+		util.ResError(cxt, err)
+		return
+	}
+	util.ResSuccess(cxt, comments)
+}
+
 func (c *Comment) Create(cxt *gin.Context) {
 	ctx := cxt.Request.Context()
 

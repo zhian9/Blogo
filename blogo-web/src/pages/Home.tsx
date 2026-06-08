@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import HeroSection from '../components/HeroSection'
 import FeaturedArticles from '../components/FeaturedArticles'
 import CategoriesSection from '../components/CategoriesSection'
+import FeaturedProjects from '../components/FeaturedProjects'
 import NewsletterSection from '../components/NewsletterSection'
 import Sidebar from '../components/Sidebar'
 import { useAppStore } from '../store/appStore'
@@ -61,6 +62,11 @@ export default function Home() {
           </motion.div>
         </Col>
       </Row>
+
+      {/* Featured Projects Section */}
+      <div style={{ marginBottom: 60 }}>
+        <FeaturedProjects />
+      </div>
 
       {/* Newsletter Section */}
       <div

@@ -110,3 +110,11 @@ const (
 	ErrPageNotFound   = "com.page.not_found"   // 页面不存在
 	ErrPageSlugExists = "com.page.slug_exists" // 页面 Slug 已存在
 )
+
+// 项目模块错误码
+const (
+	ErrProjectNotFound          = "com.project.not_found"           // 项目不存在
+	ErrProjectSlugExists        = "com.project.slug_exists"         // 项目 Slug 已存在
+	ErrProjectPermissionDenied  = "com.project.permission_denied"   // 无权限访问该项目
+	ErrProjectVisibleUsersEmpty = "com.project.visible_users_empty" // partial_visible 需指定可见用户
+)

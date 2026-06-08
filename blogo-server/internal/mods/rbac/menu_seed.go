@@ -48,9 +48,10 @@ func systemMenuTree() []seedMenuItem {
 			Icon: "AppstoreOutlined",
 			Children: []seedMenuItem{
 				{Code: "articles", Name: "文章管理", Type: "menu", Path: "/articles", Sequence: 1, Icon: "FileTextOutlined"},
-				{Code: "categories", Name: "分类管理", Type: "menu", Path: "/categories", Sequence: 2, Icon: "AppstoreOutlined"},
-				{Code: "tags", Name: "标签管理", Type: "menu", Path: "/tags", Sequence: 3, Icon: "TagOutlined"},
-				{Code: "comments", Name: "评论管理", Type: "menu", Path: "/comments", Sequence: 4, Icon: "MessageOutlined"},
+				{Code: "projects", Name: "项目管理", Type: "menu", Path: "/projects", Sequence: 2, Icon: "CodeOutlined"},
+				{Code: "categories", Name: "分类管理", Type: "menu", Path: "/categories", Sequence: 3, Icon: "AppstoreOutlined"},
+				{Code: "tags", Name: "标签管理", Type: "menu", Path: "/tags", Sequence: 4, Icon: "TagOutlined"},
+				{Code: "comments", Name: "评论管理", Type: "menu", Path: "/comments", Sequence: 5, Icon: "MessageOutlined"},
 			},
 		},
 		{

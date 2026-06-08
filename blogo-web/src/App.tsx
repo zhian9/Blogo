@@ -8,6 +8,8 @@ import Categories from './pages/Categories'
 import TagsPage from './pages/Tags'
 import Unsubscribe from './pages/Unsubscribe'
 import Projects from './pages/Projects'
+import ProjectDetail from './pages/ProjectDetail'
+import PublishProject from './pages/PublishProject'
 import About from './pages/About'
 import Search from './pages/Search'
 import Login from './pages/Login'
@@ -41,6 +43,7 @@ export default function App() {
         <Route path="/tags" element={<TagsPage />} />
         <Route path="/unsubscribe" element={<Unsubscribe />} />
         <Route path="/projects" element={<Projects />} />
+        <Route path="/project/:slug" element={<ProjectDetail />} />
         <Route path="/about" element={<About />} />
         <Route path="/search" element={<Search />} />
         <Route path="/user/:id" element={<UserProfile />} />
@@ -61,6 +64,22 @@ export default function App() {
           element={
             <ProtectedRoute action="edit articles">
               <Publish />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/project/new"
+          element={
+            <ProtectedRoute action="publish projects">
+              <PublishProject />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/project/:slug/edit"
+          element={
+            <ProtectedRoute action="edit projects">
+              <PublishProject />
             </ProtectedRoute>
           }
         />

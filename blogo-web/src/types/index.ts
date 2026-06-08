@@ -96,6 +96,7 @@ export interface Tag {
 export interface Comment {
   id: string
   article_id: string
+  project_id: string
   user_id: string
   username: string
   email: string
@@ -110,7 +111,8 @@ export interface Comment {
 }
 
 export interface CommentForm {
-  article_id: string
+  article_id?: string
+  project_id?: string
   content: string
   parent_id?: string
   user_id?: string
@@ -283,4 +285,96 @@ export interface FriendLink {
   url: string
   description: string
   sort: number
+}
+
+// ==================== Project ====================
+
+export interface Project {
+  id: string
+  title: string
+  slug: string
+  summary: string
+  content: string
+  html_content: string
+  cover_image_id: string
+  cover_image?: Image
+  category_id: string
+  category?: Category
+  author_id: string
+  author?: AuthorInfo
+  tags?: Tag[]
+  views: number
+  like_count: number
+  favorite_count: number
+  comment_count: number
+  is_top: boolean
+  is_featured: boolean
+  featured_order: number
+  status: 'draft' | 'published'
+  visibility: 'public' | 'private' | 'partial_visible'
+  project_state: 'developing' | 'completed' | 'maintaining' | 'paused' | 'archived'
+  github_url: string
+  demo_url: string
+  visible_users?: { id: string; project_id: string; user_id: string }[]
+  timeline?: ProjectTimeline[]
+  resources?: ProjectResource[]
+  published_at: string
+  seo_title: string
+  seo_keywords: string
+  seo_desc: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ProjectForm {
+  title: string
+  slug: string
+  summary: string
+  content: string
+  cover_image_id: string
+  category_id: string
+  tag_ids: string[]
+  is_top: boolean
+  is_featured: boolean
+  featured_order: number
+  status: 'draft' | 'published'
+  visibility?: 'public' | 'private' | 'partial_visible'
+  project_state: 'developing' | 'completed' | 'maintaining' | 'paused' | 'archived'
+  github_url: string
+  demo_url: string
+  visible_user_ids?: string[]
+  seo_title: string
+  seo_keywords: string
+  seo_desc: string
+}
+
+export interface ProjectTimeline {
+  id: string
+  project_id: string
+  title: string
+  description: string
+  type: 'launch' | 'version' | 'feature' | 'milestone' | 'breaking' | 'archived'
+  version: string
+  image_id: string
+  link: string
+  event_date: string
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export interface ProjectResource {
+  id: string
+  project_id: string
+  title: string
+  url: string
+  type: 'document' | 'video' | 'slide' | 'article' | 'design' | 'other'
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export interface ProjectLikeCountResult {
+  count: number
+  liked: boolean
 }
