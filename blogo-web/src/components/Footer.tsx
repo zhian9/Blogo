@@ -37,21 +37,7 @@ export default function Footer() {
           Blogo
         </div>
 
-        {/* ── Tech stack ── */}
-        <p
-          style={{
-            margin: '0 0 18px',
-            fontFamily: "'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-            fontSize: 'clamp(11px, 1.2vw, 13px)',
-            fontWeight: 400,
-            color: 'rgba(255,255,255,0.3)',
-            letterSpacing: '0.06em',
-          }}
-        >
-          Built with Go · React · MySQL · Redis
-        </p>
-
-        {/* ── Divider ── */}
+{/* ── Divider ── */}
         <div
           style={{
             width: 60,
