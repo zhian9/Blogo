@@ -73,7 +73,7 @@ export default function Footer() {
           }}
         >
           <CopyrightOutlined style={{ marginRight: 4 }} />
-          {currentYear} Chen Zhian
+          {currentYear} Blogo. All rights reserved.
         </p>
 
         {/* ── ICP License ── */}
