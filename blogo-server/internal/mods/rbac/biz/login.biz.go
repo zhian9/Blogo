@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	gomail "github.com/wneessen/go-mail"
 	"github.com/zhian9/blogo-server/internal/config"
 	"github.com/zhian9/blogo-server/internal/mods/rbac/dal"
@@ -345,7 +344,7 @@ func (l *Login) Register(ctx context.Context, formItem *schema.RegisterForm, cli
 	}
 
 	// 生成激活 token
-	activationToken := uuid.New().String()
+	activationToken := util.RandomToken()
 
 	// 构造用户（inactive）
 	user := &schema.User{
