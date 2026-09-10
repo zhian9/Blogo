@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import VideoBackground from './VideoBackground'
 import { getPublicStats } from '../api/statistics'
 
-const HERO_VIDEO = 'https://cmxxx.dpdns.org/blogo.mp4'
+const HERO_VIDEO = 'https://media.blogo.cloud/blogo.mp4'
 
 function formatStat(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}K+`

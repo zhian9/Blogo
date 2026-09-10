@@ -37,7 +37,7 @@ function formatSize(bytes: number) {
 }
 
 // ── R2 CDN domain ──
-const R2_CDN = 'https://media.blogo.dev'
+const R2_CDN = 'https://media.blogo.cloud'
 const R2_UPLOAD_ENDPOINT = '/api/v1/images/upload'
 
 // ── Mock data (R2-style URLs + 2 video entries) ──
