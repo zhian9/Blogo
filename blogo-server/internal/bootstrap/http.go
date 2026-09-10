@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/zhian9/blogo-server/internal/config"
@@ -92,12 +91,7 @@ func startHTTPServer(ctx context.Context, injector *wirex.Injector) (func(), err
 		e.Static("/docs", "../docs/api")
 	}
 
-	// 10. Prometheus 指标端点（独立于路由组，不受 Auth 限制但受 Basic Auth 保护）
-	if config.C.Util.Prometheus.Enable {
-		e.GET("/metrics", prometheusHandler())
-	}
-
-	// 11. pprof 性能分析端点（dev 环境直接放行，生产需 super_admin）
+	// 10. pprof 性能分析端点（dev 环境直接放行，生产需 super_admin）
 	pprofGroup := e.Group("/debug/pprof")
 	pprofGroup.Use(pprofMiddleware(injector))
 	{
@@ -264,21 +258,6 @@ func useHTTPMiddlewares(_ context.Context, e *gin.Engine, injector *wirex.Inject
 	}
 
 	return nil
-}
-
-// prometheusHandler 返回 Prometheus 指标端点（强制 Basic Auth）
-func prometheusHandler() gin.HandlerFunc {
-	handler := promhttp.Handler()
-	return func(c *gin.Context) {
-		user, pass, ok := c.Request.BasicAuth()
-		if !ok || user != config.C.Util.Prometheus.BasicUsername ||
-			pass != config.C.Util.Prometheus.BasicPassword {
-			c.Header("WWW-Authenticate", `Basic realm="metrics"`)
-			c.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-		handler.ServeHTTP(c.Writer, c.Request)
-	}
 }
 
 // pprofMiddleware 保护 pprof 端点（生产环境仅 super_admin 可访问）

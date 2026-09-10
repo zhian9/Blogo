@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/zhian9/blogo-server/internal/config"
 )
 
@@ -80,4 +81,9 @@ func tryRegister(c prometheus.Collector) {
 			panic(err)
 		}
 	}
+}
+
+// Handler 返回 metrics 的 HTTP handler，供独立 metrics 服务使用。
+func Handler() http.Handler {
+	return promhttp.Handler()
 }

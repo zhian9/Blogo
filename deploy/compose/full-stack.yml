@@ -26,7 +26,6 @@ services:
       - ../../configs/server:/app/configs
     ports:
       - "8040:8040"
-      - "9101:9101"
     depends_on:
       mysql:
         condition: service_healthy
@@ -127,6 +126,7 @@ services:
       - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../nginx/conf.d:/etc/nginx/conf.d:ro
       - ../nginx/certs:/etc/nginx/certs:ro
+      - ../nginx/htpasswd:/etc/nginx/htpasswd:ro
       - ../../blogo-web/dist:/usr/share/nginx/html/blogo-web:ro
       - ../../blogo-admin/dist:/usr/share/nginx/html/blogo-admin:ro
     ports:
@@ -183,12 +183,11 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_INSTALL_PLUGINS: ""
+      GF_SERVER_ROOT_URL: https://grafana.blogo.cloud/
     volumes:
       - grafana_data:/var/lib/grafana
       - ../grafana/datasources:/etc/grafana/provisioning/datasources:ro
       - ../grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
-    ports:
-      - "3000:3000"
     networks:
       - blogo-net
     depends_on:

@@ -114,6 +114,19 @@ func Run(ctx context.Context, runCfg RunConfig) error {
 	// 6. 初始化 Prometheus 指标
 	prom.Init()
 
+	// 6.1 启动独立 metrics 服务（仅内部网络，供 Prometheus 抓取，无 Basic Auth）
+	if config.C.Util.Prometheus.Enable {
+		addr := fmt.Sprintf(":%d", config.C.Util.Prometheus.Port)
+		logging.Context(ctx).Info("prometheus metrics server is listening on " + addr)
+		go func() {
+			mux := http.NewServeMux()
+			mux.Handle("/metrics", prom.Handler())
+			if err := http.ListenAndServe(addr, mux); err != nil {
+				logging.Context(ctx).Error("failed to listen metrics server", zap.Error(err))
+			}
+		}()
+	}
+
 	// 6. 启动 HTTP 服务 + 优雅关闭
 
 	return util.Run(ctx, func(ctx context.Context) (func(), error) {
