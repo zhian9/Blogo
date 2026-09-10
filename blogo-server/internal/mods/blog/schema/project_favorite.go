@@ -50,15 +50,6 @@ type ProjectFavoriteQueryResult struct {
 // ProjectFavorites 收藏记录切片
 type ProjectFavorites []*ProjectFavorite
 
-// ToProjectIDs 提取项目ID列表
-func (f ProjectFavorites) ToProjectIDs() []string {
-	ids := make([]string, len(f))
-	for i, fav := range f {
-		ids[i] = fav.ProjectID
-	}
-	return ids
-}
-
 // ProjectFavoriteForm 收藏/取消收藏表单
 type ProjectFavoriteForm struct {
 	ProjectID string `json:"project_id" binding:"required"`

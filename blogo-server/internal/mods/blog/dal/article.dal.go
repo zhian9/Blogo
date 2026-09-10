@@ -296,33 +296,6 @@ func (a *Article) GetBySlug(ctx context.Context, slug string, opts ...schema.Art
 	return article, nil
 }
 
-func (a *Article) canView(article *schema.Article, userID string) bool {
-	if article == nil {
-		return false
-	}
-	// 已发布 + 公开 → 任何人可读
-	if article.Status == schema.ArticleStatusPublished && article.Visibility == schema.ArticleVisibilityPublic {
-		return true
-	}
-	// 未登录 → 不可读非公开文章
-	if userID == "" {
-		return false
-	}
-	// 作者本人 → 可读
-	if article.AuthorID == userID {
-		return true
-	}
-	// 部分可见 → 查表
-	if article.Status == schema.ArticleStatusPublished && article.Visibility == schema.ArticleVisibilityPartialVisible {
-		var count int64
-		a.DB.Model(&schema.ArticleVisibleUser{}).
-			Where("article_id = ? AND user_id = ?", article.ID, userID).
-			Count(&count)
-		return count > 0
-	}
-	return false
-}
-
 func (a *Article) ExistsID(ctx context.Context, id string) (bool, error) {
 	ok, err := util.Exists(ctx, GetArticleDB(ctx, a.DB).Where("id = ?", id))
 	return ok, errors.WithStack(err)

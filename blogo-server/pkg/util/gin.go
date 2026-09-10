@@ -188,7 +188,7 @@ func ResError(c *gin.Context, err error, status ...int) {
 		ierr = e
 	} else {
 		// 非结构化错误 → 转为 500
-		ierr = errors.FromError(errors.InternalServerError("", err.Error()))
+		ierr = errors.FromError(errors.InternalServerError("", "%s", err.Error()))
 	}
 
 	// 2. 确定 HTTP 状态码

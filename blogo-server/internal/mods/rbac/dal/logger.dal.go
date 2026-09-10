@@ -18,11 +18,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// GetLoggerDB 根据上下文返回日志表的 GORM DB 实例
-func GetLoggerDB(ctx context.Context, defDB *gorm.DB) *gorm.DB {
-	return util.GetDB(ctx, defDB).Model(new(schema.Logger))
-}
-
 // Logger 操作日志实体的数据库访问对象 DAO
 type Logger struct {
 	DB *gorm.DB

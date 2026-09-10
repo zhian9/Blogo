@@ -85,14 +85,3 @@ func (ur UserRoles) ToRoleCodes() []string {
 	return codes
 }
 
-type UserRoleForm struct {
-}
-
-// A validation function for the `UserRoleForm` struct.
-func (a *UserRoleForm) Validate() error {
-	return nil
-}
-
-func (a *UserRoleForm) FillTo(userRole *UserRole) error {
-	return nil
-}

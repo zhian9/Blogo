@@ -75,7 +75,7 @@ func start(cmd *cobra.Command, args []string) error {
 		defer func(file *os.File) {
 			err := file.Close()
 			if err != nil {
-				fmt.Printf("Falied to open the log file %s : %w", stdLogFile, err)
+				fmt.Printf("Failed to close the log file %s : %v", stdLogFile, err)
 			}
 		}(file)
 

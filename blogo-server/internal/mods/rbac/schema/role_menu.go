@@ -55,24 +55,3 @@ type RoleMenuQueryResult struct {
 type RoleMenus []*RoleMenu
 
 // RoleMenuForm 角色菜单关联表单结构
-// RoleMenu form structure for creating/updating associations
-type RoleMenuForm struct {
-	// 表单字段可根据实际需求添加
-	// Form fields can be added based on actual requirements
-}
-
-// Validate 验证角色菜单表单数据
-// Validate validates the role-menu form data
-func (a *RoleMenuForm) Validate() error {
-	// 待实现具体的验证逻辑
-	// TODO: Implement specific validation logic
-	return nil
-}
-
-// FillTo 将表单数据填充到角色菜单模型
-// FillTo populates form data into the role-menu model
-func (a *RoleMenuForm) FillTo(roleMenu *RoleMenu) error {
-	// 待实现具体的数据填充逻辑
-	// TODO: Implement specific data population logic
-	return nil
-}

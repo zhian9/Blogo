@@ -63,7 +63,7 @@ func (r *RBAC) ChangeUserRole(c *gin.Context) {
 	// 5. 查找目标角色
 	var targetRole schema.Role
 	if err := r.DB.Where("code = ?", req.RoleCode).First(&targetRole).Error; err != nil {
-		util.ResError(c, errors.BadRequest("", "无效的角色码: "+req.RoleCode))
+		util.ResError(c, errors.BadRequest("", "无效的角色码: %s", req.RoleCode))
 		return
 	}
 

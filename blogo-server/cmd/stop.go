@@ -26,8 +26,8 @@ var stopCmd = &cobra.Command{
 }
 
 func stop(cmd *cobra.Command, args []string) error {
-	appName := cmd.Root()
-	lockFile := fmt.Sprintf("%s.local", appName)
+	appName := cmd.Root().Name()
+	lockFile := fmt.Sprintf("%s.lock", appName)
 
 	//读取 PID 文件
 	pidBytes, err := os.ReadFile(lockFile)

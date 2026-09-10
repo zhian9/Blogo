@@ -77,21 +77,3 @@ type MenuResourceQueryResult struct {
 // MenuResources 是 MenuResource 指针的切片类型。
 type MenuResources []*MenuResource
 
-// MenuResourceForm 表示菜单资源创建/更新的请求结构。
-type MenuResourceForm struct {
-	// TODO: 应包含 Method 和 Path 字段
-	// Method string `json:"method" binding:"required,oneof=GET POST PUT DELETE"`
-	// Path   string `json:"path" binding:"required,max=255"`
-}
-
-// Validate 验证 MenuResourceForm 的合法性。
-func (a *MenuResourceForm) Validate() error {
-	// TODO: 验证 Method 和 Path 的合法性
-	return nil
-}
-
-// FillTo 将 MenuResourceForm 的数据填充到 MenuResource 实体。
-func (a *MenuResourceForm) FillTo(menuResource *MenuResource) error {
-	// TODO: 填充 Method 和 Path
-	return nil
-}

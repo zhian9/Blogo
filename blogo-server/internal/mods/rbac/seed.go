@@ -255,23 +255,6 @@ func ensureUserHasRole(db *gorm.DB, userID, roleID string) error {
 	return db.Create(&ur).Error
 }
 
-func GetUserRoleCode(db *gorm.DB, userID, rootID string) string {
-	if userID == rootID {
-		return seedAdminRoleCode
-	}
-	var ur schema.UserRole
-	err := db.Where("user_id = ?", userID).First(&ur).Error
-	if err != nil {
-		return seedGuestRoleCode
-	}
-	var role schema.Role
-	err = db.Where("id = ?", ur.RoleID).First(&role).Error
-	if err != nil {
-		return seedGuestRoleCode
-	}
-	return role.Code
-}
-
 func (r *RBAC) EnsureRegisterRole(ctx context.Context, userID string) error {
 	userRole, err := getRoleByCode(r.DB, seedUserRoleCode)
 	if err != nil {
