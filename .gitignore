@@ -75,3 +75,4 @@ storage/temp/*
 /blogo-server/blogo
 deploy/nginx/certs/
 deploy/nginx/htpasswd/
+docs/interview-*.md
