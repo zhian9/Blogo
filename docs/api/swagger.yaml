@@ -1257,7 +1257,7 @@ info:
     email: lxyaa911@gmail.com
     name: 李星云 (lxy911)
     url: https://github.com/zhian9
-  description: Modern SaaS Blog Platform — REST API for content management, user system,
+  description: Modern Blog Platform (CMS) — REST API for content management, user system,
     RBAC, analytics, and more.
   license:
     name: MIT

@@ -7097,7 +7097,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{"http", "https"},
 	Title:            "Blogo API",
-	Description:      "Modern SaaS Blog Platform — REST API for content management, user system, RBAC, analytics, and more.",
+	Description:      "Modern Blog Platform (CMS) — REST API for content management, user system, RBAC, analytics, and more.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

@@ -75,4 +75,6 @@ storage/temp/*
 /blogo-server/blogo
 deploy/nginx/certs/
 deploy/nginx/htpasswd/
-docs/interview-*.md
+
+# ---- Local notes (not tracked) ----
+docs/private/

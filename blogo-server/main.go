@@ -48,7 +48,7 @@ func Execute() {
 
 // @title           Blogo API
 // @version         v1.0.0
-// @description     Modern SaaS Blog Platform — REST API for content management, user system, RBAC, analytics, and more.
+// @description     Modern Blog Platform (CMS) — REST API for content management, user system, RBAC, analytics, and more.
 // @termsOfService  https://github.com/zhian9/Blogo
 //
 // @contact.name   李星云 (lxy911)

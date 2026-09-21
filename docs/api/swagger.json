@@ -5,7 +5,7 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "Modern SaaS Blog Platform — REST API for content management, user system, RBAC, analytics, and more.",
+        "description": "Modern Blog Platform (CMS) — REST API for content management, user system, RBAC, analytics, and more.",
         "title": "Blogo API",
         "termsOfService": "https://github.com/zhian9/Blogo",
         "contact": {
