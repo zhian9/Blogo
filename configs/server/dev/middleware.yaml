@@ -196,10 +196,14 @@ middleware:
       - "/api/v1/favorites"     # 收藏（自助）
       - "/api/v1/users/"        # 关注/粉丝（自助）
       - "/api/v1/notifications" # 通知（自助）
-      - "/api/v1/images/"       # 图片（自助）
+      - "/api/v1/images/upload" # 图片上传（自助：普通用户传头像/封面）
       - "/api/v1/settings/all"  # 公共设置
       - "/api/v1/tags/all"      # 公共标签
       - "/api/v1/categories/all" # 公共分类
+    # 注意：不要放行整个 "/api/v1/images/" 前缀。图片的公开读取接口
+    # （/images/category/:category、/images/:id/file）已在公开路由组注册，
+    # 放行整个前缀会让 PUT / DELETE / batch-delete 绕过 RBAC。
+    # 需要自助的只有上传，因此只放行 /api/v1/images/upload 这一条。
 
     # 加载策略文件时使用的协程数
     load_thread: 2

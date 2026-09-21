@@ -50,10 +50,15 @@ middleware:
       - "/api/v1/favorites"     # 收藏（自助）
       - "/api/v1/users/"        # 关注/粉丝（自助）
       - "/api/v1/notifications" # 通知（自助）
-      - "/api/v1/images/"       # 图片（自助）
       - "/api/v1/settings/all"  # 公共设置
       - "/api/v1/tags/all"      # 公共标签
       - "/api/v1/categories/all" # 公共分类
+    # 注意：不要再把 "/api/v1/images/" 加进来。
+    # 图片的公开读取接口（GET /api/v1/images/category/:category 与
+    # GET /api/v1/images/:id/file）已经注册在 blog.RegisterV1PublicRouters，
+    # 本身不经过 Auth/Casbin；而这里放行的是整个前缀，会让
+    # POST /images/upload、PUT|DELETE /images/{id}、DELETE /images/batch-delete
+    # 一起变成匿名可调用（可被未授权删改图片、匿名上传）。
     signing_method: "HS512"
     signing_key: "${JWT_SIGNING_KEY}"
     old_signing_key: ""
@@ -102,10 +107,14 @@ middleware:
       - "/api/v1/favorites"     # 收藏（自助）
       - "/api/v1/users/"        # 关注/粉丝（自助）
       - "/api/v1/notifications" # 通知（自助）
-      - "/api/v1/images/"       # 图片（自助）
+      - "/api/v1/images/upload" # 图片上传（自助：普通用户传头像/封面）
       - "/api/v1/settings/all"  # 公共设置
       - "/api/v1/tags/all"      # 公共标签
       - "/api/v1/categories/all" # 公共分类
+    # 同上：图片的公开读取已在公开路由组注册。
+    # 这里只放行「上传」这一条自助路由，不能放行整个 "/api/v1/images/" 前缀，
+    # 否则 GET|PUT|DELETE /images/{id} 与 DELETE /images/batch-delete 会绕过 RBAC，
+    # 任何登录用户都能删改全站图片记录。
     load_thread: 2
     auto_load_interval: 3
     model_file: "rbac_model.conf"
