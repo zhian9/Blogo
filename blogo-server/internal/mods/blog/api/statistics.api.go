@@ -11,7 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zhian9/blogo-server/internal/mods/blog/biz"
 	"github.com/zhian9/blogo-server/internal/mods/blog/schema"
+	"github.com/zhian9/blogo-server/pkg/logging"
 	"github.com/zhian9/blogo-server/pkg/util"
+	"go.uber.org/zap"
 )
 
 type Statistics struct {
@@ -88,6 +90,30 @@ func (s *Statistics) GetLatest(c *gin.Context) {
 // GetTraffic 返回控制中心流量趋势数据（最近 N 天的 PV/UV，按日期升序）
 func (s *Statistics) GetTraffic(c *gin.Context) {
 	s.GetLatest(c)
+}
+
+// @Tags StatisticsAPI
+// @Summary Record a page visit (public)
+// @Description 前台每次页面访问调用一次，用于统计 PV/UV（登录用户按 user_id 去重，游客按 IP 去重）
+// @Success 200 {object} util.ResponseResult
+// @Failure 500 {object} util.ResponseResult
+// @Router /api/v1/statistics/visit [post]
+func (s *Statistics) Visit(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	// 访客标识：登录用户优先用 user_id，未登录用客户端 IP
+	clientIP := util.GetClientIP(c)
+	visitor := util.FromUserID(ctx)
+	if visitor == "" {
+		visitor = clientIP
+	}
+
+	// 访问统计属于 best-effort：失败只记日志，不能影响前台页面
+	if err := s.StatisticsBIZ.RecordVisit(ctx, visitor, clientIP); err != nil {
+		logging.Context(ctx).Error("record visit failed", zap.Error(err))
+	}
+
+	util.ResOK(c)
 }
 
 // GetPublicStats 返回首页公开聚合统计（文章数、分类数、用户数）

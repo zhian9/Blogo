@@ -40,7 +40,6 @@ type Menu struct {
 // InitFromFile 从 JSON/YAML 文件初始化菜单数据。
 // 用于系统首次启动时加载默认菜单。
 func (m *Menu) InitFromFile(ctx context.Context, menuFile string) error {
-	// 1. 读取文件
 	f, err := os.ReadFile(menuFile)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -77,7 +76,6 @@ func (m *Menu) createInBatchByParent(ctx context.Context, items schema.Menus, pa
 	total := len(items)
 
 	for i, item := range items {
-		// 1. 确定父菜单 ID
 		var parentID string
 		if parent != nil {
 			parentID = parent.ID
@@ -138,7 +136,6 @@ func (m *Menu) createInBatchByParent(ctx context.Context, items schema.Menus, pa
 				}
 			}
 		} else {
-			// 5. 创建新菜单
 			if item.ID == "" {
 				item.ID = util.NewXID()
 			}
@@ -176,7 +173,6 @@ func (m *Menu) createInBatchByParent(ctx context.Context, items schema.Menus, pa
 					continue
 				}
 			}
-			// 6.3 创建新资源
 			if res.ID == "" {
 				res.ID = util.NewXID()
 			}
@@ -186,7 +182,6 @@ func (m *Menu) createInBatchByParent(ctx context.Context, items schema.Menus, pa
 			}
 		}
 
-		// 7. 递归处理子菜单
 		if item.Children != nil {
 			if err := m.createInBatchByParent(ctx, *item.Children, menuItem); err != nil {
 				return err
@@ -199,10 +194,6 @@ func (m *Menu) createInBatchByParent(ctx context.Context, items schema.Menus, pa
 // Query 查询菜单列表（支持树形结构和资源加载）。
 // 流程：
 //  1. 处理 CodePath 查询（转换为 ParentPathPrefix）
-//  2. 查询菜单
-//  3. 补全子菜单（模糊查询时）
-//  4. 加载资源（如果需要）
-//  5. 构建树形结构
 func (m *Menu) Query(ctx context.Context, params schema.MenuQueryParam) (*schema.MenuQueryResult, error) {
 	params.Pagination = false // 菜单查询通常不分页
 
@@ -211,7 +202,6 @@ func (m *Menu) Query(ctx context.Context, params schema.MenuQueryParam) (*schema
 		return nil, err
 	}
 
-	// 2. 查询菜单
 	result, err := m.MenuDAL.Query(ctx, params, schema.MenuQueryOptions{
 		QueryOptions: util.QueryOptions{
 			OrderFields: schema.MenusOrderParams, // 按序号和创建时间排序
@@ -242,7 +232,6 @@ func (m *Menu) Query(ctx context.Context, params schema.MenuQueryParam) (*schema
 		}
 	}
 
-	// 5. 构建树形结构
 	result.Data = result.Data.ToTree()
 	return result, nil
 }
@@ -295,7 +284,6 @@ func (m *Menu) appendChildren(ctx context.Context, data schema.Menus) (schema.Me
 		return false
 	}
 
-	// 1. 补全子菜单
 	for _, item := range data {
 		childResult, err := m.MenuDAL.Query(ctx, schema.MenuQueryParam{
 			ParentPathPrefix: item.ParentPath + item.ID + util.TreePathDelimiter,
@@ -311,7 +299,6 @@ func (m *Menu) appendChildren(ctx context.Context, data schema.Menus) (schema.Me
 		}
 	}
 
-	// 2. 补全祖先菜单
 	if parentIDs := data.SplitParentIDs(); len(parentIDs) > 0 {
 		parentResult, err := m.MenuDAL.Query(ctx, schema.MenuQueryParam{
 			InIDs: parentIDs,
@@ -333,7 +320,6 @@ func (m *Menu) appendChildren(ctx context.Context, data schema.Menus) (schema.Me
 
 // Get 获取单个菜单信息（含资源）。
 func (m *Menu) Get(ctx context.Context, id string) (*schema.Menu, error) {
-	// 1. 查询菜单
 	menu, err := m.MenuDAL.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -341,7 +327,6 @@ func (m *Menu) Get(ctx context.Context, id string) (*schema.Menu, error) {
 		return nil, errors.NotFound("", "Menu not found")
 	}
 
-	// 2. 查询菜单资源
 	menuResResult, err := m.MenuResourceDAL.Query(ctx, schema.MenuResourceQueryParam{
 		MenuID: menu.ID,
 	})
@@ -356,7 +341,6 @@ func (m *Menu) Get(ctx context.Context, id string) (*schema.Menu, error) {
 // Create 创建新菜单（含资源）。
 // 流程：
 //  1. 检查菜单操作权限（DenyOperateMenu）
-//  2. 验证父菜单存在性
 //  3. 同级菜单编码唯一性校验
 //  4. 事务内：创建菜单 + 创建资源
 func (m *Menu) Create(ctx context.Context, menuForm *schema.MenuForm) (*schema.Menu, error) {
@@ -364,13 +348,11 @@ func (m *Menu) Create(ctx context.Context, menuForm *schema.MenuForm) (*schema.M
 		return nil, errors.BadRequest("", "Menu creation is not allowed")
 	}
 
-	// 1. 初始化菜单实体
 	menu := &schema.Menu{
 		ID:        util.NewXID(),
 		CreatedAt: time.Now(),
 	}
 
-	// 2. 处理父菜单
 	if parentID := menuForm.ParentID; parentID != "" {
 		parent, err := m.MenuDAL.Get(ctx, parentID)
 		if err != nil {
@@ -388,19 +370,15 @@ func (m *Menu) Create(ctx context.Context, menuForm *schema.MenuForm) (*schema.M
 		return nil, errors.BadRequest("", "Menu code already exists at the same level")
 	}
 
-	// 4. 填充表单数据
 	if err := menuForm.FillTo(menu); err != nil {
 		return nil, err
 	}
 
-	// 5. 事务内执行
 	err := m.Trans.Exec(ctx, func(ctx context.Context) error {
-		// 5.1 创建菜单
 		if err := m.MenuDAL.Create(ctx, menu); err != nil {
 			return err
 		}
 
-		// 5.2 创建菜单资源
 		for _, res := range menuForm.Resources {
 			res.ID = util.NewXID()
 			res.MenuID = menu.ID
@@ -429,7 +407,6 @@ func (m *Menu) Update(ctx context.Context, id string, menuForm *schema.MenuForm)
 		return errors.BadRequest("", "Menu update is not allowed")
 	}
 
-	// 1. 获取菜单信息
 	menu, err := m.MenuDAL.Get(ctx, id)
 	if err != nil {
 		return err
@@ -437,7 +414,6 @@ func (m *Menu) Update(ctx context.Context, id string, menuForm *schema.MenuForm)
 		return errors.NotFound("", "Menu not found")
 	}
 
-	// 2. 处理父菜单变更
 	oldParentPath := menu.ParentPath
 	oldStatus := menu.Status
 	var childData schema.Menus
@@ -477,12 +453,10 @@ func (m *Menu) Update(ctx context.Context, id string, menuForm *schema.MenuForm)
 		}
 	}
 
-	// 4. 填充表单数据
 	if err := menuForm.FillTo(menu); err != nil {
 		return err
 	}
 
-	// 5. 事务内执行
 	return m.Trans.Exec(ctx, func(ctx context.Context) error {
 		// 5.1 级联更新状态（如果状态变更）
 		if oldStatus != menuForm.Status {
@@ -502,12 +476,10 @@ func (m *Menu) Update(ctx context.Context, id string, menuForm *schema.MenuForm)
 			}
 		}
 
-		// 5.3 更新菜单
 		if err := m.MenuDAL.Update(ctx, menu); err != nil {
 			return err
 		}
 
-		// 5.4 重分配菜单资源
 		if err := m.MenuResourceDAL.DeleteByMenuID(ctx, id); err != nil {
 			return err
 		}
@@ -533,14 +505,12 @@ func (m *Menu) Update(ctx context.Context, id string, menuForm *schema.MenuForm)
 // Delete 删除菜单（级联删除子菜单、资源、角色关联）。
 // 流程：
 //  1. 检查菜单操作权限
-//  2. 获取所有子菜单
 //  3. 事务内：删除菜单 + 删除子菜单 + 同步 Casbin
 func (m *Menu) Delete(ctx context.Context, id string) error {
 	if config.C.General.DenyOperateMenu {
 		return errors.BadRequest("", "Menu deletion is not allowed")
 	}
 
-	// 1. 获取菜单信息
 	menu, err := m.MenuDAL.Get(ctx, id)
 	if err != nil {
 		return err
@@ -548,7 +518,6 @@ func (m *Menu) Delete(ctx context.Context, id string) error {
 		return errors.NotFound("", "Menu not found")
 	}
 
-	// 2. 获取所有子菜单
 	childResult, err := m.MenuDAL.Query(ctx, schema.MenuQueryParam{
 		ParentPathPrefix: menu.ParentPath + menu.ID + util.TreePathDelimiter,
 	}, schema.MenuQueryOptions{
@@ -560,14 +529,11 @@ func (m *Menu) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	// 3. 事务内执行
 	return m.Trans.Exec(ctx, func(ctx context.Context) error {
-		// 3.1 删除当前菜单
 		if err := m.delete(ctx, id); err != nil {
 			return err
 		}
 
-		// 3.2 删除所有子菜单
 		for _, child := range childResult.Data {
 			if err := m.delete(ctx, child.ID); err != nil {
 				return err

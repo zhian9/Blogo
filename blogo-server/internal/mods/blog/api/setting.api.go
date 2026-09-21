@@ -110,6 +110,8 @@ func (s *Setting) Update(c *gin.Context) {
 		util.ResError(c, err)
 		return
 	}
+	// 配置项的 key 以 URL 路径为准：后台表单只提交 value/description，且 key 本身不允许被改
+	form.Key = c.Param("key")
 	if err := form.Validate(); err != nil {
 		util.ResError(c, err)
 		return

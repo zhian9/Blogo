@@ -144,6 +144,26 @@ func (t *Tag) Delete(c *gin.Context) {
 }
 
 // @Tags TagAPI
+// @Security BearerAuth
+// @Summary Get articles referencing the tag
+// @Description 后台删除标签前确认：该标签被哪些文章引用
+// @Param id path string true "Tag ID"
+// @Success 200 {object} util.ResponseResult{data=schema.TagReferenceResult}
+// @Failure 401 {object} util.ResponseResult
+// @Failure 404 {object} util.ResponseResult
+// @Failure 500 {object} util.ResponseResult
+// @Router /api/v1/tags/{id}/references [get]
+func (t *Tag) References(c *gin.Context) {
+	ctx := c.Request.Context()
+	result, err := t.TagBIZ.GetReferences(ctx, c.Param("id"))
+	if err != nil {
+		util.ResError(c, err)
+		return
+	}
+	util.ResSuccess(c, result)
+}
+
+// @Tags TagAPI
 // @Summary Get all tags (public, for tag cloud)
 // @Success 200 {object} util.ResponseResult{data=[]schema.Tag}
 // @Failure 500 {object} util.ResponseResult

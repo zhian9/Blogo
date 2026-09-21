@@ -48,12 +48,10 @@ func (s *Setting) Create(ctx context.Context, form *schema.SettingForm) (*schema
 		return nil, errors.BadRequest("", "Setting key already exists")
 	}
 
-	// 2. 表单验证
 	if err := form.Validate(); err != nil {
 		return nil, err
 	}
 
-	// 3. 事务内创建
 	err = s.Trans.Exec(ctx, func(ctx context.Context) error {
 		setting := &schema.Setting{}
 		form.FillTo(setting)
@@ -68,7 +66,6 @@ func (s *Setting) Create(ctx context.Context, form *schema.SettingForm) (*schema
 
 // Update 更新配置项
 func (s *Setting) Update(ctx context.Context, key string, form *schema.SettingForm) error {
-	// 1. 校验存在性
 	exists, err := s.SettingDAL.ExistsKey(ctx, key)
 	if err != nil {
 		return err
@@ -76,12 +73,10 @@ func (s *Setting) Update(ctx context.Context, key string, form *schema.SettingFo
 		return errors.NotFound("", "Setting not found")
 	}
 
-	// 2. 表单验证
 	if err := form.Validate(); err != nil {
 		return err
 	}
 
-	// 3. 事务内更新
 	return s.Trans.Exec(ctx, func(ctx context.Context) error {
 		setting := &schema.Setting{Key: key}
 		form.FillTo(setting)

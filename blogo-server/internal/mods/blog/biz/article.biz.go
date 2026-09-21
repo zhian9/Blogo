@@ -155,7 +155,6 @@ func (a *Article) Create(ctx context.Context, articleForm *schema.ArticleForm) (
 		return nil, errors.BadRequest(config.ErrBadRequest, "Slug already exists")
 	}
 
-	// 2. 校验可见用户
 	validUserIDs, err := a.validateVisibleUsers(ctx, articleForm)
 	if err != nil {
 		return nil, err
@@ -177,27 +176,10 @@ func (a *Article) Create(ctx context.Context, articleForm *schema.ArticleForm) (
 	}
 	articleForm.CategoryID = categoryID
 
-	// 4. 处理标签：FindOrCreate（存在则复用ID，不存在则按名称创建）
-	var tagIDs []string
-	if len(articleForm.TagIDs) > 0 {
-		existingTags, notExistsNames, err := a.TagDAL.GetByNames(ctx, articleForm.TagIDs)
-		if err != nil {
-			return nil, err
-		}
-		for _, tag := range existingTags {
-			tagIDs = append(tagIDs, tag.ID)
-		}
-		for _, name := range notExistsNames {
-			newTag := &schema.Tag{
-				ID:        util.NewXID(),
-				Name:      name,
-				CreatedAt: time.Now(),
-			}
-			if err := a.TagDAL.Create(ctx, newTag); err != nil {
-				return nil, err
-			}
-			tagIDs = append(tagIDs, newTag.ID)
-		}
+	// 4. 处理标签：入参可能是标签 ID（勾选已有标签）也可能是名称（手输新标签）
+	tagIDs, err := resolveTagIDs(ctx, a.TagDAL, articleForm.TagIDs)
+	if err != nil {
+		return nil, err
 	}
 
 	// 5. 初始化文章实体 + 记录作者
@@ -320,26 +302,10 @@ func (a *Article) Update(ctx context.Context, id string, articleForm *schema.Art
 		}
 	}
 
-	var tagIDs []string
-	if len(articleForm.TagIDs) > 0 {
-		existingTags, notExistsNames, err := a.TagDAL.GetByNames(ctx, articleForm.TagIDs)
-		if err != nil {
-			return err
-		}
-		for _, tag := range existingTags {
-			tagIDs = append(tagIDs, tag.ID)
-		}
-		for _, name := range notExistsNames {
-			newTag := &schema.Tag{
-				ID:        util.NewXID(),
-				Name:      name,
-				CreatedAt: time.Now(),
-			}
-			if err := a.TagDAL.Create(ctx, newTag); err != nil {
-				return err
-			}
-			tagIDs = append(tagIDs, newTag.ID)
-		}
+	// 处理标签：入参可能是标签 ID（勾选已有标签）也可能是名称（手输新标签）
+	tagIDs, err := resolveTagIDs(ctx, a.TagDAL, articleForm.TagIDs)
+	if err != nil {
+		return err
 	}
 
 	// 普通用户禁止修改置顶状态

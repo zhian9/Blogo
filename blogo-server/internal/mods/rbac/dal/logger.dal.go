@@ -55,20 +55,17 @@ func (l *Logger) Query(ctx context.Context, params schema.LoggerQueryParam, opts
 		db = db.Where("l.tag = ?", v) // 日志标签精确匹配
 	}
 
-	// 6. 时间范围过滤
 	if start, end := params.StartTime, params.EndTime; start != "" && end != "" {
 		// 假设 StartTime/EndTime 为字符串格式（如 "2025-04-05 14:30:00"）
 		db = db.Where("l.created_at BETWEEN ? AND ?", start, end)
 	}
 
-	// 7. 执行分页查询
 	var list schema.Loggers
 	pageResult, err := util.WrapPageQuery(ctx, db, params.PaginationParam, opt.QueryOptions, &list)
 	if err != nil {
 		return nil, errors.WithStack(err) // 保留错误堆栈
 	}
 
-	// 8. 返回查询结果
 	return &schema.LoggerQueryResult{
 		PageResult: pageResult,
 		Data:       list,

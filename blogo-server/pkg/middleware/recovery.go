@@ -52,10 +52,8 @@ func RecoveryWithConfig(config RecoveryConfig) gin.HandlerFunc {
 				ctx := c.Request.Context()
 				ctx = logging.NewTag(ctx, logging.TagKeyRecovery)
 
-				// 2. 构建日志字段
 				var fields []zap.Field
 
-				// 2.1 记录 panic 值
 				fields = append(fields, zap.Strings("error", []string{fmt.Sprintf("%v", rv)}))
 
 				// 2.2 记录调用栈（跳过指定层数）
@@ -77,7 +75,6 @@ func RecoveryWithConfig(config RecoveryConfig) gin.HandlerFunc {
 					fields = append(fields, zap.Strings("headers", headers))
 				}
 
-				// 3. 记录错误日志
 				logging.Context(ctx).Error(
 					fmt.Sprintf("[Recovery] %s panic recovered", time.Now().Format("2006/01/02 - 15:04:05")),
 					fields...,

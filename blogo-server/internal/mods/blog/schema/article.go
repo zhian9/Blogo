@@ -95,8 +95,8 @@ type ArticleQueryParam struct {
 	Status         string     `form:"status" binding:"oneof=draft published ''"`                    // 状态
 	Visibility     string     `form:"visibility" binding:"oneof=public private partial_visible ''"` // 可见性
 	IsTop          *bool      `form:"is_top"`                                                       // 是否置顶
-	PublishedAtGte *time.Time `form:"published_at_gte"`                                             // 发布时间 >=
-	PublishedAtLte *time.Time `form:"published_at_lte"`                                             // 发布时间 <=
+	PublishedAtGte string `form:"published_at_gte"`                                                 // 发布时间 >=（YYYY-MM-DD 或 RFC3339）
+	PublishedAtLte string `form:"published_at_lte"`                                                 // 发布时间 <=（YYYY-MM-DD 或 RFC3339）
 }
 
 // ArticleQueryOptions 查询选项
@@ -176,7 +176,6 @@ func (af *ArticleForm) FillTo(article *Article) error {
 	}
 	article.HtmlContent = buf.String()
 
-	// 3. 封面图
 	article.CoverImageID = af.CoverImageID
 	if af.CoverImageID != nil && *af.CoverImageID != "" {
 		article.CoverImage = af.CoverImage
@@ -194,7 +193,6 @@ func (af *ArticleForm) FillTo(article *Article) error {
 	article.SeoKeywords = af.SeoKeywords
 	article.SeoDesc = af.SeoDesc
 
-	// 5. 发布时间
 	if af.Status == ArticleStatusPublished {
 		if af.PublishedAt != nil {
 			article.PublishedAt = *af.PublishedAt

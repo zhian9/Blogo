@@ -88,7 +88,6 @@ func New(store Storer, opts ...Option) Auther {
 	}
 
 	// 构建密钥解析函数列表
-	// 1. 当前密钥
 	o.keyFuncs = append(o.keyFuncs, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, ErrInvalidToken
@@ -194,21 +193,17 @@ func (a *JWTAuth) DestroyToken(ctx context.Context, tokenStr string) error {
 
 // ParseSubject 从 Token 中解析用户标识。
 // 步骤：
-//  1. 解析 Token
 //  2. 检查黑名单（如果存储后端存在）
-//  3. 返回用户标识
 func (a *JWTAuth) ParseSubject(ctx context.Context, tokenStr string) (string, error) {
 	if tokenStr == "" {
 		return "", ErrInvalidToken
 	}
 
-	// 1. 解析 Token
 	claims, err := a.parseToken(tokenStr)
 	if err != nil {
 		return "", err
 	}
 
-	// 2. 检查黑名单
 	err = a.callStore(func(store Storer) error {
 		if exists, err := store.Check(ctx, tokenStr); err != nil {
 			return err
@@ -221,7 +216,6 @@ func (a *JWTAuth) ParseSubject(ctx context.Context, tokenStr string) (string, er
 		return "", err
 	}
 
-	// 3. 返回用户标识
 	return claims.Subject, nil
 }
 

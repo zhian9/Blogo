@@ -183,7 +183,6 @@ func (a *Casbinx) load(ctx context.Context) error {
 		a.enforcer.Store(e)             // 原子更新 Enforcer
 	}
 
-	// 7. 记录加载日志
 	logging.Context(ctx).Info("Casbin load policy",
 		zap.Duration("cost", time.Since(start)),
 		zap.Int("roles", len(roleResult.Data)),
@@ -258,7 +257,6 @@ func (a *Casbinx) autoLoad(ctx context.Context) {
 	a.ticker = time.NewTicker(time.Duration(config.C.Middleware.Casbin.AutoLoadInterval) * time.Second)
 
 	for range a.ticker.C {
-		// 1. 从缓存读取更新信号
 		val, ok, err := a.Cache.Get(ctx, config.CacheNSForRole, config.CacheKeyForSyncToCasbin)
 		if err != nil {
 			logging.Context(ctx).Error("Failed to get cache", zap.Error(err), zap.String("key", config.CacheKeyForSyncToCasbin))
@@ -267,14 +265,12 @@ func (a *Casbinx) autoLoad(ctx context.Context) {
 			continue // 无更新信号
 		}
 
-		// 2. 解析时间戳
 		updated, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
 			logging.Context(ctx).Error("Failed to parse cache value", zap.Error(err), zap.String("val", val))
 			continue
 		}
 
-		// 3. 如果有新更新，则重载策略
 		if lastUpdated < updated {
 			if err := a.load(ctx); err != nil {
 				logging.Context(ctx).Error("Failed to load casbin policy", zap.Error(err))

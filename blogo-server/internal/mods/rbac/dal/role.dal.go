@@ -39,16 +39,13 @@ type Role struct {
 //   - 分页
 //   - 字段选择/排序
 func (r *Role) Query(ctx context.Context, params schema.RoleQueryParam, opts ...schema.RoleQueryOptions) (*schema.RoleQueryResult, error) {
-	// 1. 解析查询选项
 	var opt schema.RoleQueryOptions
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
 
-	// 2. 构建基础查询
 	db := GetRoleDB(ctx, r.DB)
 
-	// 3. 应用查询条件
 	if v := params.InIDs; len(v) > 0 {
 		db = db.Where("id IN (?)", v) // 精确匹配 ID 列表
 	}
@@ -63,14 +60,12 @@ func (r *Role) Query(ctx context.Context, params schema.RoleQueryParam, opts ...
 		db = db.Where("updated_at > ?", v)
 	}
 
-	// 4. 执行分页查询
 	var list schema.Roles
 	pageResult, err := util.WrapPageQuery(ctx, db, params.PaginationParam, opt.QueryOptions, &list)
 	if err != nil {
 		return nil, errors.WithStack(err) // 保留错误堆栈
 	}
 
-	// 5. 返回查询结果
 	return &schema.RoleQueryResult{
 		PageResult: pageResult,
 		Data:       list,

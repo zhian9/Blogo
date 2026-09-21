@@ -21,6 +21,9 @@ type Tag struct {
 	Name      string    `json:"name" gorm:"size:100;not null;uniqueIndex"` // 标签名称（唯一）
 	CreatedAt time.Time `json:"created_at" gorm:"index;"`                  // 创建时间
 	UpdatedAt time.Time `json:"updated_at" gorm:"index;"`                  // 更新时间
+
+	// ArticleCount 引用该标签的文章数量（列表查询时填充，不是数据库字段）
+	ArticleCount int64 `json:"article_count" gorm:"-"`
 }
 
 func (t *Tag) TableName() string {
@@ -46,6 +49,23 @@ type TagQueryResult struct {
 
 // Tags 标签切片
 type Tags []*Tag
+
+// TagReference 标签被引用的文章（后台删除标签前提示用）
+type TagReference struct {
+	ID          string     `json:"id"`
+	Title       string     `json:"title"`
+	Slug        string     `json:"slug"`
+	Status      string     `json:"status"`
+	PublishedAt *time.Time `json:"published_at"`
+}
+
+// TagReferenceResult 标签引用详情
+type TagReferenceResult struct {
+	TagID    string          `json:"tag_id"`
+	TagName  string          `json:"tag_name"`
+	Total    int64           `json:"total"`
+	Articles []*TagReference `json:"articles"`
+}
 
 // ToIDs 返回标签ID列表
 func (t Tags) ToIDs() []string {

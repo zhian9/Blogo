@@ -203,11 +203,16 @@ func (p *Project) Query(ctx context.Context, params schema.ProjectQueryParam, op
 	if v := params.IsFeatured; v != nil {
 		db = db.Where("is_featured = ?", *v)
 	}
-	if v := params.PublishedAtGte; v != nil {
-		db = db.Where("published_at >= ?", *v)
+	// 同 article：兼容纯日期与 RFC3339，上界取当天 23:59:59
+	if v := params.PublishedAtGte; v != "" {
+		if t, ok := util.ParseFlexibleTime(v, false); ok {
+			db = db.Where("published_at >= ?", t)
+		}
 	}
-	if v := params.PublishedAtLte; v != nil {
-		db = db.Where("published_at <= ?", *v)
+	if v := params.PublishedAtLte; v != "" {
+		if t, ok := util.ParseFlexibleTime(v, true); ok {
+			db = db.Where("published_at <= ?", t)
+		}
 	}
 
 	if opt.WithCategory {

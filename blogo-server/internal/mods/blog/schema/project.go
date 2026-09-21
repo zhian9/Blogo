@@ -73,6 +73,7 @@ type Project struct {
 	Title          string                `json:"title" gorm:"size:255;not null;index"`                   // 项目名称
 	Slug           string                `json:"slug" gorm:"size:255;uniqueIndex"`                       // SEO友好URL路径
 	Summary        string                `json:"summary" gorm:"type:text;"`                              // 项目简介
+	Highlights     string                `json:"highlights" gorm:"type:text;"`                           // 项目特点（每行一条）
 	Content        string                `json:"content" gorm:"type:longtext;"`                          // Markdown 详细介绍
 	HtmlContent    string                `json:"html_content" gorm:"type:longtext;"`                     // 预渲染 HTML
 	CoverImageID   *string               `json:"cover_image_id" gorm:"size:20;index"`                    // 封面图ID
@@ -122,8 +123,8 @@ type ProjectQueryParam struct {
 	IsTop        *bool      `form:"is_top"`                                                       // 是否置顶
 	IsFeatured   *bool      `form:"is_featured"`                                                  // 是否精选
 	SortBy       string     `form:"sort_by" binding:"omitempty,oneof=latest hot most_liked"`      // 排序方式
-	PublishedAtGte *time.Time `form:"published_at_gte"`                                           // 发布时间 >=
-	PublishedAtLte *time.Time `form:"published_at_lte"`                                           // 发布时间 <=
+	PublishedAtGte string `form:"published_at_gte"`                                               // 发布时间 >=（YYYY-MM-DD 或 RFC3339）
+	PublishedAtLte string `form:"published_at_lte"`                                               // 发布时间 <=（YYYY-MM-DD 或 RFC3339）
 }
 
 // ProjectQueryOptions 查询选项
@@ -162,7 +163,8 @@ type ProjectForm struct {
 	Title          string     `json:"title" binding:"required,max=255"`                                    // 项目名称
 	Slug           string     `json:"slug" binding:"required,max=255"`                                     // URL路径
 	Summary        string     `json:"summary" binding:"max=1000"`                                          // 项目简介
-	Content        string     `json:"content" binding:"required"`                                          // Markdown内容
+	Highlights     string     `json:"highlights" binding:"max=2000"`                                       // 项目特点（每行一条）
+	Content        string     `json:"content"`                                                             // Markdown内容（可空：展示型项目只需要特点/技术栈/链接）
 	CoverImageID   *string    `json:"cover_image_id"`                                                      // 封面图ID
 	CategoryID     string     `json:"category_id"`                                                         // 分类ID/名称
 	TagIDs         []string   `json:"tag_ids"`                                                             // 标签ID/名称列表
@@ -194,6 +196,7 @@ func (pf *ProjectForm) FillTo(project *Project) error {
 	project.Title = pf.Title
 	project.Slug = pf.Slug
 	project.Summary = pf.Summary
+	project.Highlights = pf.Highlights
 	project.Content = pf.Content
 
 	project.Status = pf.Status

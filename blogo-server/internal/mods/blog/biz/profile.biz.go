@@ -45,7 +45,6 @@ type Profile struct {
 func (p *Profile) GetDashboard(ctx context.Context, viewerID, targetUserID string) (*ProfileDashboard, error) {
 	dash := &ProfileDashboard{}
 
-	// 1. 用户基本信息
 	user, err := p.UserDAL.Get(ctx, targetUserID)
 	if err != nil {
 		return nil, err
@@ -145,7 +144,6 @@ func (p *Profile) GetDashboard(ctx context.Context, viewerID, targetUserID strin
 		}
 	}
 
-	// 5. 评论记录
 	commentResult, _ := p.CommentDAL.Query(ctx, bschema.CommentQueryParam{
 		UserID:          targetUserID,
 		Status:          bschema.CommentStatusApproved,
@@ -159,7 +157,6 @@ func (p *Profile) GetDashboard(ctx context.Context, viewerID, targetUserID strin
 		dash.Comments = commentResult.Data
 	}
 
-	// 6. 粉丝与关注列表
 	followers, _, _ := p.UserFollowDAL.ListFollowers(ctx, targetUserID, util.PaginationParam{Current: 1, PageSize: 50})
 	following, _, _ := p.UserFollowDAL.ListFollowing(ctx, targetUserID, util.PaginationParam{Current: 1, PageSize: 50})
 	dash.Followers = followers
@@ -171,7 +168,6 @@ func (p *Profile) GetDashboard(ctx context.Context, viewerID, targetUserID strin
 		dash.Following = []string{}
 	}
 
-	// 7. 贡献活跃数据
 	contributions, err := p.ContributionDAL.ComputeContributions(ctx, targetUserID)
 	if err != nil {
 		contributions = []*bschema.ContributionDay{}

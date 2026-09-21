@@ -208,26 +208,10 @@ func (p *Project) Create(ctx context.Context, projectForm *schema.ProjectForm) (
 	}
 	projectForm.CategoryID = categoryID
 
-	var tagIDs []string
-	if len(projectForm.TagIDs) > 0 {
-		existingTags, notExistsNames, err := p.TagDAL.GetByNames(ctx, projectForm.TagIDs)
-		if err != nil {
-			return nil, err
-		}
-		for _, tag := range existingTags {
-			tagIDs = append(tagIDs, tag.ID)
-		}
-		for _, name := range notExistsNames {
-			newTag := &schema.Tag{
-				ID:        util.NewXID(),
-				Name:      name,
-				CreatedAt: time.Now(),
-			}
-			if err := p.TagDAL.Create(ctx, newTag); err != nil {
-				return nil, err
-			}
-			tagIDs = append(tagIDs, newTag.ID)
-		}
+	// 处理标签：入参可能是标签 ID（勾选已有标签）也可能是名称（手输新标签）
+	tagIDs, err := resolveTagIDs(ctx, p.TagDAL, projectForm.TagIDs)
+	if err != nil {
+		return nil, err
 	}
 
 	project := &schema.Project{
@@ -335,26 +319,10 @@ func (p *Project) Update(ctx context.Context, id string, projectForm *schema.Pro
 		}
 	}
 
-	var tagIDs []string
-	if len(projectForm.TagIDs) > 0 {
-		existingTags, notExistsNames, err := p.TagDAL.GetByNames(ctx, projectForm.TagIDs)
-		if err != nil {
-			return err
-		}
-		for _, tag := range existingTags {
-			tagIDs = append(tagIDs, tag.ID)
-		}
-		for _, name := range notExistsNames {
-			newTag := &schema.Tag{
-				ID:        util.NewXID(),
-				Name:      name,
-				CreatedAt: time.Now(),
-			}
-			if err := p.TagDAL.Create(ctx, newTag); err != nil {
-				return err
-			}
-			tagIDs = append(tagIDs, newTag.ID)
-		}
+	// 处理标签：入参可能是标签 ID（勾选已有标签）也可能是名称（手输新标签）
+	tagIDs, err := resolveTagIDs(ctx, p.TagDAL, projectForm.TagIDs)
+	if err != nil {
+		return err
 	}
 
 	if !p.canSetTop(ctx) {

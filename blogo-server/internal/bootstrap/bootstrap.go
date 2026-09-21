@@ -108,7 +108,6 @@ func Run(ctx context.Context, runCfg RunConfig) error {
 		return fmt.Errorf("failed to initialize middleware: %w", err)
 	}
 
-	// 5. 初始化全局邮件发送器
 	initMailSender()
 
 	// 6. 初始化 Prometheus 指标

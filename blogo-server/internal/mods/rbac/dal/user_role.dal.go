@@ -41,7 +41,6 @@ type UserRole struct {
 //   - 分页
 //   - 字段选择/排序
 func (ur *UserRole) Query(ctx context.Context, params schema.UserRoleQueryParam, opts ...schema.UserRoleQueryOptions) (*schema.UserRoleQueryResult, error) {
-	// 1. 解析查询选项
 	var opt schema.UserRoleQueryOptions
 	if len(opts) > 0 {
 		opt = opts[0]
@@ -50,14 +49,12 @@ func (ur *UserRole) Query(ctx context.Context, params schema.UserRoleQueryParam,
 	// 2. 构建基础查询（使用别名 ur 避免字段冲突）
 	db := ur.DB.Table(fmt.Sprintf("%s AS ur", new(schema.UserRole).TableName()))
 
-	// 3. 关联角色表（可选）
 	//    - 用于返回角色名称（role_name）
 	if opt.JoinRole {
 		db = db.Joins(fmt.Sprintf("LEFT JOIN %s b ON ur.role_id = b.id", new(schema.Role).TableName()))
 		db = db.Select("ur.*, b.name AS role_name, b.code AS role_code")
 	}
 
-	// 4. 应用查询条件
 	if v := params.InUserIDs; len(v) > 0 {
 		db = db.Where("ur.user_id IN (?)", v) // 批量查询用户角色
 	}
@@ -68,14 +65,12 @@ func (ur *UserRole) Query(ctx context.Context, params schema.UserRoleQueryParam,
 		db = db.Where("ur.role_id = ?", v) // 查询指定角色的用户
 	}
 
-	// 5. 执行分页查询
 	var list schema.UserRoles
 	pageResult, err := util.WrapPageQuery(ctx, db, params.PaginationParam, opt.QueryOptions, &list)
 	if err != nil {
 		return nil, errors.WithStack(err) // 保留错误堆栈
 	}
 
-	// 6. 返回查询结果
 	return &schema.UserRoleQueryResult{
 		PageResult: pageResult,
 		Data:       list,

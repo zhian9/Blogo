@@ -84,10 +84,7 @@ func (c *Comment) Get(ctx context.Context, id string) (*schema.Comment, error) {
 // Create 创建新评论（支持游客和登录用户）。
 // 流程：
 //  1. 校验文章/项目是否存在且已发布
-//  2. 校验父评论（如果提供）
-//  3. 事务内创建评论
 func (c *Comment) Create(ctx context.Context, commentForm *schema.CommentForm, ip, userAgent string) (*schema.Comment, error) {
-	// 1. 校验文章或项目
 	if commentForm.ArticleID != "" {
 		article, err := c.ArticleDAL.Get(ctx, commentForm.ArticleID)
 		if err != nil {
@@ -104,7 +101,6 @@ func (c *Comment) Create(ctx context.Context, commentForm *schema.CommentForm, i
 		}
 	}
 
-	// 2. 校验父评论（如果提供）
 	if commentForm.ParentID != "" {
 		parent, err := c.CommentDAL.Get(ctx, commentForm.ParentID)
 		if err != nil {
@@ -115,12 +111,10 @@ func (c *Comment) Create(ctx context.Context, commentForm *schema.CommentForm, i
 		// 可选：限制嵌套层级（如只允许一级回复）
 	}
 
-	// 3. 表单验证
 	if err := commentForm.Validate(); err != nil {
 		return nil, err
 	}
 
-	// 4. 初始化评论实体
 	comment := &schema.Comment{
 		ID:        util.NewXID(),
 		UserID:    util.FromUserID(ctx),
@@ -133,7 +127,6 @@ func (c *Comment) Create(ctx context.Context, commentForm *schema.CommentForm, i
 		return nil, err
 	}
 
-	// 6. 事务内创建
 	if err := c.Trans.Exec(ctx, func(ctx context.Context) error {
 		return c.CommentDAL.Create(ctx, comment)
 	}); err != nil {

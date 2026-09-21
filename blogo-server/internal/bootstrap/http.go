@@ -38,10 +38,8 @@ func startHTTPServer(ctx context.Context, injector *wirex.Injector) (func(), err
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	// 2. 创建 Gin 引擎
 	e := gin.New()
 
-	// 3. 健康检查路由（无中间件）
 	e.GET("/health", func(c *gin.Context) {
 		util.ResOK(c) // 返回 { "success": true }
 	})
@@ -68,7 +66,6 @@ func startHTTPServer(ctx context.Context, injector *wirex.Injector) (func(), err
 		return nil, err
 	}
 
-	// 8. 注册业务路由
 	if err := injector.M.RegisterRouters(ctx, e); err != nil {
 		return nil, err
 	}
@@ -118,7 +115,6 @@ func startHTTPServer(ctx context.Context, injector *wirex.Injector) (func(), err
 		}))
 	}
 
-	// 13. 创建 HTTP 服务器
 	addr := config.C.General.HTTP.Addr
 	logging.Context(ctx).Info(fmt.Sprintf("HTTP server is listening on %s", addr))
 	srv := &http.Server{
@@ -132,12 +128,10 @@ func startHTTPServer(ctx context.Context, injector *wirex.Injector) (func(), err
 	// 12. 启动服务（goroutine）
 	go func() {
 		var err error
-		// 12.1 支持 HTTPS
 		if config.C.General.HTTP.CertFile != "" && config.C.General.HTTP.KeyFile != "" {
 			srv.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12}
 			err = srv.ListenAndServeTLS(config.C.General.HTTP.CertFile, config.C.General.HTTP.KeyFile)
 		} else {
-			// 12.2 HTTP
 			err = srv.ListenAndServe()
 		}
 
@@ -147,7 +141,6 @@ func startHTTPServer(ctx context.Context, injector *wirex.Injector) (func(), err
 		}
 	}()
 
-	// 13. 返回清理函数（优雅关闭）
 	return func() {
 		ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(config.C.General.HTTP.ShutdownTimeout))
 		defer cancel()
@@ -162,7 +155,6 @@ func startHTTPServer(ctx context.Context, injector *wirex.Injector) (func(), err
 // useHTTPMiddlewares 按正确顺序注册所有业务中间件。
 // 中间件执行顺序 = 注册顺序（从上到下）。
 func useHTTPMiddlewares(_ context.Context, e *gin.Engine, injector *wirex.Injector, allowedPrefixes []string) error {
-	// 1. CORS（跨域资源共享）
 	// 注意：必须在最前面（处理 OPTIONS 预检请求）
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		Enable:                 config.C.Middleware.CORS.Enable,
@@ -179,7 +171,6 @@ func useHTTPMiddlewares(_ context.Context, e *gin.Engine, injector *wirex.Inject
 		AllowFiles:             config.C.Middleware.CORS.AllowFiles,
 	}))
 
-	// 2. Trace（链路追踪）
 	// 生成/透传 TraceID，注入上下文
 	e.Use(middleware.TraceWithConfig(middleware.TraceConfig{
 		AllowedPathPrefixes: allowedPrefixes,
@@ -188,7 +179,6 @@ func useHTTPMiddlewares(_ context.Context, e *gin.Engine, injector *wirex.Inject
 		ResponseTraceKey:    config.C.Middleware.Trace.ResponseTraceKey,
 	}))
 
-	// 3. Logger（请求日志）
 	// 记录请求/响应详情（需 CopyBody 提供请求体）
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		AllowedPathPrefixes:      allowedPrefixes,
@@ -226,7 +216,6 @@ func useHTTPMiddlewares(_ context.Context, e *gin.Engine, injector *wirex.Inject
 		CheckStatus: injector.M.RBAC.CheckStatus,
 	}))
 
-	// 6. Auth（认证）
 	// 解析用户身份，注入上下文（已移至路由组级别）
 
 	// 7. RateLimiter（限流）

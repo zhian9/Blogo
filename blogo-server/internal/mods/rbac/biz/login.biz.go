@@ -52,7 +52,6 @@ type Login struct {
 //  1. 检查认证是否禁用（返回 root ID）
 //  2. 从 Token 解析用户 ID
 //  3. 检查超级管理员
-//  4. 查询缓存（用户角色）
 //  5. 缓存未命中 → 查询数据库 + 写入缓存
 func (l *Login) ParseUserID(c *gin.Context) (string, error) {
 	rootID := config.C.General.Root.ID
@@ -65,7 +64,6 @@ func (l *Login) ParseUserID(c *gin.Context) (string, error) {
 	// 2. 定义无效 Token 错误
 	invalidToken := errors.Unauthorized(config.ErrInvalidTokenID, "Invalid access token")
 
-	// 3. 获取 Token
 	token := util.GetToken(c)
 	if token == "" {
 		return "", invalidToken
@@ -90,7 +88,6 @@ func (l *Login) ParseUserID(c *gin.Context) (string, error) {
 		return userID, nil
 	}
 
-	// 7. 查询缓存（用户角色）
 	userCacheVal, ok, err := l.Cache.Get(ctx, config.CacheNSForUser, userID)
 	if err != nil {
 		return "", err
@@ -183,7 +180,6 @@ func (l *Login) ResponseCaptcha(ctx context.Context, w http.ResponseWriter, id s
 
 // genUserToken 生成用户登录 Token（JWT），包含角色编码。
 func (l *Login) genUserToken(ctx context.Context, userID string) (*schema.LoginToken, error) {
-	// 1. 获取用户角色编码
 	var roleCode string = "guest" // 默认游客
 	if userID == config.C.General.Root.ID {
 		roleCode = "admin" // 超级管理员视为 admin
@@ -205,7 +201,6 @@ func (l *Login) genUserToken(ctx context.Context, userID string) (*schema.LoginT
 		return nil, err
 	}
 
-	// 3. 记录日志
 	logging.Context(ctx).Info("Generate user token", zap.Int64("expires_at", token.GetExpiresAt()))
 
 	return &schema.LoginToken{
@@ -217,19 +212,14 @@ func (l *Login) genUserToken(ctx context.Context, userID string) (*schema.LoginT
 
 // Login 处理用户登录请求。
 // 流程：
-//  1. 验证码校验
 //  2. 超级管理员登录
 //  3. 普通用户登录（密码校验 + 状态检查）
-//  4. 写入用户缓存
-//  5. 生成 Token
-//  6. 记录审计日志
 func (l *Login) Login(ctx context.Context, formItem *schema.LoginForm, clientIP, userAgent, realIP string) (*schema.LoginToken, error) {
 	operator := formItem.Username
 	if realIP == "" {
 		realIP = clientIP
 	}
 
-	// 1. 验证码校验
 	if !l.CaptchaSvc.Verify(ctx, formItem.CaptchaID, formItem.CaptchaCode) {
 		l.writeAuditLog(ctx, operator, realIP, userAgent, "登录", "用户 ["+operator+"] 登录失败：验证码错误", "验证码错误", false, http.StatusBadRequest)
 		return nil, errors.BadRequest(config.ErrInvalidCaptchaID, "Incorrect captcha")
@@ -269,7 +259,6 @@ func (l *Login) Login(ctx context.Context, formItem *schema.LoginForm, clientIP,
 		return nil, errors.BadRequest("", "您的账号已被系统管理员禁用，请联系运维人员")
 	}
 
-	// 3.2 密码校验
 	if err := hash.CompareHashAndPassword(user.Password, formItem.Password); err != nil {
 		l.writeAuditLog(ctx, operator, realIP, userAgent, "登录", "用户 ["+operator+"] 登录失败：密码错误", "密码错误", false, http.StatusBadRequest)
 		return nil, errors.BadRequest(config.ErrInvalidUsernameOrPassword, "Incorrect username or password")
@@ -283,7 +272,6 @@ func (l *Login) Login(ctx context.Context, formItem *schema.LoginForm, clientIP,
 			zap.String("user_id", userID), zap.String("client_ip", clientIP))
 	}
 
-	// 3.4 写入用户缓存
 	ctx = logging.NewUserID(ctx, userID)
 	roleIDs, roleCodes, err := l.UserBIZ.GetRoleIDsAndCodes(ctx, userID)
 	if err != nil {
@@ -298,20 +286,15 @@ func (l *Login) Login(ctx context.Context, formItem *schema.LoginForm, clientIP,
 	}
 	logging.Context(ctx).Info("Login success", zap.String("username", formItem.Username))
 
-	// 3.5 审计日志
 	l.writeAuditLog(ctx, operator, realIP, userAgent, "登录", "用户 ["+operator+"] 成功登录系统", "", true, http.StatusOK)
 
-	// 3.6 生成 Token
 	return l.genUserToken(ctx, userID)
 }
 
 // Register 处理公开注册请求。
 // 流程：
-//  1. 检查是否允许注册
-//  2. 验证码校验
 //  3. 用户名/邮箱唯一性校验
 //  4. 创建用户（inactive，含激活 token）并绑定 user 角色
-//  5. 异步发送激活邮件
 func (l *Login) Register(ctx context.Context, formItem *schema.RegisterForm, clientIP, userAgent, realIP string) error {
 	if !config.C.General.AllowRegister {
 		return errors.BadRequest("", "Register is disabled")
@@ -453,7 +436,6 @@ func (l *Login) RefreshToken(ctx context.Context) (*schema.LoginToken, error) {
 // Logout 处理用户登出请求。
 // 流程：
 //  1. 使 Token 失效（加入黑名单）
-//  2. 删除用户缓存
 func (l *Login) Logout(ctx context.Context) error {
 	userToken := util.FromUserToken(ctx)
 	if userToken == "" {
@@ -462,12 +444,10 @@ func (l *Login) Logout(ctx context.Context) error {
 
 	ctx = logging.NewTag(ctx, logging.TagKeyLogout)
 
-	// 1. 使 Token 失效
 	if err := l.Auth.DestroyToken(ctx, userToken); err != nil {
 		return err
 	}
 
-	// 2. 删除用户缓存
 	userID := util.FromUserID(ctx)
 	err := l.Cache.Delete(ctx, config.CacheNSForUser, userID)
 	if err != nil {
@@ -549,7 +529,6 @@ func (l *Login) UpdatePassword(ctx context.Context, updateItem *schema.UpdateLog
 // 流程：
 //  1. 超级管理员返回所有启用菜单
 //  2. 普通用户返回关联菜单 + 祖先菜单
-//  3. 构建树形结构
 func (l *Login) QueryMenus(ctx context.Context) (schema.Menus, error) {
 	menuQueryParams := schema.MenuQueryParam{
 		Status: schema.MenuStatusEnabled,
@@ -560,7 +539,6 @@ func (l *Login) QueryMenus(ctx context.Context) (schema.Menus, error) {
 		menuQueryParams.UserID = util.FromUserID(ctx)
 	}
 
-	// 1. 查询用户菜单
 	menuResult, err := l.MenuDAL.Query(ctx, menuQueryParams, schema.MenuQueryOptions{
 		QueryOptions: util.QueryOptions{
 			OrderFields: schema.MenusOrderParams,
@@ -595,7 +573,6 @@ func (l *Login) QueryMenus(ctx context.Context) (schema.Menus, error) {
 		}
 	}
 
-	// 3. 构建树形结构
 	return menuResult.Data.ToTree(), nil
 }
 

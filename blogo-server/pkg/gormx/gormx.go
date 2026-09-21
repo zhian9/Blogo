@@ -64,7 +64,6 @@ func New(cfg Config) (*gorm.DB, error) {
 		return nil, fmt.Errorf("unsupported database type: %s", cfg.DBType)
 	}
 
-	// 2.配置 GORM 行为
 	ormCfg := &gorm.Config{
 		// 表名策略：添加前缀 + 单数表名（User → user）
 		NamingStrategy: schema.NamingStrategy{
@@ -82,13 +81,11 @@ func New(cfg Config) (*gorm.DB, error) {
 		ormCfg.Logger = logger.Default
 	}
 
-	// 3. 打开数据库连接
 	db, err := gorm.Open(dialector, ormCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	//4. 配置读写分离
 	if len(cfg.Resolver) > 0 {
 		resolver := &dbresolver.DBResolver{}
 

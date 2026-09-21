@@ -34,7 +34,6 @@ func (r *RBAC) ChangeUserRole(c *gin.Context) {
 		return
 	}
 
-	// 2. 解析请求体
 	var req struct {
 		RoleCode string `json:"role_code" binding:"required"`
 	}
@@ -43,7 +42,6 @@ func (r *RBAC) ChangeUserRole(c *gin.Context) {
 		return
 	}
 
-	// 3. 查找目标用户
 	var targetUser schema.User
 	if err := r.DB.Where("id = ?", targetUserID).First(&targetUser).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -60,14 +58,12 @@ func (r *RBAC) ChangeUserRole(c *gin.Context) {
 		return
 	}
 
-	// 5. 查找目标角色
 	var targetRole schema.Role
 	if err := r.DB.Where("code = ?", req.RoleCode).First(&targetRole).Error; err != nil {
 		util.ResError(c, errors.BadRequest("", "无效的角色码: %s", req.RoleCode))
 		return
 	}
 
-	// 6. 执行角色变更（事务）
 	err := r.DB.Transaction(func(tx *gorm.DB) error {
 		// 清除目标用户的所有现有角色
 		if err := tx.Where("user_id = ?", targetUserID).Delete(&schema.UserRole{}).Error; err != nil {

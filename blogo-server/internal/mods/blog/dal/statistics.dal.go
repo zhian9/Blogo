@@ -9,11 +9,13 @@ package dal
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/zhian9/blogo-server/internal/mods/blog/schema"
 	"github.com/zhian9/blogo-server/pkg/errors"
 	"github.com/zhian9/blogo-server/pkg/util"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // GetStatisticsDB 根据上下文返回统计表的 GORM 查询实例
@@ -113,7 +115,23 @@ func (s *Statistics) GetLatest(ctx context.Context, days int) ([]schema.Statisti
 	var stats []schema.Statistics
 	err := GetStatisticsDB(ctx, s.DB).
 		Where("date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)", days).
-		Order("date DESC").
+		Order("date ASC").
 		Find(&stats).Error
 	return stats, errors.WithStack(err)
+}
+
+// Upsert 按日期写入统计数据：日期已存在则覆盖，不存在则插入。
+//
+// 访问量计数由 Redis 维护（见 biz.Statistics.RecordVisit），这里写的是
+// 「当天累计值」而不是增量，所以重复调用不会重复累加，接口重试也安全。
+func (s *Statistics) Upsert(ctx context.Context, stat *schema.Statistics) error {
+	if stat == nil || stat.Date == "" {
+		return fmt.Errorf("statistics: date is required")
+	}
+
+	result := GetStatisticsDB(ctx, s.DB).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "date"}},
+		DoUpdates: clause.AssignmentColumns([]string{"pv", "uv", "ip_count", "updated_at"}),
+	}).Create(stat)
+	return errors.WithStack(result.Error)
 }

@@ -133,7 +133,6 @@ func (h *GormHook) Exec(extra map[string]string, b []byte) error {
 		msg.Data = string(buf)
 	}
 
-	// 6. 写入数据库
 	return h.db.Create(msg).Error
 }
 

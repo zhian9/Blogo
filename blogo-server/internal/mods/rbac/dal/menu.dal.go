@@ -40,16 +40,13 @@ type Menu struct {
 //   - 分页
 //   - 字段选择/排序
 func (m *Menu) Query(ctx context.Context, params schema.MenuQueryParam, opts ...schema.MenuQueryOptions) (*schema.MenuQueryResult, error) {
-	// 1. 解析查询选项
 	var opt schema.MenuQueryOptions
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
 
-	// 2. 构建基础查询
 	db := GetMenuDB(ctx, m.DB)
 
-	// 3. 应用查询条件
 	if v := params.InIDs; len(v) > 0 {
 		db = db.Where("id IN ?", v) // 精确匹配 ID 列表
 	}
@@ -83,14 +80,12 @@ func (m *Menu) Query(ctx context.Context, params schema.MenuQueryParam, opts ...
 		db = db.Where("id IN (?)", roleMenuQuery)
 	}
 
-	// 5. 执行分页查询
 	var list schema.Menus
 	pageResult, err := util.WrapPageQuery(ctx, db, params.PaginationParam, opt.QueryOptions, &list)
 	if err != nil {
 		return nil, errors.WithStack(err) // 保留错误堆栈
 	}
 
-	// 6. 返回查询结果
 	return &schema.MenuQueryResult{
 		PageResult: pageResult,
 		Data:       list,

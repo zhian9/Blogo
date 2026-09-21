@@ -37,28 +37,23 @@ type RoleMenu struct {
 //   - 分页
 //   - 字段选择/排序
 func (rm *RoleMenu) Query(ctx context.Context, params schema.RoleMenuQueryParam, opts ...schema.RoleMenuQueryOptions) (*schema.RoleMenuQueryResult, error) {
-	// 1. 解析查询选项
 	var opt schema.RoleMenuQueryOptions
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
 
-	// 2. 构建基础查询
 	db := GetRoleMenuDB(ctx, rm.DB)
 
-	// 3. 应用查询条件
 	if v := params.RoleID; len(v) > 0 {
 		db = db.Where("role_id = ?", v) // 查询指定角色的菜单权限
 	}
 
-	// 4. 执行分页查询
 	var list schema.RoleMenus
 	pageResult, err := util.WrapPageQuery(ctx, db, params.PaginationParam, opt.QueryOptions, &list)
 	if err != nil {
 		return nil, errors.WithStack(err) // 保留错误堆栈
 	}
 
-	// 5. 返回查询结果
 	return &schema.RoleMenuQueryResult{
 		PageResult: pageResult,
 		Data:       list,

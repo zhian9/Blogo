@@ -33,7 +33,6 @@ type Role struct {
 // 流程：
 //  1. 根据 ResultType 决定是否分页
 //  2. 设置查询字段（下拉模式仅需 id/name）
-//  3. 按序号和创建时间排序
 func (r *Role) Query(ctx context.Context, params schema.RoleQueryParam) (*schema.RoleQueryResult, error) {
 	params.Pagination = true
 
@@ -61,7 +60,6 @@ func (r *Role) Query(ctx context.Context, params schema.RoleQueryParam) (*schema
 
 // Get 获取单个角色信息（含菜单权限）。
 func (r *Role) Get(ctx context.Context, id string) (*schema.Role, error) {
-	// 1. 查询角色基本信息
 	role, err := r.RoleDAL.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -93,7 +91,6 @@ func (r *Role) Create(ctx context.Context, roleForm *schema.RoleForm) (*schema.R
 		return nil, errors.BadRequest("", "Role code already exists")
 	}
 
-	// 2. 初始化角色实体
 	role := &schema.Role{
 		ID:        util.NewXID(), // 生成唯一 ID
 		CreatedAt: time.Now(),
@@ -102,14 +99,11 @@ func (r *Role) Create(ctx context.Context, roleForm *schema.RoleForm) (*schema.R
 		return nil, err
 	}
 
-	// 3. 事务内执行
 	err := r.Trans.Exec(ctx, func(ctx context.Context) error {
-		// 3.1 创建角色
 		if err := r.RoleDAL.Create(ctx, role); err != nil {
 			return err
 		}
 
-		// 3.2 创建角色菜单
 		for _, roleMenu := range roleForm.Menus {
 			roleMenu.ID = util.NewXID()
 			roleMenu.RoleID = role.ID
@@ -126,18 +120,15 @@ func (r *Role) Create(ctx context.Context, roleForm *schema.RoleForm) (*schema.R
 		return nil, err
 	}
 
-	// 4. 返回角色（含菜单）
 	role.Menus = roleForm.Menus
 	return role, nil
 }
 
 // Update 更新角色信息（含菜单权限重分配）。
 // 流程：
-//  1. 角色存在性校验
 //  2. 角色编码唯一性校验（如果修改）
 //  3. 事务内：更新角色 + 删除旧菜单 + 创建新菜单 + 同步 Casbin
 func (r *Role) Update(ctx context.Context, id string, roleForm *schema.RoleForm) error {
-	// 1. 获取角色信息
 	role, err := r.RoleDAL.Get(ctx, id)
 	if err != nil {
 		return err
@@ -154,15 +145,12 @@ func (r *Role) Update(ctx context.Context, id string, roleForm *schema.RoleForm)
 		}
 	}
 
-	// 3. 填充表单数据
 	if err := roleForm.FillTo(role); err != nil {
 		return err
 	}
 	role.UpdatedAt = time.Now()
 
-	// 4. 事务内执行
 	return r.Trans.Exec(ctx, func(ctx context.Context) error {
-		// 4.1 更新角色
 		if err := r.RoleDAL.Update(ctx, role); err != nil {
 			return err
 		}
@@ -194,10 +182,8 @@ func (r *Role) Update(ctx context.Context, id string, roleForm *schema.RoleForm)
 
 // Delete 删除角色（级联删除菜单权限和用户关联）。
 // 流程：
-//  1. 角色存在性校验
 //  2. 事务内：删除角色 + 删除菜单权限 + 删除用户关联 + 同步 Casbin
 func (r *Role) Delete(ctx context.Context, id string) error {
-	// 1. 角色存在性校验
 	exists, err := r.RoleDAL.Exists(ctx, id)
 	if err != nil {
 		return err
@@ -205,9 +191,7 @@ func (r *Role) Delete(ctx context.Context, id string) error {
 		return errors.NotFound("", "Role not found")
 	}
 
-	// 2. 事务内执行
 	return r.Trans.Exec(ctx, func(ctx context.Context) error {
-		// 2.1 删除角色
 		if err := r.RoleDAL.Delete(ctx, id); err != nil {
 			return err
 		}
@@ -215,7 +199,6 @@ func (r *Role) Delete(ctx context.Context, id string) error {
 		if err := r.RoleMenuDAL.DeleteByRoleID(ctx, id); err != nil {
 			return err
 		}
-		// 2.3 删除用户角色关联
 		if err := r.UserRoleDAL.DeleteByRoleID(ctx, id); err != nil {
 			return err
 		}

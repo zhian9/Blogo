@@ -147,7 +147,6 @@ func (c *Category) FindOrCreateByName(ctx context.Context, name string) (string,
 		return "", nil
 	}
 
-	// 1. 尝试按名称查找
 	existing, err := c.GetByName(ctx, name)
 	if err != nil {
 		return "", err
@@ -156,7 +155,6 @@ func (c *Category) FindOrCreateByName(ctx context.Context, name string) (string,
 		return existing.ID, nil
 	}
 
-	// 2. 不存在则创建
 	cat := &schema.Category{
 		ID:        util.NewXID(),
 		Name:      name,

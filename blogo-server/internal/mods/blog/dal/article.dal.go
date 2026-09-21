@@ -158,11 +158,17 @@ func (a *Article) Query(ctx context.Context, params schema.ArticleQueryParam, op
 	if v := params.IsTop; v != nil {
 		db = db.Where("is_top = ?", *v)
 	}
-	if v := params.PublishedAtGte; v != nil {
-		db = db.Where("published_at >= ?", *v)
+	// 时间区间同时兼容 "YYYY-MM-DD" 与 RFC3339：前端归档筛选传的是纯日期，
+	// 历史客户端传的是 RFC3339。上界按当天 23:59:59 处理，避免把当天的文章漏掉。
+	if v := params.PublishedAtGte; v != "" {
+		if t, ok := util.ParseFlexibleTime(v, false); ok {
+			db = db.Where("published_at >= ?", t)
+		}
 	}
-	if v := params.PublishedAtLte; v != nil {
-		db = db.Where("published_at <= ?", *v)
+	if v := params.PublishedAtLte; v != "" {
+		if t, ok := util.ParseFlexibleTime(v, true); ok {
+			db = db.Where("published_at <= ?", t)
+		}
 	}
 
 	if opt.WithCategory {
@@ -304,6 +310,22 @@ func (a *Article) ExistsSlug(ctx context.Context, slug string) (bool, error) {
 	ok, err := util.Exists(ctx, GetArticleDB(ctx, a.DB).Where("slug = ?", slug))
 	return ok, errors.WithStack(err)
 }
+
+// GetBriefByIDs 按 ID 批量查询文章（用于标签引用列表等只需标题/状态的场景）
+func (a *Article) GetBriefByIDs(ctx context.Context, ids []string) (schema.Articles, error) {
+	var list schema.Articles
+	if len(ids) == 0 {
+		return list, nil
+	}
+
+	err := GetArticleDB(ctx, a.DB).
+		Select("id, title, slug, status, visibility, published_at").
+		Where("id IN ?", ids).
+		Order("published_at DESC").
+		Find(&list).Error
+	return list, errors.WithStack(err)
+}
+
 func (a *Article) Create(ctx context.Context, article *schema.Article) error {
 	result := GetArticleDB(ctx, a.DB).Create(article)
 	return errors.WithStack(result.Error)

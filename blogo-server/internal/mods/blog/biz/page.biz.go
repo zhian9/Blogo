@@ -72,21 +72,17 @@ func (p *Page) Create(ctx context.Context, form *schema.PageForm) (*schema.Page,
 		return nil, errors.BadRequest("", "Slug already exists")
 	}
 
-	// 2. 表单验证
 	if err := form.Validate(); err != nil {
 		return nil, err
 	}
 
-	// 3. 初始化实体
 	page := &schema.Page{
 		ID:        util.NewXID(),
 		CreatedAt: time.Now(),
 	}
 
-	// 4. 填充数据
 	form.FillTo(page)
 
-	// 5. 事务内创建
 	err = p.Trans.Exec(ctx, func(ctx context.Context) error {
 		return p.PageDAL.Create(ctx, page)
 	})
@@ -99,7 +95,6 @@ func (p *Page) Create(ctx context.Context, form *schema.PageForm) (*schema.Page,
 
 // Update 更新页面。
 func (p *Page) Update(ctx context.Context, id string, form *schema.PageForm) error {
-	// 1. 获取原页面
 	page, err := p.PageDAL.Get(ctx, id)
 	if err != nil {
 		return err
@@ -117,16 +112,13 @@ func (p *Page) Update(ctx context.Context, id string, form *schema.PageForm) err
 		}
 	}
 
-	// 3. 表单验证
 	if err := form.Validate(); err != nil {
 		return err
 	}
 
-	// 4. 填充数据
 	form.FillTo(page)
 	page.UpdatedAt = time.Now()
 
-	// 5. 事务内更新
 	return p.Trans.Exec(ctx, func(ctx context.Context) error {
 		return p.PageDAL.Update(ctx, page)
 	})

@@ -59,8 +59,11 @@ func (s Settings) ToKeys() []string {
 
 // SettingForm 配置表单
 type SettingForm struct {
-	Key         string `json:"key" binding:"required,max=100"`
-	Value       string `json:"value" binding:"required"`
+	// Key 由创建接口必填、更新接口以 URL 路径为准，因此这里不标 required，
+	// 统一交给 Validate 校验格式（空值会被 IsConfigKey 拦下）
+	Key         string `json:"key" binding:"max=100"`
+	// Value 允许为空：像联系邮箱、关于页正文这类配置项需要能被清空
+	Value       string `json:"value"`
 	Description string `json:"description" binding:"max=255"`
 }
 

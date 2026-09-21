@@ -32,7 +32,6 @@ const (
 func (r *RBAC) InitAdminAccount(ctx context.Context) error {
 	db := r.DB
 
-	// 1. 确保五个角色存在
 	allRoles := map[string]string{
 		seedAdminRoleCode:   seedAdminRoleName,
 		"content_manager":   "内容管理员",

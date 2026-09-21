@@ -116,30 +116,26 @@ func (b *Blog) initDefaultPages(ctx context.Context) error {
 	defaultPages := []schema.Page{
 		{
 			ID:          util.NewXID(),
-			Title:       "关于我",
+			Title:       "关于作者",
 			Slug:        "about",
-			Content: `## 👋 关于我
+			Content: `## 👋 你好，我是李星云
 
-一名热爱技术的全栈开发者，专注于 **Go** 后端开发与 **React** 前端工程化。
+一名全栈开发者，主力方向是 **Go 后端** 与 **React 前端工程化**。
 
-### 🛠 技术栈
+### 🛠 我在做什么
 
-- **后端**: Go · Gin · GORM · MySQL · Redis
-- **前端**: React · TypeScript · Ant Design · Framer Motion
-- **运维**: Docker · Nginx · Linux · GitHub Actions
+- **后端**：用 Go 构建高并发服务，关注微服务拆分、缓存与消息队列、数据一致性
+- **前端**：React + TypeScript 工程化实践，偏好克制、干净的界面
+- **运维**：Docker / Nginx / Linux 日常部署，也折腾过 Kubernetes
 
-### 📝 关于本站
+### 📦 近期在做的事
 
-Blogo 是一个自建的轻量级博客系统，后端基于 **Go + Gin + GORM 2.0**，前端使用 **React + TypeScript**，支持 Markdown 写作、RBAC 权限管理、邮件订阅等功能。
+- **Blogo**：你现在看到的这个博客系统，后端 Go + Gin + GORM，前端 React 19，支持 RBAC 权限、评论审核、访问统计，已部署上线
+- **GoForge**：基于 go-zero 的微服务电商系统，15 个业务服务 + 网关，重点处理秒杀链路的库存与订单一致性
 
-写博客的初衷是记录学习过程中的思考与踩坑，同时分享给有同样兴趣的朋友。
+### ✍️ 关于这个博客
 
-### 📬 联系方式
-
-- GitHub: [github.com/zhian9](https://github.com/zhian9)
-- Email: 通过网站侧边栏订阅更新
-
-> "Stay hungry, stay foolish." — Steve Jobs`,
+用来记录学习过程中的思考与踩坑，写给自己，也希望恰好能帮到路过的你。文章基本都是实践总结，欢迎指正交流。`,
 			IsPublished: true,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
@@ -158,25 +154,46 @@ Blogo 是一个自建的轻量级博客系统，后端基于 **Go + Gin + GORM 2
 	return b.DB.CreateInBatches(defaultPages, 10).Error
 }
 
-// initDefaultSettings 初始化默认系统配置
+// initDefaultSettings 补齐默认系统配置（按 key 幂等：已存在的不覆盖，缺失的补上）
+//
+// 之所以不是"表为空才初始化"：后续版本新增的配置项（如首页文案）也要能自动补进已有站点，
+// 否则老站点永远拿不到新 key，也就无法在后台修改。
 func (b *Blog) initDefaultSettings(ctx context.Context) error {
-	var count int64
-	if err := b.DB.Model(&schema.Setting{}).Count(&count).Error; err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil // 已有配置，跳过
-	}
-
 	defaultSettings := []schema.Setting{
 		{Key: "site_title", Value: "Blogo", Description: "网站标题"},
 		{Key: "site_description", Value: "记录技术成长的点滴", Description: "网站描述"},
 		{Key: "site_keywords", Value: "Go,博客,技术分享", Description: "SEO 关键词"},
 		{Key: "icp_license", Value: "京ICP备12345678号", Description: "备案号"},
 		{Key: "github_url", Value: "https://github.com/zhian9", Description: "GitHub 链接"},
+		// 首页文案：后台「系统设置」里可直接修改
+		{Key: "hero_title", Value: "Blogo", Description: "首页主标题"},
+		{Key: "hero_subtitle", Value: "基于 React + Go 构建的技术博客。|分享后端开发、系统设计与开源相关的思考。", Description: "首页副标题（用 | 分行）"},
+		{Key: "about_button_label", Value: "关于作者", Description: "首页「关于」按钮文案"},
+		{Key: "about_subtitle", Value: "全栈开发者 · 开源爱好者", Description: "关于页副标题"},
+		{Key: "about_tech_stack", Value: "Go · Gin · GORM|高性能后端框架;;React · TypeScript|现代前端工程化;;Docker · Linux|DevOps 与部署", Description: "关于页技术栈卡片（标题|描述；多张卡片用 ;; 分隔）"},
+		{Key: "contact_email", Value: "", Description: "关于页联系邮箱（留空则不显示 Email 按钮）"},
+		{Key: "about_content", Value: "", Description: "关于页正文（Markdown，留空则使用「页面管理 → about」的内容）"},
 	}
 
-	return b.DB.CreateInBatches(defaultSettings, 10).Error
+	var existing []string
+	if err := b.DB.Model(&schema.Setting{}).Pluck("key", &existing).Error; err != nil {
+		return err
+	}
+	exists := make(map[string]bool, len(existing))
+	for _, key := range existing {
+		exists[key] = true
+	}
+
+	var missing []schema.Setting
+	for _, item := range defaultSettings {
+		if !exists[item.Key] {
+			missing = append(missing, item)
+		}
+	}
+	if len(missing) == 0 {
+		return nil
+	}
+	return b.DB.CreateInBatches(missing, 10).Error
 }
 
 // RegisterV1PublicRouters 注册博客公开接口（无需认证，注册在 Auth 之前）。
@@ -212,10 +229,13 @@ func (b *Blog) RegisterV1PublicRouters(ctx context.Context, v1 *gin.RouterGroup)
 		// 标签分类
 		public.GET("/tags/all", b.TagAPI.GetAll)
 		public.GET("/categories/all", b.CategoryAPI.GetAll)
+		// 系统配置（前台首页文案等公共配置，匿名可读）
+		public.GET("/settings/all", b.SettingAPI.GetAll)
 
 		// 统计
 		public.GET("/statistics/latest", b.StatisticsAPI.GetLatest)
 		public.GET("/statistics/public", b.StatisticsAPI.GetPublicStats)
+		public.POST("/statistics/visit", b.StatisticsAPI.Visit)
 
 		// 图片
 		public.GET("/images/category/:category", b.ImageAPI.GetByCategory)
@@ -317,6 +337,7 @@ func (b *Blog) RegisterV1Routers(ctx context.Context, v1 *gin.RouterGroup) error
 	{
 		tag.GET("", b.TagAPI.Query)
 		tag.GET("/:id", b.TagAPI.Get)
+		tag.GET("/:id/references", b.TagAPI.References)
 		tag.POST("", b.TagAPI.Create)
 		tag.PUT("/:id", b.TagAPI.Update)
 		tag.DELETE("/:id", b.TagAPI.Delete)
@@ -350,7 +371,6 @@ func (b *Blog) RegisterV1Routers(ctx context.Context, v1 *gin.RouterGroup) error
 		setting.POST("", b.SettingAPI.Create)
 		setting.PUT("/:key", b.SettingAPI.Update)
 		setting.DELETE("/:key", b.SettingAPI.Delete)
-		setting.GET("/all", b.SettingAPI.GetAll)
 	}
 
 	// 通知管理

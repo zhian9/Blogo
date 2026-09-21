@@ -70,7 +70,6 @@ func NewService(redisClient *redis.Client) (*Service, error) {
 		80,  // 字体大小
 	)
 
-	// 2. 创建 Store
 	var store base64Captcha.Store
 
 	switch cfg.CacheType {

@@ -82,3 +82,29 @@ func (at *ArticleTag) Exists(ctx context.Context, articleID, tagID string) (bool
 	ok, err := util.Exists(ctx, GetArticleTagDB(ctx, at.DB).Where("article_id = ? AND tag_id = ?", articleID, tagID))
 	return ok, errors.WithStack(err)
 }
+
+// CountByTagIDs 批量统计每个标签被多少篇文章引用（用于后台标签列表展示）
+func (at *ArticleTag) CountByTagIDs(ctx context.Context, tagIDs []string) (map[string]int64, error) {
+	counts := make(map[string]int64, len(tagIDs))
+	if len(tagIDs) == 0 {
+		return counts, nil
+	}
+
+	var rows []struct {
+		TagID string `gorm:"column:tag_id"`
+		Total int64  `gorm:"column:total"`
+	}
+	err := GetArticleTagDB(ctx, at.DB).
+		Select("tag_id, COUNT(*) AS total").
+		Where("tag_id IN ?", tagIDs).
+		Group("tag_id").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	for _, row := range rows {
+		counts[row.TagID] = row.Total
+	}
+	return counts, nil
+}

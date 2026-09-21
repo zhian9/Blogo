@@ -9,8 +9,9 @@ package config
 
 // 缓存命名空间
 const (
-	CacheNSForUser = "user" // 用户缓存命名空间
-	CacheNSForRole = "role" // 角色缓存命名空间
+	CacheNSForUser  = "user"  // 用户缓存命名空间
+	CacheNSForRole  = "role"  // 角色缓存命名空间
+	CacheNSForStats = "stats" // 访问量统计缓存命名空间（PV/UV/IP 计数）
 )
 
 // 缓存键

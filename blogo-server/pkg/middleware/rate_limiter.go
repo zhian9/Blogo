@@ -70,9 +70,7 @@ func RateLimiterWithConfig(config RateLimiterConfig) gin.HandlerFunc {
 		store = NewRateLimiterMemoryStore(config.MemoryStoreConfig)
 	}
 
-	// 2. 返回中间件函数
 	return func(c *gin.Context) {
-		// 2.1 路径过滤：决定是否限流
 		if !AllowedPathPrefixes(c, config.AllowedPathPrefixes...) ||
 			SkippedPathPrefixes(c, config.SkippedPathPrefixes...) {
 			c.Next()
@@ -93,7 +91,6 @@ func RateLimiterWithConfig(config RateLimiterConfig) gin.HandlerFunc {
 			allowed, err = store.Allow(ctx, c.ClientIP(), time.Second*time.Duration(config.Period), config.MaxRequestsPerIP)
 		}
 
-		// 2.3 处理限流结果
 		if err != nil {
 			// 存储错误 → 记录日志 + 返回 500
 			logging.Context(ctx).Error("Rate limiter middleware error", zap.Error(err))
@@ -147,7 +144,6 @@ func (s *RateLimiterMemoryStore) Allow(ctx context.Context, identifier string, p
 		return true, nil
 	}
 
-	// 2. 尝试获取现有限流器
 	if limiter, exists := s.cache.Get(identifier); exists {
 		isAllow := limiter.(*rate.Limiter).Allow()
 		// 刷新过期时间
@@ -155,7 +151,6 @@ func (s *RateLimiterMemoryStore) Allow(ctx context.Context, identifier string, p
 		return isAllow, nil
 	}
 
-	// 3. 创建新限流器
 	// 注意：rate.Every(period) 表示每 period 时间填充 1 个令牌
 	//       但我们需要的是 period 内 maxRequests 个令牌
 	//       因此应使用 rate.Limit = rate.Every(period / time.Duration(maxRequests))
@@ -196,7 +191,6 @@ type RateLimiterRedisStore struct {
 
 // Allow 实现 Redis 限流逻辑。
 func (s *RateLimiterRedisStore) Allow(ctx context.Context, identifier string, period time.Duration, maxRequests int) (bool, error) {
-	// 1. 参数校验
 	if period.Seconds() <= 0 || maxRequests <= 0 {
 		return true, nil
 	}
@@ -208,7 +202,6 @@ func (s *RateLimiterRedisStore) Allow(ctx context.Context, identifier string, pe
 		ratePerSec = 1 // 至少 1 req/s
 	}
 
-	// 3. 调用 Redis 限流器
 	result, err := s.limiter.Allow(ctx, identifier, redis_rate.PerSecond(ratePerSec))
 	if err != nil {
 		return false, err

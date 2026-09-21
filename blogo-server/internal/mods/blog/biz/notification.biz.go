@@ -58,7 +58,6 @@ func (n *Notification) Get(ctx context.Context, id string) (*schema.Notification
 
 // Create 创建新通知（通常由系统事件触发，如评论、审核）。
 func (n *Notification) Create(ctx context.Context, form *schema.NotificationForm) (*schema.Notification, error) {
-	// 1. 校验用户存在性（可选）
 	if form.UserID != "" {
 		exists, err := n.UserDAL.ExistsID(ctx, form.UserID)
 		if err != nil {
@@ -68,21 +67,17 @@ func (n *Notification) Create(ctx context.Context, form *schema.NotificationForm
 		}
 	}
 
-	// 2. 表单验证
 	if err := form.Validate(); err != nil {
 		return nil, err
 	}
 
-	// 3. 初始化实体
 	notification := &schema.Notification{
 		ID:        util.NewXID(),
 		CreatedAt: time.Now(),
 	}
 
-	// 4. 填充数据
 	form.FillTo(notification)
 
-	// 5. 事务内创建
 	err := n.Trans.Exec(ctx, func(ctx context.Context) error {
 		return n.NotificationDAL.Create(ctx, notification)
 	})
@@ -95,7 +90,6 @@ func (n *Notification) Create(ctx context.Context, form *schema.NotificationForm
 
 // MarkAsRead 将通知标记为已读。
 func (n *Notification) MarkAsRead(ctx context.Context, id string) error {
-	// 1. 校验存在性
 	exists, err := n.NotificationDAL.ExistsID(ctx, id)
 	if err != nil {
 		return err
@@ -103,7 +97,6 @@ func (n *Notification) MarkAsRead(ctx context.Context, id string) error {
 		return errors.NotFound("", "Notification not found")
 	}
 
-	// 2. 更新状态
 	return n.Trans.Exec(ctx, func(ctx context.Context) error {
 		return n.NotificationDAL.Update(ctx, &schema.Notification{
 			ID:        id,

@@ -173,7 +173,6 @@ func (c *Contribution) ComputeContributions(ctx context.Context, userID string) 
 		}
 	}
 
-	// 4. 填充发布计数
 	for _, day := range days {
 		if cnt, ok := pubMap[day.Date]; ok {
 			day.PublishCount = cnt

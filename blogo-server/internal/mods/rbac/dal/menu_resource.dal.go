@@ -41,15 +41,12 @@ type MenuResource struct {
 //   - 分页
 //   - 字段选择/排序
 func (mr *MenuResource) Query(ctx context.Context, params schema.MenuResourceQueryParam, opts ...schema.MenuResourceQueryOptions) (*schema.MenuResourceQueryResult, error) {
-	// 1. 解析查询选项
 	var opt schema.MenuResourceQueryOptions
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
 
-	// 2. 构建基础查询
 	db := GetMenuResourceDB(ctx, mr.DB)
-	// 3. 应用查询条件
 	if v := params.MenuID; len(v) > 0 {
 		db = db.Where("menu_id = ?", v) // 查询单个菜单的资源
 	}
@@ -57,14 +54,12 @@ func (mr *MenuResource) Query(ctx context.Context, params schema.MenuResourceQue
 		db = db.Where("menu_id IN ?", v) // 批量查询多个菜单的资源
 	}
 
-	// 4. 执行分页查询
 	var list schema.MenuResources
 	pageResult, err := util.WrapPageQuery(ctx, db, params.PaginationParam, opt.QueryOptions, &list)
 	if err != nil {
 		return nil, errors.WithStack(err) // 保留错误堆栈
 	}
 
-	// 5. 返回查询结果
 	return &schema.MenuResourceQueryResult{
 		PageResult: pageResult,
 		Data:       list,

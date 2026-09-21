@@ -183,7 +183,6 @@ func ResPage(c *gin.Context, v interface{}, pr *PaginationResult) {
 func ResError(c *gin.Context, err error, status ...int) {
 	var ierr *errors.Error
 
-	// 1. 尝试转换为结构化错误
 	if e, ok := errors.As(err); ok {
 		ierr = e
 	} else {
@@ -191,7 +190,6 @@ func ResError(c *gin.Context, err error, status ...int) {
 		ierr = errors.FromError(errors.InternalServerError("", "%s", err.Error()))
 	}
 
-	// 2. 确定 HTTP 状态码
 	code := int(ierr.Code)
 	if len(status) > 0 {
 		code = status[0] // 允许覆盖状态码
@@ -208,7 +206,6 @@ func ResError(c *gin.Context, err error, status ...int) {
 		ierr.Detail = http.StatusText(http.StatusInternalServerError)
 	}
 
-	// 4. 更新状态码并返回
 	ierr.Code = int32(code)
 	ResJSON(c, code, ResponseResult{Error: ierr})
 }

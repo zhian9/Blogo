@@ -116,7 +116,6 @@ func InitCacher(ctx context.Context) (cachex.Cacher, func(), error) {
 func InitAuth(ctx context.Context) (jwtx.Auther, func(), error) {
 	cfg := config.C.Middleware.Auth
 
-	// 1. 配置 JWT 选项
 	var opts []jwtx.Option
 	opts = append(opts, jwtx.SetExpired(cfg.Expired))
 	opts = append(opts, jwtx.SetSigningKey(cfg.SigningKey, cfg.OldSigningKey))
@@ -149,7 +148,6 @@ func InitAuth(ctx context.Context) (jwtx.Auther, func(), error) {
 		}, cachex.WithDelimiter(cfg.Store.Delimiter))
 	}
 
-	// 3. 创建认证器
 	auth := jwtx.New(jwtx.NewStoreWithCache(cache), opts...)
 
 	// 返回清理函数：释放认证器资源（如关闭存储后端）

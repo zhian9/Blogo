@@ -11,7 +11,9 @@ import (
 	"github.com/zhian9/blogo-server/internal/mods/blog/dal"
 	"github.com/zhian9/blogo-server/internal/mods/blog/schema"
 	"github.com/zhian9/blogo-server/pkg/errors"
+	"github.com/zhian9/blogo-server/pkg/logging"
 	"github.com/zhian9/blogo-server/pkg/util"
+	"go.uber.org/zap"
 )
 
 type Tag struct {
@@ -21,16 +23,72 @@ type Tag struct {
 	ArticleTagDAL *dal.ArticleTag // 中间表（用于清理关联）
 }
 
-// Query 查询标签列表
+// Query 查询标签列表（附带每个标签的引用文章数，便于后台判断能否删除）
 func (t *Tag) Query(ctx context.Context, params schema.TagQueryParam) (*schema.TagQueryResult, error) {
 	params.Pagination = true
-	return t.TagDAL.Query(ctx, params, schema.TagQueryOptions{
+	result, err := t.TagDAL.Query(ctx, params, schema.TagQueryOptions{
 		QueryOptions: util.QueryOptions{
 			OrderFields: []util.OrderByParam{
 				{Field: "created_at", Direction: util.DESC},
 			},
 		},
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	t.fillArticleCount(ctx, result.Data)
+	return result, nil
+}
+
+// fillArticleCount 批量填充标签的引用文章数
+func (t *Tag) fillArticleCount(ctx context.Context, tags schema.Tags) {
+	if len(tags) == 0 {
+		return
+	}
+
+	counts, err := t.ArticleTagDAL.CountByTagIDs(ctx, tags.ToIDs())
+	if err != nil {
+		logging.Context(ctx).Error("fill tag article count failed", zap.Error(err))
+		return
+	}
+	for _, tag := range tags {
+		tag.ArticleCount = counts[tag.ID]
+	}
+}
+
+// GetReferences 查询标签被哪些文章引用（后台删除标签前的提示用）
+func (t *Tag) GetReferences(ctx context.Context, id string) (*schema.TagReferenceResult, error) {
+	tag, err := t.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	articleIDs, err := t.ArticleTagDAL.GetArticlesByTagID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &schema.TagReferenceResult{TagID: tag.ID, TagName: tag.Name}
+	if len(articleIDs) == 0 {
+		return result, nil
+	}
+
+	articles, err := t.ArticleDAL.GetBriefByIDs(ctx, articleIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, article := range articles {
+		result.Articles = append(result.Articles, &schema.TagReference{
+			ID:          article.ID,
+			Title:       article.Title,
+			Slug:        article.Slug,
+			Status:      article.Status,
+			PublishedAt: &article.PublishedAt,
+		})
+	}
+	result.Total = int64(len(articleIDs))
+	return result, nil
 }
 
 // Get 获取单个标签
@@ -54,7 +112,6 @@ func (t *Tag) Create(ctx context.Context, form *schema.TagForm) (*schema.Tag, er
 		return nil, errors.BadRequest("", "Tag name already exists")
 	}
 
-	// 2. 表单验证
 	if err := form.Validate(); err != nil {
 		return nil, err
 	}

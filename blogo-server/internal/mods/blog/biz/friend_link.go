@@ -46,12 +46,10 @@ func (f *FriendLink) Create(ctx context.Context, form *schema.FriendLinkForm) (*
 		return nil, errors.BadRequest("", "Friend link name already exists")
 	}
 
-	// 2. 表单验证
 	if err := form.Validate(); err != nil {
 		return nil, err
 	}
 
-	// 3. 事务内创建
 	err = f.Trans.Exec(ctx, func(ctx context.Context) error {
 		link := &schema.FriendLink{
 			ID:        util.NewXID(),
