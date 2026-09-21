@@ -4,6 +4,7 @@ import { ArrowRightOutlined, UserOutlined, MailOutlined } from '@ant-design/icon
 import { motion } from 'framer-motion'
 import VideoBackground from './VideoBackground'
 import { getPublicStats } from '../api/statistics'
+import { useSettings } from '../hooks/useSettings'
 
 const HERO_VIDEO = 'https://media.blogo.cloud/blogo.mp4'
 
@@ -37,6 +38,16 @@ const statVariants = {
 
 export default function HeroSection() {
   const navigate = useNavigate()
+  // 首页文案与「关于」按钮文案来自后台「系统设置」，未配置时回退到默认值
+  const { data: settingsData } = useSettings()
+  const settings = (settingsData?.data || []).reduce<Record<string, string>>((acc, item) => {
+    acc[item.key] = item.value
+    return acc
+  }, {})
+  const heroTitle = settings.hero_title || 'Blogo'
+  const heroSubtitleLines = (settings.hero_subtitle ||
+    '基于 React + Go 构建的技术博客。|分享后端开发、系统设计与开源相关的思考。').split('|')
+  const aboutButtonLabel = settings.about_button_label || '关于作者'
   const [stats, setStats] = useState([
     { value: '0+', label: '篇文章' },
     { value: '0+', label: '个分类' },
@@ -118,7 +129,7 @@ export default function HeroSection() {
             textShadow: '0 0 120px rgba(79,110,247,0.3), 0 0 200px rgba(139,92,246,0.15)',
           }}
         >
-          Blogo
+          {heroTitle}
           <br />
           <span style={{ fontSize: '0.7em', letterSpacing: '-0.02em' }}>博客</span>
         </motion.h1>
@@ -137,9 +148,13 @@ export default function HeroSection() {
             marginBottom: 48,
           }}
         >
-          基于 React + Go 构建的技术博客。
-          <br />
-          分享后端开发、系统设计与开源相关的思考。
+          {heroSubtitleLines[0]}
+          {heroSubtitleLines[1] ? (
+            <>
+              <br />
+              {heroSubtitleLines[1]}
+            </>
+          ) : null}
         </motion.p>
 
         {/* ── CTA Buttons ── */}
@@ -180,7 +195,7 @@ export default function HeroSection() {
                 letterSpacing: '0.03em', border: 'none', outline: 'none',
               }}
             >
-              <UserOutlined /> 关于我
+              <UserOutlined /> {aboutButtonLabel}
             </button>
           </motion.div>
 

@@ -14,11 +14,6 @@ export interface ApiError {
   status: string
 }
 
-export interface PaginationParams {
-  current: number
-  pageSize: number
-}
-
 // ==================== Article ====================
 
 export interface Article {
@@ -138,18 +133,6 @@ export interface Setting {
   key: string
   value: string
   description: string
-  created_at: string
-  updated_at: string
-}
-
-// ==================== Statistics ====================
-
-export interface Statistics {
-  id: string
-  date: string
-  pv: number
-  uv: number
-  ip_count: number
   created_at: string
   updated_at: string
 }
@@ -277,16 +260,6 @@ export interface UpdateCurrentUser {
   remark: string
 }
 
-// ==================== FriendLink ====================
-
-export interface FriendLink {
-  id: string
-  name: string
-  url: string
-  description: string
-  sort: number
-}
-
 // ==================== Project ====================
 
 export interface Project {
@@ -304,8 +277,6 @@ export interface Project {
   author?: AuthorInfo
   tags?: Tag[]
   views: number
-  like_count: number
-  favorite_count: number
   comment_count: number
   is_top: boolean
   is_featured: boolean
@@ -316,8 +287,7 @@ export interface Project {
   github_url: string
   demo_url: string
   visible_users?: { id: string; project_id: string; user_id: string }[]
-  timeline?: ProjectTimeline[]
-  resources?: ProjectResource[]
+  highlights: string
   published_at: string
   seo_title: string
   seo_keywords: string
@@ -343,38 +313,8 @@ export interface ProjectForm {
   github_url: string
   demo_url: string
   visible_user_ids?: string[]
+  highlights?: string
   seo_title: string
   seo_keywords: string
   seo_desc: string
-}
-
-export interface ProjectTimeline {
-  id: string
-  project_id: string
-  title: string
-  description: string
-  type: 'launch' | 'version' | 'feature' | 'milestone' | 'breaking' | 'archived'
-  version: string
-  image_id: string
-  link: string
-  event_date: string
-  sort_order: number
-  created_at: string
-  updated_at: string
-}
-
-export interface ProjectResource {
-  id: string
-  project_id: string
-  title: string
-  url: string
-  type: 'document' | 'video' | 'slide' | 'article' | 'design' | 'other'
-  sort_order: number
-  created_at: string
-  updated_at: string
-}
-
-export interface ProjectLikeCountResult {
-  count: number
-  liked: boolean
 }

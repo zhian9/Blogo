@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Select, Input, Pagination, Spin, Empty, Tag, Button } from 'antd'
 import {
-  SearchOutlined, StarFilled, EyeOutlined, LikeOutlined,
+  SearchOutlined, StarFilled, EyeOutlined, GithubOutlined, LinkOutlined,
   ClockCircleOutlined, PlusOutlined,
 } from '@ant-design/icons'
 import { motion } from 'framer-motion'
@@ -27,7 +27,6 @@ const PROJECT_STATES = [
 const SORT_OPTIONS = [
   { value: 'latest', label: '最新发布' },
   { value: 'hot', label: '最多浏览' },
-  { value: 'most_liked', label: '最多点赞' },
 ]
 
 const STATE_COLOR_MAP: Record<string, string> = {
@@ -67,7 +66,7 @@ export default function Projects() {
   const [search, setSearch] = useState('')
   const [projectState, setProjectState] = useState('')
   const [categoryId, setCategoryId] = useState<string | undefined>()
-  const [sortBy, setSortBy] = useState<'latest' | 'hot' | 'most_liked'>('latest')
+  const [sortBy, setSortBy] = useState<'latest' | 'hot'>('latest')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -110,8 +109,6 @@ export default function Projects() {
     // Front-end sort fallback
     if (sortBy === 'hot') {
       list.sort((a, b) => (b.views || 0) - (a.views || 0))
-    } else if (sortBy === 'most_liked') {
-      list.sort((a, b) => (b.like_count || 0) - (a.like_count || 0))
     }
 
     return list
@@ -560,18 +557,46 @@ export default function Projects() {
                             <EyeOutlined /> {project.views || 0}
                           </span>
 
-                          <span
-                            style={{
-                              fontSize: 12,
-                              color: 'rgba(255,255,255,0.35)',
-                              fontFamily: "'Barlow', sans-serif",
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 4,
-                            }}
-                          >
-                            <LikeOutlined /> {project.like_count || 0}
-                          </span>
+                          {project.github_url && (
+                            <span
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                window.open(project.github_url as string, '_blank')
+                              }}
+                              style={{
+                                fontSize: 12,
+                                color: 'rgba(255,255,255,0.45)',
+                                fontFamily: "'Barlow', sans-serif",
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <GithubOutlined /> 仓库
+                            </span>
+                          )}
+                          {project.demo_url && (
+                            <span
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                window.open(project.demo_url as string, '_blank')
+                              }}
+                              style={{
+                                fontSize: 12,
+                                color: 'rgba(255,255,255,0.45)',
+                                fontFamily: "'Barlow', sans-serif",
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <LinkOutlined /> 演示
+                            </span>
+                          )}
 
                           <span
                             style={{

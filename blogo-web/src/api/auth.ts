@@ -16,11 +16,6 @@ export async function register(data: RegisterRequest) {
   return res.data
 }
 
-export async function refreshToken() {
-  const res = await client.post<ApiResponse<LoginToken>>('/current/refresh-token')
-  return res.data
-}
-
 export async function getCurrentUser() {
   const res = await client.get<ApiResponse<AuthUser>>('/current/user')
   return res.data

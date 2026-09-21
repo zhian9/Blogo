@@ -2,9 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   getProjects, getProjectBySlug, getFeaturedProjects, incProjectViews,
   createProject, updateProject, deleteProject,
-  getProjectLikeStatus, likeProject, unlikeProject,
-  getProjectFavoriteStatus, favoriteProject, unfavoriteProject,
-  getProjectTimeline, getProjectResources,
 } from '../api/projects'
 import type { ProjectListParams } from '../api/projects'
 import type { ProjectForm } from '../types'
@@ -79,85 +76,5 @@ export function useDeleteProject() {
       queryClient.invalidateQueries({ queryKey: ['project'] })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
     },
-  })
-}
-
-// Like
-export function useProjectLikeStatus(id: string) {
-  return useQuery({
-    queryKey: ['project-like', id],
-    queryFn: () => getProjectLikeStatus(id),
-    enabled: !!id,
-    staleTime: 30_000,
-  })
-}
-
-export function useLikeProject() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => likeProject(id),
-    onSuccess: (_d, id) => {
-      queryClient.invalidateQueries({ queryKey: ['project-like', id] })
-    },
-  })
-}
-
-export function useUnlikeProject() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => unlikeProject(id),
-    onSuccess: (_d, id) => {
-      queryClient.invalidateQueries({ queryKey: ['project-like', id] })
-    },
-  })
-}
-
-// Favorite
-export function useProjectFavoriteStatus(id: string) {
-  return useQuery({
-    queryKey: ['project-fav', id],
-    queryFn: () => getProjectFavoriteStatus(id),
-    enabled: !!id,
-    staleTime: 30_000,
-  })
-}
-
-export function useFavoriteProject() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => favoriteProject(id),
-    onSuccess: (_d, id) => {
-      queryClient.invalidateQueries({ queryKey: ['project-fav', id] })
-    },
-  })
-}
-
-export function useUnfavoriteProject() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => unfavoriteProject(id),
-    onSuccess: (_d, id) => {
-      queryClient.invalidateQueries({ queryKey: ['project-fav', id] })
-    },
-  })
-}
-
-// Timeline
-export function useProjectTimeline(id: string) {
-  return useQuery({
-    queryKey: ['project-timeline', id],
-    queryFn: () => getProjectTimeline(id),
-    enabled: !!id,
-    staleTime: 120_000,
-  })
-}
-
-// Resources
-export function useProjectResources(id: string) {
-  return useQuery({
-    queryKey: ['project-resources', id],
-    queryFn: () => getProjectResources(id),
-    enabled: !!id,
-    staleTime: 120_000,
   })
 }

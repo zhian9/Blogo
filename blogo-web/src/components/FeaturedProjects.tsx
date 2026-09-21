@@ -4,7 +4,6 @@ import { Tag, Empty, Spin } from 'antd'
 import {
   StarOutlined,
   EyeOutlined,
-  HeartOutlined,
   GithubOutlined,
   LinkOutlined,
 } from '@ant-design/icons'
@@ -137,7 +136,6 @@ function FeaturedProjectCard({ project, index }: { project: Project; index: numb
             {/* Meta */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
               <span><EyeOutlined /> {project.views?.toLocaleString()}</span>
-              <span><HeartOutlined /> {project.like_count}</span>
               {project.github_url && <GithubOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
               {project.demo_url && <LinkOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
             </div>

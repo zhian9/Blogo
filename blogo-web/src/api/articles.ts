@@ -23,11 +23,6 @@ export async function getArticleBySlug(slug: string) {
   return res.data
 }
 
-export async function getArticleById(id: string) {
-  const res = await client.get<ApiResponse<Article>>(`/articles/${id}`)
-  return res.data
-}
-
 export async function getArchives() {
   const res = await client.get<ApiResponse<ArchiveItem[]>>('/archives')
   return res.data
