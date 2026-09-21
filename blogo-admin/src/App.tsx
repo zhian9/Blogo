@@ -23,7 +23,6 @@ import MediaLibrary from './pages/media/MediaLibrary'
 import Profile from './pages/profile/Profile'
 import Forbidden from './pages/errors/Forbidden'
 import ProjectList from './pages/projects/ProjectList'
-import ProjectEdit from './pages/projects/ProjectEdit'
 
 export default function App() {
   return (
@@ -46,8 +45,6 @@ export default function App() {
         <Route path="/categories" element={<CategoryManage />} />
         <Route path="/tags" element={<TagManage />} />
         <Route path="/projects" element={<ProjectList />} />
-        <Route path="/projects/new" element={<ProjectEdit />} />
-        <Route path="/projects/:id" element={<ProjectEdit />} />
         <Route path="/comments" element={<CommentManage />} />
         <Route path="/pages" element={<PageList />} />
         <Route path="/pages/new" element={<PageEdit />} />

@@ -26,10 +26,10 @@ export default function CategoryManage() {
   const handleSave = async () => {
     try {
       const values = await form.validateFields()
-      if (editing) { await update({ id: editing.id, body: values }); message.success('Updated') }
-      else { await create(values); message.success('Created') }
+      if (editing) { await update({ id: editing.id, body: values }).unwrap(); message.success('分类已更新') }
+      else { await create(values).unwrap(); message.success('分类已创建') }
       setModalOpen(false)
-    } catch (err: any) { if (err.message) message.error(err.message) }
+    } catch (err: any) { message.error(err?.data?.error?.detail || err?.message || '保存失败') }
   }
 
   return (
@@ -48,7 +48,10 @@ export default function CategoryManage() {
             render: (_: any, r: any) => (
               <Space>
                 <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(r)}>Edit</Button>
-                <Popconfirm title="Delete?" onConfirm={async () => { try { await del(r.id) } catch {} }}>
+                <Popconfirm title="删除分类？" onConfirm={async () => {
+                  try { await del(r.id).unwrap(); message.success('分类已删除') }
+                  catch (err: any) { message.error(err?.data?.error?.detail || '删除失败') }
+                }}>
                   <Button size="small" danger icon={<DeleteOutlined />} />
                 </Popconfirm>
               </Space>

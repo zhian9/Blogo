@@ -29,10 +29,6 @@ export interface LoginToken {
   expires_at: number
 }
 
-export interface CaptchaInfo {
-  captcha_id: string
-}
-
 // ==================== User ====================
 
 export interface User {
@@ -58,18 +54,10 @@ export interface UserRole {
   id: string
   user_id: string
   role_id: string
+  // 后端返回的是扁平结构（带 role_code / role_name），role 字段仅为兼容旧结构保留
+  role_code?: string
+  role_name?: string
   role?: Role
-}
-
-export interface UserForm {
-  username: string
-  name: string
-  password?: string
-  phone: string
-  email: string
-  remark: string
-  status: 'activated' | 'freezed'
-  roles: { role_id: string }[]
 }
 
 // ==================== Role ====================
@@ -90,15 +78,6 @@ export interface RoleMenu {
   id: string
   role_id: string
   menu_id: string
-}
-
-export interface RoleForm {
-  code: string
-  name: string
-  description: string
-  sequence: number
-  status: 'enabled' | 'disabled'
-  menus?: { menu_id: string }[]
 }
 
 // ==================== Menu ====================
@@ -128,19 +107,6 @@ export interface MenuResource {
   method: string
 }
 
-export interface MenuForm {
-  code: string
-  name: string
-  description: string
-  sequence: number
-  type: 'page' | 'button'
-  path: string
-  properties: string
-  status: 'enabled' | 'disabled'
-  parent_id: string
-  resources?: { path: string; method: string }[]
-}
-
 // ==================== Article ====================
 
 export interface Article {
@@ -168,24 +134,6 @@ export interface Article {
   updated_at: string
 }
 
-export interface ArticleForm {
-  title: string
-  slug: string
-  summary: string
-  content: string
-  cover_image_id: string
-  category_id: string
-  tag_ids: string[]
-  is_top: boolean
-  status: 'draft' | 'published'
-  visibility: 'public' | 'private' | 'partial_visible'
-  visible_user_ids?: string[]
-  published_at?: string
-  seo_title: string
-  seo_keywords: string
-  seo_desc: string
-}
-
 // ==================== Category ====================
 
 export interface Category {
@@ -203,6 +151,24 @@ export interface Tag {
   name: string
   created_at: string
   updated_at: string
+  // 引用该标签的文章数量（后端列表接口附带，用于判断能否删除）
+  article_count?: number
+}
+
+// 标签引用的文章（删除标签前的提示）
+export interface TagReference {
+  id: string
+  title: string
+  slug: string
+  status: string
+  published_at: string
+}
+
+export interface TagReferences {
+  tag_id: string
+  tag_name: string
+  total: number
+  articles: TagReference[]
 }
 
 // ==================== Comment ====================
@@ -232,13 +198,6 @@ export interface Page {
   is_published: boolean
   created_at: string
   updated_at: string
-}
-
-export interface PageForm {
-  title: string
-  slug: string
-  content: string
-  is_published: boolean
 }
 
 // ==================== Setting ====================
@@ -308,8 +267,6 @@ export interface Project {
   author?: User
   tags?: Tag[]
   views: number
-  like_count: number
-  favorite_count: number
   comment_count: number
   is_top: boolean
   is_featured: boolean
@@ -320,81 +277,12 @@ export interface Project {
   github_url: string
   demo_url: string
   visible_users?: { id: string; project_id: string; user_id: string }[]
-  timeline?: ProjectTimeline[]
-  resources?: ProjectResource[]
   published_at: string
   seo_title: string
   seo_keywords: string
   seo_desc: string
   created_at: string
   updated_at: string
-}
-
-export interface ProjectForm {
-  title: string
-  slug: string
-  summary: string
-  content: string
-  cover_image_id: string
-  category_id: string
-  tag_ids: string[]
-  is_top: boolean
-  is_featured: boolean
-  featured_order: number
-  status: 'draft' | 'published'
-  visibility: 'public' | 'private' | 'partial_visible'
-  project_state: 'developing' | 'completed' | 'maintaining' | 'paused' | 'archived'
-  github_url: string
-  demo_url: string
-  visible_user_ids?: string[]
-  published_at?: string
-  seo_title: string
-  seo_keywords: string
-  seo_desc: string
-}
-
-export interface ProjectTimeline {
-  id: string
-  project_id: string
-  title: string
-  description: string
-  type: 'launch' | 'version' | 'feature' | 'milestone' | 'breaking' | 'archived'
-  version: string
-  image_id: string
-  link: string
-  event_date: string
-  sort_order: number
-  created_at: string
-  updated_at: string
-}
-
-export interface ProjectTimelineForm {
-  title: string
-  description: string
-  type: 'launch' | 'version' | 'feature' | 'milestone' | 'breaking' | 'archived'
-  version: string
-  image_id: string
-  link: string
-  event_date: string
-  sort_order: number
-}
-
-export interface ProjectResource {
-  id: string
-  project_id: string
-  title: string
-  url: string
-  type: 'document' | 'video' | 'slide' | 'article' | 'design' | 'other'
-  sort_order: number
-  created_at: string
-  updated_at: string
-}
-
-export interface ProjectResourceForm {
-  title: string
-  url: string
-  type: 'document' | 'video' | 'slide' | 'article' | 'design' | 'other'
-  sort_order: number
 }
 
 export interface Image {

@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import type { ApiResponse, User, Role, Menu, Article, Category, Tag, Comment, Page, Setting, Logger, OperationLog, Statistics, Project, ProjectTimeline, ProjectResource } from '../types'
+import type { ApiResponse, User, Role, Menu, Article, Category, Tag, TagReferences, Comment, Page, Setting, Logger, OperationLog, Statistics, Project } from '../types'
 
 const baseQuery = fetchBaseQuery({
   baseUrl: '/api/v1',
@@ -13,7 +13,7 @@ const baseQuery = fetchBaseQuery({
 export const api = createApi({
   reducerPath: 'api',
   baseQuery,
-  tagTypes: ['Articles', 'Users', 'Roles', 'Menus', 'Categories', 'Tags', 'Comments', 'Pages', 'Settings', 'Logs', 'Projects', 'ProjectTimeline', 'ProjectResources'],
+  tagTypes: ['Articles', 'Users', 'Roles', 'Menus', 'Categories', 'Tags', 'Comments', 'Pages', 'Settings', 'Logs', 'Projects'],
   endpoints: (builder) => ({
     // ============ Articles ============
     getArticles: builder.query<ApiResponse<Article[]>, Record<string, any>>({
@@ -145,6 +145,10 @@ export const api = createApi({
       query: (id) => ({ url: `/tags/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Tags'],
     }),
+    getTagReferences: builder.query<ApiResponse<TagReferences>, string>({
+      query: (id) => `/tags/${id}/references`,
+      providesTags: ['Tags'],
+    }),
 
     // ============ Comments ============
     getComments: builder.query<ApiResponse<Comment[]>, Record<string, any>>({
@@ -227,14 +231,6 @@ export const api = createApi({
       query: (id) => `/projects/${id}`,
       providesTags: (_r, _e, id) => [{ type: 'Projects', id }],
     }),
-    createProject: builder.mutation<ApiResponse<Project>, Partial<Project>>({
-      query: (body) => ({ url: '/projects', method: 'POST', body }),
-      invalidatesTags: ['Projects'],
-    }),
-    updateProject: builder.mutation<ApiResponse<void>, { id: string; body: Partial<Project> }>({
-      query: ({ id, body }) => ({ url: `/projects/${id}`, method: 'PUT', body }),
-      invalidatesTags: ['Projects'],
-    }),
     deleteProject: builder.mutation<ApiResponse<void>, string>({
       query: (id) => ({ url: `/projects/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Projects'],
@@ -252,41 +248,6 @@ export const api = createApi({
       invalidatesTags: ['Projects'],
     }),
 
-    // ============ Project Timeline ============
-    getProjectTimeline: builder.query<ApiResponse<ProjectTimeline[]>, string>({
-      query: (projectId) => `/projects/${projectId}/timeline`,
-      providesTags: ['ProjectTimeline'],
-    }),
-    createTimelineEntry: builder.mutation<ApiResponse<ProjectTimeline>, { projectId: string; body: Partial<ProjectTimeline> }>({
-      query: ({ projectId, body }) => ({ url: `/projects/${projectId}/timeline`, method: 'POST', body }),
-      invalidatesTags: ['ProjectTimeline', 'Projects'],
-    }),
-    updateTimelineEntry: builder.mutation<ApiResponse<void>, { projectId: string; tid: string; body: Partial<ProjectTimeline> }>({
-      query: ({ projectId, tid, body }) => ({ url: `/projects/${projectId}/timeline/${tid}`, method: 'PUT', body }),
-      invalidatesTags: ['ProjectTimeline'],
-    }),
-    deleteTimelineEntry: builder.mutation<ApiResponse<void>, { projectId: string; tid: string }>({
-      query: ({ projectId, tid }) => ({ url: `/projects/${projectId}/timeline/${tid}`, method: 'DELETE' }),
-      invalidatesTags: ['ProjectTimeline'],
-    }),
-
-    // ============ Project Resources ============
-    getProjectResources: builder.query<ApiResponse<ProjectResource[]>, string>({
-      query: (projectId) => `/projects/${projectId}/resources`,
-      providesTags: ['ProjectResources'],
-    }),
-    createProjectResource: builder.mutation<ApiResponse<ProjectResource>, { projectId: string; body: Partial<ProjectResource> }>({
-      query: ({ projectId, body }) => ({ url: `/projects/${projectId}/resources`, method: 'POST', body }),
-      invalidatesTags: ['ProjectResources'],
-    }),
-    updateProjectResource: builder.mutation<ApiResponse<void>, { projectId: string; rid: string; body: Partial<ProjectResource> }>({
-      query: ({ projectId, rid, body }) => ({ url: `/projects/${projectId}/resources/${rid}`, method: 'PUT', body }),
-      invalidatesTags: ['ProjectResources'],
-    }),
-    deleteProjectResource: builder.mutation<ApiResponse<void>, { projectId: string; rid: string }>({
-      query: ({ projectId, rid }) => ({ url: `/projects/${projectId}/resources/${rid}`, method: 'DELETE' }),
-      invalidatesTags: ['ProjectResources'],
-    }),
   }),
 })
 
@@ -298,16 +259,14 @@ export const {
   useGetRolesQuery, useCreateRoleMutation, useUpdateRoleMutation, useDeleteRoleMutation,
   useGetMenusQuery, useCreateMenuMutation, useUpdateMenuMutation, useDeleteMenuMutation,
   useGetCategoriesQuery, useCreateCategoryMutation, useUpdateCategoryMutation, useDeleteCategoryMutation,
-  useGetTagsQuery, useCreateTagMutation, useUpdateTagMutation, useDeleteTagMutation,
+  useGetTagsQuery, useCreateTagMutation, useUpdateTagMutation, useDeleteTagMutation, useGetTagReferencesQuery,
   useGetCommentsQuery, useApproveCommentMutation, useRejectCommentMutation, useDeleteCommentMutation, useGetCommentStatsQuery,
   useGetPagesQuery, useCreatePageMutation, useUpdatePageMutation, useDeletePageMutation,
   useGetSettingsQuery, useUpdateSettingMutation,
   useGetLogsQuery,
   useGetOperationLogsQuery,
   useGetStatisticsQuery, useGetTrafficQuery,
-  useGetProjectsQuery, useGetProjectQuery, useCreateProjectMutation, useUpdateProjectMutation,
+  useGetProjectsQuery, useGetProjectQuery,
   useDeleteProjectMutation, useBatchUpdateProjectStatusMutation, useToggleProjectTopMutation,
   useToggleProjectFeaturedMutation,
-  useGetProjectTimelineQuery, useCreateTimelineEntryMutation, useUpdateTimelineEntryMutation, useDeleteTimelineEntryMutation,
-  useGetProjectResourcesQuery, useCreateProjectResourceMutation, useUpdateProjectResourceMutation, useDeleteProjectResourceMutation,
 } = api

@@ -46,13 +46,13 @@ export default function CommentManage() {
   useEffect(() => { refetch() }, [activeTab, refetch])
 
   const handleApprove = async (id: string) => {
-    try { await approve(id); message.success('已通过审核'); refetch() } catch (err: any) { message.error(err.message) }
+    try { await approve(id).unwrap(); message.success('已通过审核'); refetch() } catch (err: any) { message.error(err?.data?.error?.detail || '操作失败') }
   }
   const handleReject = async (id: string) => {
-    try { await reject(id); message.success('已标记为垃圾评论'); refetch() } catch (err: any) { message.error(err.message) }
+    try { await reject(id).unwrap(); message.success('已标记为垃圾评论'); refetch() } catch (err: any) { message.error(err?.data?.error?.detail || '操作失败') }
   }
   const handleDelete = async (id: string) => {
-    try { await del(id); message.success('已删除'); refetch() } catch (err: any) { message.error(err.message) }
+    try { await del(id).unwrap(); message.success('已删除'); refetch() } catch (err: any) { message.error(err?.data?.error?.detail || '删除失败') }
   }
 
   const handleBatchApprove = async () => {

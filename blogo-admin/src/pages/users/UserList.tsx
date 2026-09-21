@@ -16,7 +16,7 @@ import {
 } from '../../store/api'
 import { useGetRolesQuery } from '../../store/api'
 import dayjs from '../../utils/dayjs'
-import type { User } from '../../types'
+import type { User, UserRole } from '../../types'
 
 const { Title, Text } = Typography
 
@@ -80,16 +80,20 @@ export default function UserList() {
   const total = data?.total || 0
   const roles = rolesData?.data || []
 
+  // 后端 user.roles 是扁平结构（{ role_id, role_code, role_name }），
+  // 早期前端读的是嵌套的 role.code，导致角色永远取不到、列表里显示不出真实角色。
+  const roleCodeOf = (r: UserRole) => r.role_code || r.role?.code || ''
+
   const stats = useMemo(() => ({
     total: total,
-    superAdmin: users.filter(u => u.roles?.some(r => ((r.role?.code)) === 'super_admin' || ((r.role?.code)) === 'admin')).length,
-    contentMgr: users.filter(u => u.roles?.some(r => ((r.role?.code)) === 'content_manager')).length,
+    superAdmin: users.filter(u => u.roles?.some(r => roleCodeOf(r) === 'super_admin' || roleCodeOf(r) === 'admin')).length,
+    contentMgr: users.filter(u => u.roles?.some(r => roleCodeOf(r) === 'content_manager')).length,
     banned: users.filter(u => u.status === 'freezed').length,
   }), [users, total])
 
   const getUserRole = (u: User) => {
     if (u.id === 'root') return { code: 'super_admin', label: '超级管理员' }
-    const codes = (u.roles || []).map(r => (r.role?.code) || '')
+    const codes = (u.roles || []).map(roleCodeOf)
     if (codes.includes('super_admin') || codes.includes('admin')) return { code: 'super_admin', label: '超级管理员' }
     if (codes.includes('content_manager')) return { code: 'content_manager', label: '内容管理员' }
     if (codes.includes('comment_moderator')) return { code: 'comment_moderator', label: '评论审核员' }

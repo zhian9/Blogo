@@ -1,11 +1,10 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
   Table, Button, Space, Tag, Input, Select, message, Modal,
-  Row, Col, Card, Statistic, Switch, Popconfirm, Popover, Image,
+  Row, Col, Card, Statistic, Switch, Popconfirm, Popover,
 } from 'antd'
 import {
-  PlusOutlined, DeleteOutlined, EditOutlined,
+  DeleteOutlined,
   SearchOutlined, ReloadOutlined,
   AppstoreOutlined, CheckCircleOutlined, CodeOutlined, FireOutlined,
   PictureOutlined, LockOutlined, GlobalOutlined,
@@ -16,8 +15,7 @@ import {
 } from '../../store/api'
 import { useAppSelector } from '../../store'
 import dayjs from '../../utils/dayjs'
-import { getUserRoleCode } from '../../components/ProtectedRoute'
-import type { Project, ApiResponse } from '../../types'
+import type { Project } from '../../types'
 
 // ── Styles ──
 const cardStyle = { borderRadius: 14, background: 'rgba(20,20,40,0.6)', border: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(8px)' }
@@ -40,7 +38,6 @@ const projectStateLabel: Record<string, string> = {
 }
 
 export default function ProjectList() {
-  const navigate = useNavigate()
   const user = useAppSelector((s) => s.auth.user)
   const [params, setParams] = useState({ current: 1, pageSize: 10 })
   const [searchTitle, setSearchTitle] = useState('')
@@ -240,7 +237,9 @@ export default function ProjectList() {
       title: '操作', key: 'actions', width: 150,
       render: (_: any, r: Project) => canManage(r) ? (
         <Space size={4}>
-          <Button size="small" type="primary" ghost icon={<EditOutlined />} onClick={() => navigate(`/projects/${r.id}`)}>编辑</Button>
+          {r.status === 'published' && (
+            <Button size="small" type="link" onClick={() => window.open(`/project/${r.slug}`, '_blank')}>查看</Button>
+          )}
           <Popconfirm
             title="确认删除"
             description={<span>确定要删除《<strong style={{ color: '#ff4d4f' }}>{r.title}</strong>》吗？此操作<strong>不可恢复</strong>。</span>}
@@ -315,7 +314,6 @@ export default function ProjectList() {
       {/* ── Batch actions ── */}
       <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Space>
-          <Button icon={<PlusOutlined />} type="primary" onClick={() => navigate('/projects/new')} style={{ borderRadius: 8 }}>新增项目</Button>
           <Button onClick={handleBatchPublish} disabled={selectedRowKeys.length === 0} style={{ borderRadius: 8 }}>批量发布</Button>
           <Button onClick={handleBatchDraft} disabled={selectedRowKeys.length === 0} style={{ borderRadius: 8 }}>批量草稿</Button>
           <Popconfirm title={`确定要删除 ${selectedRowKeys.length} 个项目？`} onConfirm={handleBatchDelete} okText="删除" okType="danger" disabled={selectedRowKeys.length === 0}>

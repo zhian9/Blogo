@@ -36,7 +36,10 @@ export default function PageList() {
             render: (_: any, r: any) => (
               <Space>
                 <Button size="small" icon={<EditOutlined />} onClick={() => navigate(`/pages/${r.id}`)}>Edit</Button>
-                <Popconfirm title="Delete?" onConfirm={async () => { try { await del(r.id); message.success('Deleted') } catch {} }}>
+                <Popconfirm title="删除页面？" onConfirm={async () => {
+                  try { await del(r.id).unwrap(); message.success('页面已删除') }
+                  catch (err: any) { message.error(err?.data?.error?.detail || '删除失败') }
+                }}>
                   <Button size="small" danger icon={<DeleteOutlined />} />
                 </Popconfirm>
               </Space>

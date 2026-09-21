@@ -24,10 +24,11 @@ export default function PageEdit() {
 
   const onFinish = async (values: any) => {
     try {
-      if (isEdit) { await update({ id: id!, body: values }); message.success('Updated') }
-      else { await create(values); message.success('Created') }
+      // .unwrap() 不能省：RTK Query 的 mutation 默认不抛错，不 unwrap 时保存失败也会提示成功
+      if (isEdit) { await update({ id: id!, body: values }).unwrap(); message.success('页面已更新') }
+      else { await create(values).unwrap(); message.success('页面已创建') }
       navigate('/pages')
-    } catch (err: any) { message.error(err.message) }
+    } catch (err: any) { message.error(err?.data?.error?.detail || err?.message || '保存失败') }
   }
 
   if (isEdit && isLoading) return <div style={{ textAlign: 'center', padding: 80 }}><Spin size="large" /></div>

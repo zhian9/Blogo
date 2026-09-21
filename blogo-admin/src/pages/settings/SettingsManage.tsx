@@ -28,7 +28,7 @@ export default function SettingsManage() {
       await update({ key: editing.key, body: values }).unwrap()
       message.success('Updated')
       setModalOpen(false)
-    } catch (err: any) { if (err.message) message.error(err.message) }
+    } catch (err: any) { message.error(err?.data?.error?.detail || err?.message || '保存失败') }
   }
 
   return (
@@ -50,10 +50,12 @@ export default function SettingsManage() {
         ]}
       />
 
-      <Modal title="Edit Setting" open={modalOpen} onOk={handleSave} onCancel={() => setModalOpen(false)}>
+      <Modal title="Edit Setting" open={modalOpen} onOk={handleSave} onCancel={() => setModalOpen(false)} width={760}>
         <Form form={form} layout="vertical">
           <Form.Item label="Key"><Input value={editing?.key} disabled /></Form.Item>
-          <Form.Item name="value" label="Value" rules={[{ required: true }]}><Input.TextArea rows={4} /></Form.Item>
+          <Form.Item name="value" label="Value">
+            <Input.TextArea autoSize={{ minRows: 4, maxRows: 20 }} />
+          </Form.Item>
           <Form.Item name="description" label="Description"><Input /></Form.Item>
         </Form>
       </Modal>
